@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import time
 from dotenv import load_dotenv
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.memory import init_memory
@@ -44,7 +45,16 @@ if user_input:
 
         # Update session memory
         st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+        # Typing animation for assistant response
+        placeholder = st.empty()
+        animated_response = ""
+        for word in response.split():
+            animated_response += word + " "
+            placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
+            time.sleep(0.05)
         st.session_state.chat_history.append({"role": "assistant", "content": response})
+
         st.session_state.related_questions = related
         st.session_state.last_department = department
 
@@ -63,8 +73,18 @@ if st.session_state.related_questions:
     for q in st.session_state.related_questions:
         if st.button(q):
             st.session_state.chat_history.append({"role": "user", "content": q})
-            response, department, score, related = find_response(q, dataset, embeddings)
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-            st.session_state.related_questions = related
-            st.session_state.last_department = department
-            st.experimental_rerun()
+            with st.spinner("Thinking..."):
+                response, department, score, related = find_response(q, dataset, embeddings)
+
+                # Typing animation for assistant response to related question
+                placeholder = st.empty()
+                animated_response = ""
+                for word in response.split():
+                    animated_response += word + " "
+                    placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
+                    time.sleep(0.05)
+                st.session_state.chat_history.append({"role": "assistant", "content": response})
+
+                st.session_state.related_questions = related
+                st.session_state.last_department = department
+                st.experimental_rerun()

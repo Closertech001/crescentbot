@@ -19,7 +19,7 @@ if "chat_history" not in st.session_state:
 @st.cache_resource(show_spinner=False)
 def get_bot_resources():
     model = load_model()
-    dataset = load_dataset("data/crescent_qa.json")
+    dataset = load_dataset()  # Removed argument since load_dataset has no parameter
     embeddings = compute_question_embeddings(dataset["question"].tolist(), model)
     return model, dataset, embeddings
 

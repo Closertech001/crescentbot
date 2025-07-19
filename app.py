@@ -1,18 +1,18 @@
 import streamlit as st
 import os
+import time
 from dotenv import load_dotenv
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.memory import init_memory
 from utils.search import find_response
 from utils.log_utils import log_query
-import time
 
-# Load environment variables (for OpenAI API key)
+# Load environment variables
 load_dotenv()
 import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Apply custom CSS style
+# Apply custom CSS
 with open("assets/style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -39,11 +39,11 @@ user_input = st.text_input("💬 Type your question here:")
 if user_input:
     with st.spinner("Thinking..."):
         response, department, score, related = find_response(user_input, dataset, embeddings)
+
+        # Save log
         log_query(user_input, score)
 
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-
-        # Typing animation for assistant response
+        # Typing animation for assistant
         placeholder = st.empty()
         animated_response = ""
         for word in response.split():
@@ -51,10 +51,11 @@ if user_input:
             placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
             time.sleep(0.05)
 
+        # Update session memory
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
         st.session_state.chat_history.append({"role": "assistant", "content": response})
         st.session_state.related_questions = related
         st.session_state.last_department = department
-        st.experimental_rerun()
 
 # Display chat history
 for msg in st.session_state.chat_history:
@@ -67,30 +68,27 @@ if st.session_state.last_department:
 
 # Show related questions
 if st.session_state.related_questions:
-    with st.spinner("Finding related questions..."):
-        time.sleep(0.8)
-        st.markdown("**🔁 Related Questions:**")
+    st.markdown("**🔁 Related Questions:**")
+    for i, q in enumerate(st.session_state.related_questions):
+        if st.button(q, key=f"related_{i}"):
+            st.session_state.chat_history.append({"role": "user", "content": q})
+            response, department, score, related = find_response(q, dataset, embeddings)
 
-        for i, q in enumerate(st.session_state.related_questions):
-            if st.button(q, key=f"related_{i}"):
-                st.session_state.chat_history.append({"role": "user", "content": q})
-                response, department, score, related = find_response(q, dataset, embeddings)
+            # Typing animation for assistant response to related question
+            placeholder = st.empty()
+            animated_response = ""
+            for word in response.split():
+                animated_response += word + " "
+                placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
+                time.sleep(0.05)
 
-                # Typing animation for assistant response to related question
-                placeholder = st.empty()
-                animated_response = ""
-                for word in response.split():
-                    animated_response += word + " "
-                    placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
-                    time.sleep(0.05)
+            st.session_state.chat_history.append({"role": "assistant", "content": response})
+            st.session_state.related_questions = related
+            st.session_state.last_department = department
+            st.session_state.trigger_rerun = True
+            st.stop()
 
-                st.session_state.chat_history.append({"role": "assistant", "content": response})
-                st.session_state.related_questions = related
-                st.session_state.last_department = department
-                st.session_state.trigger_rerun = True
-                break
-
-# Trigger rerun outside the loop
+# Safe rerun trigger (must be at the end)
 if st.session_state.get("trigger_rerun"):
     st.session_state.trigger_rerun = False
     st.experimental_rerun()

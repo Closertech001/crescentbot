@@ -1,40 +1,44 @@
-# ---web.py ---
 import streamlit as st
+import os
 import uuid
-from utils.preprocessing import preprocess_text, normalize_text
-from utils.rag_engine import (
-    load_model, load_data, compute_question_embeddings,
-    find_response, fallback_openai
-)
-from utils.constants import abbreviations, department_map
+import openai
+from dotenv import load_dotenv
 
+from utils.embedding import load_model, load_data, compute_question_embeddings
+from utils.preprocess import preprocess_text
+from utils.search import find_response
+from utils.memory import init_memory
+from utils.log_utils import log_query
+
+# --- Load Environment Variables ---
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# --- Page Settings ---
 st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓")
 
+# --- Initialize Session Memory ---
+init_memory()
+
+# --- Load Model & Data ---
 model = load_model()
 dataset = load_data()
-question_list = dataset['question'].tolist()
-question_embeddings = compute_question_embeddings(question_list)
-
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-if "related_questions" not in st.session_state:
-    st.session_state.related_questions = []
-if "last_department" not in st.session_state:
-    st.session_state.last_department = None
+question_embeddings = compute_question_embeddings(dataset["question"].tolist())
 
 # --- Sidebar ---
 with st.sidebar:
+    st.markdown("### 💬 CrescentBot")
     if st.button("🧹 Clear Chat"):
         st.session_state.chat_history = []
         st.session_state.related_questions = []
         st.session_state.last_department = None
         st.rerun()
 
-# --- Title and Styles ---
+# --- Styles ---
 st.markdown("""
 <style>
-    html, body, .stApp { font-family: 'Open Sans', sans-serif; }
-    h1, h2, h3, h4, h5 { font-family: 'Merriweather', serif; color: #004080; }
+    html, body, .stApp { font-family: 'Segoe UI', sans-serif; }
+    h1 { color: #004080; }
     .chat-message-user {
         background-color: #d6eaff;
         padding: 12px;
@@ -65,52 +69,55 @@ st.markdown("""
         cursor: pointer;
     }
     .department-label {
-        font-family: 'Merriweather', serif;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: #004080;
         font-style: italic;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.title(":mortar_board: Crescent University Chatbot")
+# --- Title ---
+st.title("🎓 Crescent University Chatbot")
 
-# --- Chat History Render ---
-for message in st.session_state.chat_history:
-    role_class = "chat-message-user" if message["role"] == "user" else "chat-message-assistant"
-    with st.chat_message(message["role"]):
-        st.markdown(f'<div class="{role_class}">{message["content"]}</div>', unsafe_allow_html=True)
-        if message["role"] == "assistant" and st.session_state.last_department:
-            dept_label = st.session_state.last_department.title()
-            st.markdown(f'<div class="department-label">Department: {dept_label}</div>', unsafe_allow_html=True)
+# --- Render Chat ---
+for msg in st.session_state.chat_history:
+    css_class = "chat-message-user" if msg["role"] == "user" else "chat-message-assistant"
+    with st.chat_message(msg["role"]):
+        st.markdown(f'<div class="{css_class}">{msg["content"]}</div>', unsafe_allow_html=True)
+        if msg["role"] == "assistant" and st.session_state.last_department:
+            st.markdown(f'<div class="department-label">Department: {st.session_state.last_department}</div>', unsafe_allow_html=True)
 
-# --- Chat Input ---
-prompt = st.chat_input("Ask me anything about Crescent University...")
+# --- User Input ---
+user_input = st.chat_input("Ask me anything about Crescent University...")
 
-if prompt and prompt.strip():
-    st.session_state.chat_history.append({"role": "user", "content": prompt})
-    matched_row = dataset[dataset['question'].str.lower() == prompt.lower()]
+if user_input:
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+    matched_row = dataset[dataset['question'].str.lower() == user_input.lower()]
     if not matched_row.empty:
-        answer = matched_row.iloc[0]['answer']
+        response = matched_row.iloc[0]['answer']
         department = None
         related = []
+        score = 1.0
     else:
-        answer, department, score, related = find_response(prompt, dataset, question_embeddings)
+        response, department, score, related = find_response(user_input, dataset, question_embeddings)
 
-    st.session_state.chat_history.append({"role": "assistant", "content": answer})
+    st.session_state.chat_history.append({"role": "assistant", "content": response})
     st.session_state.related_questions = related
     st.session_state.last_department = department
+
+    log_query(user_input, score)
     st.rerun()
 
-# --- Related Questions ---
+# --- Related Suggestions ---
 if st.session_state.related_questions:
     st.markdown("#### 💡 You might also ask:")
     for q in st.session_state.related_questions:
-        unique_key = f"{uuid.uuid4().hex}"
-        if st.button(q, key=f"related_{unique_key}", use_container_width=True):
+        if st.button(q, key=f"related_{uuid.uuid4().hex}", use_container_width=True):
             st.session_state.chat_history.append({"role": "user", "content": q})
-            answer, department, score, related = find_response(q, dataset, question_embeddings)
-            st.session_state.chat_history.append({"role": "assistant", "content": answer})
+            response, department, score, related = find_response(q, dataset, question_embeddings)
+            st.session_state.chat_history.append({"role": "assistant", "content": response})
             st.session_state.related_questions = related
             st.session_state.last_department = department
+            log_query(q, score)
             st.rerun()

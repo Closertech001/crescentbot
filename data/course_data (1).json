@@ -1,0 +1,220 @@
+{
+  "Anatomy": {
+    "100": {
+      "first": "General Biology I (BIO 101) Unit:3 | General Biology Practical I (BIO 191) Unit:1 | General Chemistry I (CHM 101) Unit:3 | General Chemistry Practical I (CHM 191) Unit:1 | Introduction to Computer Science (CPS 101) Unit:2 | Use of English (GNS 101) Unit:2 | Nigerian Peoples and Culture (GNS 105) Unit:1 | Use of Library (LIB 101) Unit:1 | Contemporary Health Issues (GNS 107) Unit:2 | General Mathematics I (MTS 101) Unit:3 | General Physics I (PHS 101) Unit:3 | General Physics Practical I (PHS 191) Unit:1 | Philosophy of Islam I (GNS 103) Unit:1 | Introduction to Business Solution using MS - Office (MS Word) I (CCC 101) | Total Units:24 ",
+      "second": "General Biology Practical II (BIO 192) Unit:1 | General Biology II (BIO 101) Unit:3 | General Chemistry II (CHM 102) Umit:3 | General Chemistry Practical II (CHM 192) Unit:1 | Logic, Philosophy and Human Existence (GNS 102) Unit:2 |  General Mathematics I (MTS 102) Unit:3 | General Physics II (PHS 102) Unit:3 | General Physics Practical II (PHS 192) Unit: 1| Introduction to Political Science for Basic Sciences (PIS 110) Unit:2 | Philosophy of Islam II (GNS 104) Unit:1 | History and Philosophy of Science (GNS 106) Unit:1 | Introduction to Business Solution using MS - Office (MS Word) II (CCC 102) Unit:1 |Total Units: 22"
+    },
+    "200": {
+      "first": "Introductory Anatomy (ANA 201) Unit:2 | Gross Anatomy of Upper Limb (ANA 203) Unit:2 | Gross Anatomy of lower Limb (ANA 205) Unit:2 | Histology of Basic Tissues (ANA 207) Unit:2 | General Embryology (ANA 209) Unit:2 | Biochemistry- Chemistry of Carbohydrates, Lipids and Proteins(BCH 205) Unit:2 | Physiology of Blood Fluids, Blood and Cardiovascular System (PHY 207) Unit:2 | Physiology of Respiratory, Renal, GIT and Automatic NS (PHY 209) Unit:2 | Information and Communication Technology and Bioinformatics (ICT 201) Unit:2 | Elective Language Unit:1 | Introduction Entrepreneurial Studies (GNS 205) Unit:1 | Introduction to Business Solution using MS- Office (Excel) I (CCC 201) | Total Units: 20",
+      "second": "Gross Anatomy of Thorax (ANA 202) Unit:2 | Gross Anatomy of Pelvic and Perineum (ANA 204) Unit:2 | Systematics Histology (Organology) (ANA 206) Unit:2 | Systemic Embryology (Organogenesis) (ANA 208) Unit:2 | Biochemistry-Metabolism of Carbohydrates (BCH 206) Unit:2 | Medical Biochemistry Practical (BCH 212) Unit:1 | Physiology of Reproductive and Endocrine Organs (PHY 212) Unit:2 | Biostatistics (CHS 202) Unit:2 | Practical Entrepreneurial Skills (GNS 206) Unit:1 | Communication Skills (GNS 208) Unit:2 | Elective Language Unit:1 | Introduction to Business Solution using MS- Office (Excel) II (CCC 202) Unit:1 | Total Units:20 "
+    },
+    "300": {
+      "first": "Gross Anatomy of Head andNeck (ANA 301) Unit:2 | Neuroanatomy (ANA 303) Unit:2 | Histology of Special Senses & Neurohistology (ANA 305) Unit:2 | cNeuroembryology and Development of Pharyngeal Apparatus (ANA 307) Unit:1 | Laboratory Techniques for Light Microscope (ANA 309) Unit:3 | Human Genetics (ANA 315) Unit:2 | Laboratory Work Experience I (SIWES 1) (ANA 399) Unit:3 | Physiology of Excitable Tissues, Nerve, Muscle,CNS, Special Senses (PHY 305) Unit:2 | Global Peace and Conflict Resolution (GNS 301) Unit:2 | Customer Relationship Management I (CCC 303) | Total Units:20 ",
+      "second": "Radiologic Anatomy andTechniques (ANA 302) Unit:2 | Histochemistry and Cytochemistry (ANA 304) Unit:3 | Cell and Molecular Biology (ANA 306) Unit:2 | Embryological Mechanism, Teratology and Reproductive Techniques (ANA 308) Unit:2 | Research Methods and Research Ethics in Biomedical Sciences(ANA 310) Unit:2 | Animal Handling and Comparative Mammalian Gross Anatomy(ANA 312) Unit:3 | Gross Anatomy of Abdomen and Back (ANA 314) Unit:3 | Principles of Endocrinology (ANA 316) Unit:2 | Pharmacology of Organ Systems (PHA 306) Unit:2 | Customer Relationship Management II (CC 304) Unit:1 | Total Units:22"
+    },
+    "400": {
+      "first": "Surface &Prosthetic Anatomy (ANA 401) Unit:2 | Anatomical and Museum Techniques (ANA 403) Unit:4 | Introduction to Electron Microscopy (ANA 405) Unit:2 | Skeletal Biology and Anthropology (ANA 407) Unit:2 | Biometry and Human Growth (ANA 409) Unit:2 | Sports Anatomy (ANA 411) Unit:2| Seminar Topics on current trends in Anatomy (ANA 413) Unit:2 | Laboratory Work Experience II (SIWES II) (ANA 499) Unit:3 | Total Units:19",
+      "second": "Electron Microscopic Technique and Ultrastructure (ANA 402) Unit:4 | Introduction to Histopathology (ANA 404) Unit:2 | Introduction to Forensic Science (ANA 406) Unit:2 | Introduction to Archaeology (ANA 408) Unit:3 | Final Year Project (ANA 498) Unit:6 | Health Physics and Reactors (PHS 422) Unit:3 | Total Units:20"
+    }
+  },
+  "Accounting": {
+    "100": {
+      "first": "Communication in English Language (GST 111) Unit:2 | Principles of Management (AMS 101) Unit:2 | Introduction to Computing (AMS 103) Unit:2 | Introduction to Financial Accounting I (ACC 101) Unit:3 | Economic Principles for Accounting Students (CUAB-ACC 103) Unit:2 | Use of Library and Study Skills for Accounting Students (CUAB-ACC 107) Unit:2 | Islam and Contemporary Accounting Issues (CUAB-ACC 113) Unit:2 | Total Units:15",
+      "second": "Nigerian Peoples and Culture (GST 112) Unit:2 | Basic Mathematics (AMS 102) Unit:2 | Principles of Project Management (AMS 104) Unit:2 | Introduction to Financial Accounting II (ACC 102) Unit:3 | Basic Psychology for Accounting Students (CUAB-ACC 104) Unit:2 |Accounting Operations Research and Analysis (CUAB-ACC 106) Unit:2 |Business Law for Accounting Students (CUAB-ACC 108) Unit:2 | Total Units: 15"
+    },
+    "200": {
+      "first": "Entrepreneurship and Innovation (ENT 211) Unit:2 | Financial Accounting I (ACC 201) Unit:3 | Corporate Governance & Accounting Ethics (ACC 203) Unit:3 | Machine Learning for Accounting Students (CUAB-ACC 207) Unit:2 | Islamic Banking/ Zakat Accounting (CUAB-ACC 209) Unit:2 |Corporate Skills for Accounting Students (CUAB- ACC 211) Unit:2 | Accounting Software Application (CUAB-ACC 213) Unit:2 | Total Units: 16",
+      "second": "Philosophy, Logic, and Human Existence (GST 212) Unit:2 | Financial Accounting II (ACC 202) Unit:3 | Cost Accounting (ACC 204) Unit:3 | Accounting Laboratory (ACC 206) Unit:3 | Accounting Theory (CUAB-ACC 208) Unit:2 |Business Policy and Strategic Management (CUAB-ACC 212) Unit:2 | Total Units:15"
+    },
+    "300": {
+      "first": "Financial Reporting I (ACC 301) Unit:3 | Management Accounting (ACC 303) Unit:3 | Taxation I (ACC 305) Unit:3 | Auditing and Assurance I (ACC 307) Unit:3 | Entrepreneurship in Accounting (ACC 311) Unit:3 | Corporate Law for Accounting Students (CUAB-ACC 313) Unit:2 | Total Units:17",
+      "second": "Peace and Conflict Resolution (GST 312) Unit:2 | Venture Creation (ENT 312) Unit:2 | Financial Reporting I (ACC 302) Unit:3 | Taxation II (ACC 306) Unit:3 | Public Sector Accounting & Reporting (ACC 308) Unit:3 | Principles of Econometrics for Accounting Students (CUAB-ACC 314) Unit:2 |Accounting Research Methods (CUAB-ACC 320) Unit:2 | Total Units:17"
+    },
+    "400": {
+      "first": "Advanced Financial Reporting (ACC 401) Unit:3 | Auditing and Assurance II ACC 403) Unit:3 | Bankruptcy & Liquidation (ACC 405) Unit:3 | Oil and Gas Accounting (CUAB-ACC 407) Unit:2 | International Accounting (CUAB-ACC 409) Unit:2 | Human Resources Management (CUAB-ACC 411) Unit:2 | Total Units:15",
+      "second": "Corporate Reporting (ACC 402) Unit:3 | Financial Management (ACC 404) Unit:3 | Project (ACC 490) Unit:6 | Environmental Accounting (CUAB-ACC 406) Unit:2 | International Corporate Finance (CUAB-ACC 412) Unit:2 | Total Units:16"
+    }
+  },
+  "Microbiology": {
+    "100": {
+      "first": "Communication In English (GST 111) Unit:2 | Elementary Mathematics I (MTH 101) Unit:2 | Introduction to Computing Sciences (COS 101) Unit:3 | General Biology I (BIO 101) Unit:2 | General Biology Practical I (BIO 107) Unit:1 | General Chemistry I (CHM 101) Unit:2 | General Chemistry Practical I (CHM 107) Unit:1 | General Physics I (PHY 101) Unit:2 | General Physics Practical I (PHY 107) Unit:1 | Total Unit:16",
+      "second": "Nigerian Peoples and Culture (GST 112) Unit:2 | Elementary Mathematics I1 (MTH 102) Unit:2 | General Biology II (BIO 102) Unit:2 | General Biology Practical I1 (BIO 108) Unit:1 | General Chemistry II (CHM 102) Unit:2 | General Chemistry Practical I (CHM 108) Unit:1 | General Physics II (PHY 102) Unit:2 | General Physics Practical I (PHY 108) Unit:1 | Contribution of Early Muslims to Science (CUAB-MCB 114) Unit:2 | Total Units:15"
+    },
+    "200": {
+      "first": "Entrepreneurship and Innovation (ENT 211) Unit:2 | General Microbiology (MCB 221) Unit:2 | Basic Techniques in Microbiology (MCB 231) Unit:2 | Statistics for Biological Sciences (CUAB-MCB 201) Unit:2 | Inorganic Chemistry (CUAB-MCB 203) Unit:2 | General Biochemistry I (CUAB-MCB 205) Unit:2 | Introductory Developmental Cell Biology (CUAB-MCB 209) Unit:2 | Invertebrate Zoology (CUAB-MCB 211) Unit:2 | Total Units:16",
+      "second": "Philosophy, Logic and Human Existence (GST 212) Unit:2 | Introductory Ecology (CUAB-MCB 202) Unit:2 | Biological Techniques (CUAB-MCB 204) Unit:2 | General Biochemistry II (CUAB-MCB 206) Unit:2 | Basic Organic Chemistry (CUAB-MCB 208) Unit:2 | Introduction to Biotechnology (CUAB-MCB 210) Unit:2 | Vertebrate Zoology (CUAB-MCB 212) Unit:2 | Total Units:14"
+    },
+    "300": {
+      "first": "Fungi of Medical, Food and Industrial Importance Immunology (MCB 305) Unit: 2 | Immunology (MCB 307) Unit:3 | Industrial Attachment II (12 Weeks) (MCB 399) Unit:3 | Food Microbiology (MCB 309) Unit:2 | Introductory Enzymology (CUAB-MCB 301) Unit:2 | Soil Microbiology(CUAB-MCB 301) Unit:3 | Total Units:15",
+      "second": "Peace and Conflict Resolutions (GST 312) Unit:2 | Venture Creation (ENT 312) Unit:2 | Entrepreneurship and Microbiology (MCB 398) Unit:1 | Bacterial Diversity (MCB 322) Unit:3 | Microbial Ecology (MCB 324) Unit:3 | Biology of Tropical Parasites (CUAB-MCB 312) Unit:2 | Biodeterioration (CUAB-MCB 316) Unit:2 | Total Units: 15"
+    },
+    "400": {
+      "first": "Principles of Epidemiology and Public Health Management (MCB 405) Unit:2 | Pathogenic Microbiology (MCB 407) Unit:3 | Petroleum Microbiology (MCB 431) Unit:2 | Industrial Microbiology (MCB 423) Unit:3 | Environmental Microbiology (MCB 425) Unit:3 | Research Project (MCB 491) Unit:6 | Total Units:19",
+      "second": "Microbial Genetics (MCB 412) Unit:3 | Microbial Physiology & Metabolism (MCB 424) Unit:3 | Virology & Tissue Culture (MCB 482) Unit:2| Essay in Microbiology (CUAB-MCB 402) Unit:1 | Pharmaceutical Microbiological (CUAB-MCB 408) Unit:2 | Total Units:11"
+    }
+  },
+  "Biochemistry": {
+    "100": {
+      "first": "Communication in English (GST 111) Unit:2 | Elementary Mathematics I (MTH 101) Unit:2 | Intro to Computing Sciences (COS 101) Unit:3 | General Biology I (BIO 101) Unit:2 | General Biology Practical I (BIO 107) Unit:1 | General Chemistry I (CHM 101) Unit:2 | General Chemistry Practical (CHM 107) Unit:1 | General Physics I (PHY 101) Unit:2 | General Physics Practical I (PHY 107) Unit:1 | Early Muslims' Contributions to Science (CUAB-BCH 113) Unit:2 | Total: 18 Units",
+      "second": "Nigerian People and Culture (GST 112) Unit:2 | Elementary Mathematics II|(MTH 102) Unit: 2 | General Biology II(BIO 102) Unit:2 | General Biology Practical II(BIO 108) Unit:1 | General Chemistry II(CHM 102) Unit:2 | General Chemistry Practical II(CHM108) Unit:1 | General Physics II(PHY 102) Unit: 2 | General Physics Practical II(PHY 108) Unit:1 | Total: 13 Units"
+    },
+    "200": {
+      "first": "Entrepreneurship and Innovation (ENT 211) Unit:2 | General Biochemistry I (BCH 201) Unit:2 | General Biochemistry Practical (BCH 203) Unit:1 |Statistics for Agriculture & Biological Sciences (STA 201) Unit:3 | Introduction to Biotechnology (CUAB-BCH 211) Unit:2 | Food and Nutritional Biochemistry (CUAB-BCH 213) Unit:2 | Organic Chemistry I (CUAB-BCH 211) Unit:2 | General Microbiology (CUAB-BCH 217) Unit:2 |Total: 16 Units",
+      "second": "Philosophy, Logic and Human Existence (GST 212) Unit:2 | General Biochemistry I (BCH 202) Unit:2 | Physical Chemistry (CUAB-BCH 210) Unit:2 | Organic Chemistry I (CUAB-BCH 212) Unit:2 | Introductory Genetics (CUAB-BCH 214) Unit:2 | Principles of Immunology (CUAB-BCH 216) Unit:2 | Endocrinology (CUAB-BCH 218) Unit:2 | Total Units:14"
+    },
+    "300": {
+      "first": "Enzymology (BCH 301) Unit:2 | Metabolism Of Lipid (BCH 303) Unit:2 | Structure and Functions of Nucleic Acids (BCH 305) Unit:2 | Membrane Biochemistry (BCH 307) Unit:2 | Inorganic Biochemistry (BCH 309) Unit:1 | Industrial Attachment (BCH 399) Unit:3 | Toxicology II (CUAB-BCH 311) Unit:2 | Tissue Biochemistry (CUAB-BCH 313) Unit:1 | Total Units:15 ",
+      "second": "Peace and conflict Resolution (GST 312) Unit:2 | Venture Creation (ENT 312) Unit:2 | Metabolism of Carbohydrates (BCH 302) Unit:2 | Metabolism of Amino Acids & Proteins (BCH 304) Unit:2 | Analytical Methods in Biochemistry (BCH 306) Unit:3 | Bioenergetics (BCH 308) Unit:1|Toxicology I (CUAB-BCH 310) Unit:2 | Pharmaceutical Biochemistry (CUAB-BCH 312) Unit:1 | Total Units:15 "
+    },
+    "400": {
+      "first": "Advanced Enzymology (BCH 401) Unit:2 | Metabolic Regulation (BCH 403) Unit:2 | Plant Biochemistry(BCH 405) Unit:2 | Bioinformatics (BCH 407) Unit:2 | Seminar (CUAB-BCH 411) Unit:2 | Forensic Biochemistry (CUAB-BCH 411) Unit: 2 | Coordination Chemistry (CUAB-BCH 417) Unit:2 | Total Units:14 ",
+      "second": "Molecular Biochemistry (BCH 402) Unit:2 | Biochemical Reasoning (BCH 404) Unit:1 | Research Project (BCH 406) Unit:6 | Biochemical Entrepreneurship (BCH 408) Unit:2 | Molecular aspect of Immunology (CUAB-BCH 410) Unit:2 | Industrial Biochemistry (CUAB-BCH 412) Unit:2 | Biosynthesis of  Macromolecule (CUAB-BCH 414 ) Unit:1 | Total Units:16"
+    }
+  },
+  "Business Administration": {
+    "100": {
+      "first": "Principles of Accounting I (ACC 101) Unit:3 | Principles of Business Administration I (BUS 101) Unit:3 | Small Business Finance (BUS 103) Unit:2 | Introduction to Insurance (BUS 105) Unit:2 | Elements of Economics I (ECO 101) Unit:3 | Introductory Maths for Social & Mgt. Sciences I (MTS 107) Unit:3 | Introduction to Computer Science (CPS 101) Unit:3 | Use of English I (GNS 101) Unit:2 | Philosophy of Islam I (GNS 103) Unit:1 | Nigeria People & Culture (GNS 105) Unit:1 | Use of Library (LIB 101) Unit:1 | Introduction to Business Solution Using MS Office Suite-Word) I (CCC 101)  | Total Units:24",
+      "second": "Principles of Accounting I (ACC 102) Unit:3 | Elements of Economics Il (ECO 102) Unit:3 | Principles of Business Administration I (BUS 102) Unit:3 | Element of Government (BUS 104) Unit:3 |Introductory Maths for Social & Met.Sciences II (MTS 108) Unit:3 | Logic, Philosophy and Human Existence (GNS 102) Unit:2 | Philosophy of islam II (GNS 104) Unit:1 | History and Philosophy of Science (GNS 106)  Unit:3 |  Use of English II (GNS 108) Unit:2 | Introduction to Business Solution Using MS Office Suite-Word) II (CCC 102) Unit:1 | Total Units:24"
+    },
+    "200": {
+      "first": "Financial Accounting (ACC 205) Unit:3 | Introduction to Cost and Management Accounting (ACC 207) Unit:3 | Business Statistics I (BUS 201) Unit:3 | Introduction to Business (BUS 203) Unit:3 | Elements of Marketing (BUS 205) Unit:3 | Software Application for Business (BUS 207) Unit:3 | Economic Theory (ECO 201) Unit:3 | Introduction to Entrepreneurial Studies I (GNS 205) Unit:2 | Introduction to Business Solution Using MS Office Suite-Excel) I (CCC 201) Unit:2| Total Units:24",
+      "second": "Financial Accounting I (ACC 206) Unit:3 | Business Statistics II (BUS 202) Unit:3 |Management of Small Medium Scale Enterprises (BUS 204) Unit:2 | Business Communications (BUS 206) Unit:2 | Introduction to Finance (BUS 208) Unit:3 | Introduction to Industrial Relations (BUS 210) Unit:3 | Communication in English II (GNS 208) Unit:2 | Introduction to Business Solution Using MS Office Suite-Excel) II (CCC 202) Unit:1 | Elective Unit:2 | Foreign Language Elective Unit:1 | Total Units: 22"
+    },
+    "300": {
+      "first": "Electives (Students are to choose only one elective) : Salesmanship and Sales Management (BUS 311) Unit:2 | International Management (BUS 313) Unit:2 | Principles,of Public Finance (BUS 315) Unit:2",
+      "second": "Electives (Students are to choose only one elective : Managerial Economics (BUS 316) Unit:2 | Economics of Marketing (BUS 318) Unit:2 "
+    },
+    "400": {
+      "first": "Business Policy & Strategy I (BUS 401) Unit:3 | Comparative Management (BUS 403) Unit:3 | Organizational Theory (BUS 405) Unit:2 | Promotional Management (BUS 407) Unit:2 | Corporate Finance (BUS 409) Unit:2 | Management Information System (BUS 411) Unit:3 | International Economics (ECO 413) Unit:3 | Contemporary Management Issues (BUS 413) Unit:3 | Research Project (Seminar) (BUS 477) Unit:2 | Principles of Project Management I (CCC 401) | Total Units:23",
+      "second": "Business Policy & Strategy II (BUS 402) Unit:3 | International Business (BUS 404) Unit:3 | Corporate Planning (BUS 406) Unit:3 | Entrepreneurial Development (BUS 408) Unit:2 | Analysis of Business Decisions (BUS 410) Unit:3 | Globalization and Business (BUS 412) Unit:3 | Management of Public Parastatals (BUS 414) Unit:2 | Research Project/Original Essay (BUS 488) Unit:4 | Principles of Project Management II (CCC 402) Unit:1 | Total Units:23"
+    }
+  },
+  "Computer Science": {
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {}
+  },
+  "Deparment of law (LL.B)": {
+    "": {},
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {},
+    "500": {}
+  },
+  "Mass Communication": {
+    "100": {},
+    "400": {},
+    "300": {}
+  },
+  "Department Of  Nursing": {
+    "100": {
+      "first": "General Biology I (BIO 101) Unit:3 | General Biology Practical I (BIO 191) Unit:1 |General Chemistry I (CHM 101) Unit:3 | General Chemistry Practical I (CHM 191) Unit:1 | General Mathematics I (MTS 101) Unit:3 | General Physics I (PHS 101) Unit:3 | General Physics Practical I (PHS 191) Unit:1 | Introduction to Computer Science (CPS 101) Unit:2 | Use of English (Communication in English) (GNS 101) Unit:2 | Philosophy of Islam I (GNS 103) Unit:1 | Nigerian Peoples and Culture (GNS 105) Unit:1 | Contemporary Health Issues (NSC 107) Unit:2 | Use of Library (LIB 101) Unit:1 | Total Units:24",
+      "second": "General Biology II (BIO 102) Unit:3 | General Biology Practical II (BIO 192) Unit:1 | General Chemistry II (CHM 102) Unit:3 | General Chemistry Practical II (CHM 192) Unit:1 | General Mathematics II (MTS 102) Unit:3 | General Physics II (PHS 102) Unit:3 | General Physics Practical I (PHS 192) Unit:1 | Introduction to Political Science for Basic Medical Sciences (PIS 110) Unit:2 | Logic, Philosophy and Human Existence (GNS 102) Unit:2 | Philosophy of Islam II (GNS 104) Unit:1 | History and Philosophy of Science (GNS 106) Unit:1 | Total Units:21"
+    },
+    "200": {
+      "first": "Students to select one from the following: GNS 201-French for Beginners I 1Unit | GNS 203-Arabic for Beginners I 1Unit",
+      "second": "Students to select one from the following: GNS 202-French for Beginners II Unit | GNS 204-Arabic for Beginners II 1Unit"
+    },
+    "300": {
+      "first": "Medical & Surgical Nursing I (NSC 301) Unit:3 | Community Health Nursing I (NSC 303) Unit:3 | Community Health Nursing Practice I (NSC 305) Unit:2 Epidemiology (NSC 307)  Unit:2 | Nursing Ethics and Jurisprudence (NSC 309) Unit:2 | Pharmacodynamics and Chemotherapy (PHA 315) Unit:3 | Nutrition and Dietetics (NSC 311) Unit:2 | Students' Industrial Work Experience (NSC 399) Unit:3 | Global Citizenship, Peace and Conflict Resolution (GNS 301) Unit:2 | Total Units:22",
+      "second": "Environmental Health (NSC 302) Unit:2 | Community Health Nursing II (NSC 304) Unit:2 | Community Health Nursing Practice II (NSC 306) Unit:2 | Medical & Surgical Nursing II (NSC 308) Unit:2 | Medical & Surgical Nursing Practice II (NSC 310) Unit:2 | Human behaviour in health and illness (NSC 312) Unit:2 | Medical Sociology (NSC 314) Unit:2 | Maternal and child Health Nursing I (NSC 316) Unit:3 | Human Nutrition (NSC 318) Unit:2 | Mental Health and Psychiatric Nursing I (NSC 320) Unit:2 | Total Units:21"
+    },
+    "400": {
+      "first": "Mental health and Psychiatric Nursing I (NSC 401) Unit:2 | Medical and Surgical Nursing III (NSC 403) Unit:4 | Medical and Surgical Nursing Practice III (NSC 405) Unit:2 | Research Methodology (NSC 407) Unit:3 | Principles of Education and Teaching Methodology (NSC 409) Unit:3 | Management of Nursing Services (NSC 411) Unit:3 | Maternal and child Health Nursing I (NSC 413) Unit: 2 | Maternal and child Health Nursing Practice I (NSC 415) Unit:2 | Total Units:21",
+      "second": "Maternal and Child Health Nursing III (NSC 402) Unit:3 | Maternal and Child Health Nursing Practice I (NSC 404) Unit:2 | Medical and Surgical Nursing IV (NSC 406) Unit:4 | Medical and Surgical Nursing Practice IV (NSC 408) Unit:2 | Practicum of Nursing Management (NSC 410) Unit:2 | Pharmacology (NSC 412) Unit:3 | Principles of Education and Teaching Methodology Practical (NSC 414) Unit:2"
+    },
+    "500": {
+      "first": "Students are to select one from the following: NSC 513 Pediatrics Nursing 5 Units | NSC 517 Oto-Rhino-Laryngology 5 Units | NSC 521 Anaesthetic Nursing 5 Units | NSC 515 Peri-Operative Nursing 5 Units | NSC 519 Occupational Health Nursing 5 Units",
+      "second": "Students are to select one from the following: NSC 512 Ophthalmic Nursing 5 Units | NSC 514 Intensive Care Nursing 5 Units | NSC 516 Orthopedic Nursing 5 Units | NSC 518 Dermatological Nursing 5 Units | NSC 520 Radiology/Radiotherapy Nursing 5 Units"
+    }
+  },
+  "Department of Anatomy,": {
+    "100": {}
+  },
+  "Department of Anatomy": {
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {}
+  },
+  "Department of Chemical Sciences (Biochemistry)": {
+    "200, 400": {},
+    "200": {},
+    "300": {},
+    "400": {}
+  },
+  "Department of Biological Sciences (Microbiology)": {
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {}
+  },
+  "Department of Accounting": {
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {}
+  },
+  "Anatomy, Biochemistry, Nursing, Microbiology": {
+    "100": {}
+  },
+  "Anatomy, Nursing": {
+    "100": {},
+    "200": {}
+  },
+  "Anatomy, Business Administration, Nursing": {
+    "100": {},
+    "200": {},
+    "300": {}
+  },
+  "Anatomy, Business Administration": {
+    "100": {}
+  },
+  "Anatomy, Business Administration, Department Of  Nursing": {
+    "100": {}
+  },
+  "Anatomy, Architecture, Biochemistry, Business Administration, Nursing, Microbiology": {
+    "500": {}
+  },
+  "Accounting, Architecture, Biochemistry, Microbiology": {
+    "100": {},
+    "200": {},
+    "300": {}
+  },
+  "Accounting, Business Administration": {
+    "100": {},
+    "200": {},
+    "300": {}
+  },
+  "Architecture, Biochemistry, Microbiology": {
+    "100": {}
+  },
+  "Biochemistry, Microbiology": {
+    "100": {}
+  },
+  "Biochemistry, Nursing, Microbiology": {
+    "100": {}
+  },
+  "Biochemistry, Nursing": {
+    "200": {}
+  },
+  "Nursing": {
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {},
+    "500": {}
+  },
+  "Business Administration, Nursing": {
+    "200": {}
+  },
+  "Law": {
+    "100": {},
+    "200": {},
+    "300": {},
+    "400": {},
+    "500": {}
+  }
+}

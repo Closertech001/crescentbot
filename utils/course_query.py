@@ -11,7 +11,7 @@ def extract_course_query(text):
 
     departments = [
         "computer science", "anatomy", "biochemistry", "accounting", "business administration",
-        "microbiology", "economics", "mass communication", "physics", "chemistry"
+        "microbiology", "economics and opreational research", "mass communication", "law", "nursing"
     ]
     department_match = next((d for d in departments if d.lower() in text), None)
 

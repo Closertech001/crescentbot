@@ -1,11 +1,21 @@
-python-dotenv
+# Core libraries
 streamlit>=1.29.0
-pandas
+python-dotenv
 openai
+
+# NLP & Embeddings
 sentence-transformers>=2.2.2
 torch>=2.0.1
 numpy>=1.23.0
+pandas
 scikit-learn>=1.3.0
-faiss-cpu>=1.7.4
+
+# Spelling & Preprocessing
 symspellpy>=6.7.7
 textblob
+
+# Vector search
+faiss-cpu>=1.7.4
+
+# Optional (for emoji, CSS rendering, etc.)
+emoji

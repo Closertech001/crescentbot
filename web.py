@@ -32,10 +32,10 @@ if "last_department" not in st.session_state:
 def load_bot_resources():
     model = load_model()
     data = load_data()
-    embeddings = compute_question_embeddings(data["question"].tolist())
-    return model, data, embeddings
+    return model, data
 
-model, dataset, question_embeddings = load_bot_resources()
+model, dataset = load_bot_resources()
+question_embeddings = compute_question_embeddings(dataset["question"].tolist(), model)
 
 # --- Sidebar ---
 with st.sidebar:

@@ -8,9 +8,9 @@ def load_model(model_name="all-MiniLM-L6-v2"):
     """Load the SentenceTransformer model."""
     return SentenceTransformer(model_name)
 
-def load_dataset():
+def load_dataset(path="data/crescent_qa.json"):
     """Load the dataset from JSON and return as a DataFrame."""
-    with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return pd.DataFrame(data)
 

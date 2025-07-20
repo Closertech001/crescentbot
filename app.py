@@ -48,18 +48,18 @@ if user_query:
     else:
         # Check for structured course-related question
         course_query = extract_course_query(user_query)
-        if course_query:
-            matched_courses = get_courses_for_query(course_query, course_data)
-            if matched_courses:
-                bot_response = "Here are the courses offered in {} level {} semester:\n\n".format(
-                    course_query["department"], course_query["level"] + "", course_query["semester"]
-                )
-                for course in matched_courses:
-                    bot_response += f"- **{course['code']}**: {course['title']} ({course['unit']} units)\n"
-            else:
-                bot_response = "Sorry, I couldn't find courses for that department, level, or semester."
+        matched_courses = get_courses_for_query(course_query, course_data)
+
+        if course_query["department"] and matched_courses:
+            heading = f"Here are the courses offered"
+            if course_query["level"]:
+                heading += f" in {course_query['level']} level"
+            if course_query["semester"]:
+                heading += f" ({course_query['semester']} semester)"
+            heading += f" for {course_query['department']}:\n\n"
+
+            bot_response = heading + "\n- " + matched_courses.replace(" | ", "\n- ")
         else:
-            # Use embedding-based semantic search
             with st.spinner("Finding answer..."):
                 response, related_qs = find_response(user_query, model, dataset, embeddings)
             response = rewrite_with_tone(user_query, response)

@@ -584,6 +584,382 @@
     "level": ""
   },
   {
+    "question": "What is the complete breakdown of fees for returning Anatomy students?",
+    "answer": "N840,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Anatomy",
+    "level": "200 level - 400level",
+    "semester": "",
+    "faculty": "COHES"
+  },
+  {
+    "question": "What fees do Anatomy freshers pay in total?",
+    "answer": "N928,00 tuition + N10,000 screening form + N50,000 acceptance fee + N10.000 parent form.",
+    "department": "Anatomy",
+    "level": "100 level",
+    "semester": "",
+    "faculty": "COHES"
+  },
+  {
+    "question": "Under which college is the Department Of Anatomy?",
+    "answer": "The departments of Anatomy is under the College of Health Sciences(COHES)",
+    "department": "Anatomy",
+    "level": "",
+    "semester": "",
+    "faculty": "COHES"
+  },
+  {
+    "question": "Is SIWES included in the program of Department of Anatomy?",
+    "answer": "Yes, SIWES is included in both 200 Level (SIWES I) and 300 Level (SIWES II) during the long vacation.",
+    "topic": "general",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What is the focus of the Department of Accounting?",
+    "answer": "The Department of Accounting focuses on providing students with a sound foundation in accounting principles, practices, and related areas in the business world, preparing them for careers in accounting, auditing, taxation, and financial management.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Accounting program?",
+    "answer": "The objectives are to equip students with theoretical and practical knowledge in accounting, develop analytical and communication skills, instill ethical standards, and prepare graduates for further studies or professional certification.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME admission requirements for the Accounting program?",
+    "answer": "Candidates must have five (5) Olevel credits including English Language, Mathematics, Economics, and any two relevant subjects, in not more than two sittings. They must also pass the UTME with appropriate subjects.",
+    "topic": "admission",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the Direct Entry requirements for the Accounting program?",
+    "answer": "Candidates should have at least two Alevel passes in Accounting, Economics, or Business Management, or possess ND/NCE/HND in relevant disciplines with at least upper credit.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the graduation requirements for Accounting students?",
+    "answer": "Students must complete a minimum of 150 credit units for a 4-year program and 120 units for Direct Entry, including all compulsory and required courses. They must also have a CGPA of at least 1.00 and complete the Student Industrial Work Experience Scheme (SIWES).",
+    "topic": "exam",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What should Accounting graduates be able to do?",
+    "answer": "Graduates should demonstrate understanding of accounting principles, apply analytical tools, use ICT in accounting, uphold ethical standards, and be able to work independently or in teams.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What employability skills are acquired in the Accounting program?",
+    "answer": "Skills include communication, numeracy, ICT, analytical thinking, leadership, ethical judgment, time management, teamwork, and problem-solving.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are emphasized in the Accounting program?",
+    "answer": "The program promotes critical thinking, creativity, collaboration, digital literacy, initiative, flexibility, and productivity.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "Who are the academic staffs in the department of Accounting?",
+    "answer": "Professor/Head Of Department(HOD): Prof. T.T. Siyanbola | Reader: Dr. S.A. Babatunde | Senior Lecturer : Dr. A.M.A. Tonade, Dr. J.K. Ogunwede, Dr. (Mrs.) J.A. Isoken, Dr. R.O. Animasaun | Lecturer: Dr. A.O. Nurudeen, Dr. I. M. Falayi, J.O. Ojurongbe, H.O. Onifade, W.A. Sanyaolu",
+    "department": "Accounting",
+    "level": "",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "Who are the administrative and technical staffs in the department of Accounting? ",
+    "answer": "Laboratory Technician: Oluwalasinu O.G | Administrative Officer: Subair O.B | Administrative Secretary :Oyabunmi Y.N.",
+    "department": "Accounting",
+    "level": "",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "What is the complete breakdown of fees for returning Accounting students ?",
+    "answer": "N855,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Accounting",
+    "level": "200 level - 400level",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "What fees do Accounting freshers pay in total ?",
+    "answer": "N855,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Accounting",
+    "level": "100 level",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "Under which college is the Department Of Accounting?",
+    "answer": "The Department Of Accounting is under the College of Arts, Social and Management Sciences(CASMAS)",
+    "department": "Accounting",
+    "level": "",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "When are student suppose to go for their Student Industrial Work Experience Scheme (SIWES) in Department of Accounting?",
+    "answer": "Students to go on Industrial Work Experience during the long vacation of the third year.",
+    "department": "Accounting",
+    "level": "300",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "Is Student Industrial Work Experience Scheme (SIWES) included in 300 Level Accounting?",
+    "answer": "Yes, the Student Industrial Work Experience Scheme (SIWES) is taken during the long vacation of the third year",
+    "topic": "academics",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": "300"
+  },
+  {
+    "question": "What degrees are offered in the Department of Accounting?",
+    "answer": "B.Sc. and M.Sc. degrees in Accounting.",
+    "topic": "general",
+    "department": "Department of Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What is the college color for Final Year Projects in Architecture?",
+    "answer": "Ocean Green.",
+    "topic": "general",
+    "department": "Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "When was the Department of Architecture established?",
+    "answer": "It was established in September 2011.",
+    "topic": "general",
+    "department": "Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What degrees are offered in the Department of Architecture?",
+    "answer": "B.Sc. and M.Sc. degrees in Architecture.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the philosophy of the Architecture programme?",
+    "answer": "To provide knowledge and skills for designing and constructing human spaces using technological, artistic, and environmental approaches, rooted in cultural and traditional heritage.",
+    "topic": "university",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Architecture programme?",
+    "answer": "1. Equip students with environmental, cultural, technological, and economic design knowledge.  2. Offer quality design education with creative design skills.  3. Instill professionalism and ability to manage design processes.  4. Encourage research and community participation.  5. Promote entrepreneurial knowledge and self-reliance.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the unique features of the Architecture programme?",
+    "answer": "1. Focus on global issues (sustainability, gender, climate, etc.).  2. Emphasis on Nigerian architecture and history.  3. Integration of digital design applications.  4. Preparation for local and international practice.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What employability skills does the Architecture programme provide?",
+    "answer": "Entrepreneurship for Architects course | Digital drawing and software skills | Independent and creative design thinking. | Communication and presentation skills | Practical experience through workshops and SIWES",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are emphasized in Architecture?",
+    "answer": "Digital skills (e.g., Building Information Modelling) | Critical thinking and analysis | Creativity and innovation | Communication and teamwork | Leadership and virtual collaboration",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME requirements for Architecture?",
+    "answer": "Five credits including Mathematics, English, Physics, and two others (e.g., Chemistry, Fine Arts). UTME subjects: Mathematics, Physics, and one from Chemistry, Geography, Fine Arts, or Technical Drawing.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the programme duration for B.Sc. in Architecture?",
+    "answer": "8 semesters for UTME; 6 semesters for Direct Entry.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the graduation requirements for B.Sc. Architecture?",
+    "answer": "120 credits (UTME), 90 or 60 (Direct Entry), and successful completion of all required courses and SIWES.",
+    "topic": "exam",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the complete breakdown of fees for returning Architecture students ?",
+    "answer": "N835,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Architecture",
+    "level": "200 level - 400level",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "What fees do Architecture freshers pay in total ?",
+    "answer": "N968,00 tuition + N10,000 screening form + N50,000 acceptance fee + N10.000 parent form.",
+    "department": "Architecture",
+    "level": "100 level",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Who are the academic staff in the department of Architecture?",
+    "answer": "Dean: Prof. K.O. Ajibola | Professor: Prof. S.A. Daramola. |  Senior Lecturer: Dr. S.S. Omoniyi, Dr. O.A. Adekitan, Dr. A.S. Oguntimehin | Lecturer: Dr. T.O. Yusuf, Dr. K. Oleruntoba, Are. M.K Isiaka. ",
+    "department": "Architecture",
+    "level": "",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Who are the administrative staff in the department of Architecture?",
+    "answer": "Secretary: Halimah M. Badru | Clerk: R.A. Olanrewaju",
+    "department": "Architecture",
+    "level": "",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Under which college is the Department Of Architecture?",
+    "answer": "The Department of Architecture falls under the College of Environmental Sciences(COES)",
+    "department": "Architecture",
+    "level": "",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Is SIWES part of the curriculum of the department of Architecture?",
+    "answer": "Yes, the Student Industrial Work Experience Scheme (SIWES) is integrated at 300 Level for three-month.",
+    "topic": "academics",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": "300"
+  },
+  {
+    "question": "What is the college color for Final Year Projects in Biological Sciences(Microbiology)?",
+    "answer": "Coffee Brown.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "When was the Department of Biological Science established?",
+    "answer": "The department was established in 2005.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What degree programme is offered by the Department of Biological Science?",
+    "answer": "The department offers a B.Sc. degree in Microbiology.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What is the philosophy of the Microbiology programme?",
+    "answer": "To train graduates who apply microbiological techniques to solve developmental challenges in society.",
+    "topic": "university",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Microbiology programme?",
+    "answer": "1. Train students for careers in industry, health, and research. | 2. Prepare students for graduate and professional studies. | 3. Develop entrepreneurial skills in applied microbiology.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What are the unique features of the Microbiology programme?",
+    "answer": "The programme covers modern microbiology areas such as food, industrial, medical, systematics, environmental, biotechnology, genetic engineering, and entrepreneurship.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What employability opportunities are available to microbiology graduates?",
+    "answer": "Employment in hospitals, labs, pharmaceutical industries, agriculture, environmental firms, food and dairy industries, breweries, NGOs, and educational institutions.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What skills should a microbiology graduate possess?",
+    "answer": "Technical, laboratory, analytical, writing, interpersonal, and communication skills, as well as attention to detail and a passion for disease prevention and environmental improvement.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are emphasized in the department of biological science (Microbiology)?",
+    "answer": "Critical thinking, problem solving, analysis, research skills, creativity, adaptability, initiative, and self-direction.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME requirements for Microbiology?",
+    "answer": "Five credits including English, Mathematics, Biology, Chemistry, and Physics. UTME subjects: English, Biology, Chemistry, and one of Mathematics or Physics.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
     "question": "What are the courses taken in the first semester of 100 level in Department of Anatomy?",
     "answer": "General Biology I (BIO 101) Unit:3 | General Biology Practical I (BIO 191) Unit:1 | General Chemistry I (CHM 101) Unit:3 | General Chemistry Practical I (CHM 191) Unit:1 | Introduction to Computer Science (CPS 101) Unit:2 | Use of English (GNS 101) Unit:2 | Nigerian Peoples and Culture (GNS 105) Unit:1 | Use of Library (LIB 101) Unit:1 | Contemporary Health Issues (GNS 107) Unit:2 | General Mathematics I (MTS 101) Unit:3 | General Physics I (PHS 101) Unit:3 | General Physics Practical I (PHS 191) Unit:1 | Philosophy of Islam I (GNS 103) Unit:1 | Introduction to Business Solution using MS - Office (MS Word) I (CCC 101) | Total Units:24 ",
     "department": "Anatomy",

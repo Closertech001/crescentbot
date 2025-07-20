@@ -91,7 +91,7 @@ def extract_course_query(text):
     }
 
 # Load data
-def load_course_data(path="data/crescent_qa.json"):
+def load_course_data(path="data/course_data.json"):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 

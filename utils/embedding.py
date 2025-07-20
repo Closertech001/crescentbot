@@ -9,14 +9,18 @@ def load_model(model_name="all-MiniLM-L6-v2"):
     return SentenceTransformer(model_name)
 
 def load_dataset(path="data/crescent_qa.json"):
-    """Load the dataset from JSON and return as a DataFrame."""
+    """Load the dataset from JSON or JSONL and return as a DataFrame."""
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        if path.endswith(".jsonl"):
+            data = [json.loads(line) for line in open(path, "r", encoding="utf-8")]
+        else:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
         return pd.DataFrame(data)
     except Exception as e:
         raise RuntimeError(f"[Dataset Load Error] Could not load file at {path}: {e}")
 
 def compute_question_embeddings(questions, model):
     """Compute embeddings for a list of questions using the provided model."""
+    questions = [q.strip().lower() for q in questions]
     return model.encode(questions, convert_to_tensor=True)

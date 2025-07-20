@@ -1,149 +1,92 @@
-# app.py
-
 import streamlit as st
+from utils.course_query import extract_course_query, load_course_data, get_courses_for_query
+import random
 import time
-import torch
 import re
-from utils.embedding import load_model, load_dataset, compute_question_embeddings
-from utils.search import find_response
-from utils.rewrite import rewrite_with_tone
-from utils.greetings import is_greeting, greeting_responses, extract_course_code, get_course_by_code
-from utils.course_query import extract_course_query, get_courses_for_query, load_course_data
-from difflib import get_close_matches
 
-# App configuration
-st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
-st.title("🎓 Crescent University Chatbot")
-
-# Session state
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-@st.cache_resource(show_spinner=False)
-def get_bot_resources():
-    model = load_model()
-    dataset = load_dataset("data/crescent_qa.json")
-    embeddings = compute_question_embeddings(dataset["question"].tolist(), model)
-    return model, dataset, embeddings
-
-model, dataset, embeddings = get_bot_resources()
+# Load course data once
 course_data = load_course_data("data/course_data.json")
 
-# Helper to match similar course codes in case of typos
-def fuzzy_match_course_code(input_code, all_course_codes):
-    matches = get_close_matches(input_code.upper(), all_course_codes, n=1, cutoff=0.75)
-    return matches[0] if matches else None
+# Greetings and farewells
+GREETINGS = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
+GREET_RESPONSES = [
+    "Hi there! 👋", "Hello! How can I help you today?", "Hey! 😊 What would you like to know?"
+]
+FAREWELLS = ["bye", "goodbye", "see you", "take care", "later"]
+FAREWELL_RESPONSES = [
+    "Goodbye! 👋", "Take care!", "See you later!", "Bye! Have a great day!"
+]
 
-# Normalize Pidgin phrases
-def normalize_input(text):
-    replacements = {
-        "wetin be": "what is",
-        "na wetin be": "what is",
-        "dey do": "is",
-        "abi na": "is it",
-        "which tin be": "what is",
-        "na which": "which",
-        "dey inside": "is in",
-        "course wey dem": "course that they",
-        "dem dey teach": "they teach",
-        "dey teach": "they teach",
-        "wey": "that",
-        "una": "you all",
-        "na for where": "where is"
-    }
-    for pidgin, standard in replacements.items():
-        text = re.sub(pidgin, standard, text, flags=re.IGNORECASE)
-    return text
+# Typing simulation
+def bot_typing(delay=1.5):
+    with st.empty():
+        st.markdown("**Bot is typing...**")
+        time.sleep(delay)
 
-# Detect farewell phrases including Pidgin
-def is_farewell(text):
-    farewells = [
-        "bye", "goodbye", "see you", "i don go", "i dey go", "later na", "catch you later", "i dey bounce", "peace out"
-    ]
-    return any(term in text.lower() for term in farewells)
+# Initialize session state
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+    st.session_state.started = False
 
-# Build list of all valid course codes
-all_codes = set()
-for entry in course_data:
-    parts = [part.strip() for part in entry.get("answer", "").split(" | ")]
-    for part in parts:
-        if ":" in part:
-            code = part.split(":")[0].strip()
-            all_codes.add(code)
+# App UI setup
+st.set_page_config(page_title="Crescent Chatbot", layout="centered")
+st.title("🎓 Crescent University Course Chatbot")
 
-# User Input
-user_query = st.chat_input("Type your question here:")
+with st.sidebar:
+    st.markdown("### 🤖 Chat Info")
+    st.markdown("This bot can help you find **courses** by department, level, and semester.")
+    if st.button("🧹 Clear Chat"):
+        st.session_state.chat_history = []
+        st.session_state.started = False
+        st.experimental_rerun()
 
-# Chat Output Display
-for chat in st.session_state.chat_history:
-    with st.chat_message(chat["role"]):
-        st.markdown(chat["content"])
+# Display chat history
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# Process Input
-if user_query:
-    with st.chat_message("user"):
-        st.markdown(user_query)
-    st.session_state.chat_history.append({"role": "user", "content": user_query})
+# Greet user on first open
+if not st.session_state.started:
+    greeting = random.choice(GREET_RESPONSES)
+    st.chat_message("assistant").markdown(greeting)
+    st.session_state.chat_history.append({"role": "assistant", "content": greeting})
+    st.session_state.started = True
 
-    # Normalize Pidgin input
-    normalized_query = normalize_input(user_query)
+# Input box for user prompt
+user_input = st.chat_input("Ask about courses (e.g. 'What are 200 level Nursing courses?')")
 
-    # Greeting check (only if no question words present)
-    question_keywords = ["what", "which", "who", "when", "where", "how", "?"]
-    if is_greeting(normalized_query) and not any(q in normalized_query.lower() for q in question_keywords):
-        bot_response = greeting_responses(normalized_query)
+# Handle user message
+if user_input:
+    st.chat_message("user").markdown(user_input)
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
 
-    elif is_farewell(normalized_query):
-        bot_response = "Alright! Take care 😊. If you need anything about Crescent University, I'm here!"
+    lower_input = user_input.strip().lower()
+
+    # Check for farewell
+    if any(f in lower_input for f in FAREWELLS):
+        farewell = random.choice(FAREWELL_RESPONSES)
+        bot_typing()
+        st.chat_message("assistant").markdown(farewell)
+        st.session_state.chat_history.append({"role": "assistant", "content": farewell})
+
+    # Check for greeting with no intent
+    elif any(greet in lower_input for greet in GREETINGS) and len(lower_input.split()) <= 3:
+        response = random.choice(GREET_RESPONSES)
+        bot_typing()
+        st.chat_message("assistant").markdown(response)
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
 
     else:
-        # Course code detection
-        course_code = extract_course_code(normalized_query)
-        if course_code and course_code not in all_codes:
-            course_code = fuzzy_match_course_code(course_code, all_codes)
+        # Handle actual query
+        query_info = extract_course_query(user_input)
+        result = get_courses_for_query(query_info, course_data)
 
-        course_info = get_course_by_code(course_code, course_data) if course_code else None
+        bot_typing()
 
-        if course_info:
-            unit_match = re.search(r"\((\d+) units?\)", course_info)
-            unit_text = f" ({unit_match.group(1)} units)" if unit_match else ""
-            bot_response = f"**{course_code}** is:\n{course_info}{unit_text}"
-
+        if result:
+            st.chat_message("assistant").markdown(result)
+            st.session_state.chat_history.append({"role": "assistant", "content": result})
         else:
-            # Try full course query
-            course_query = extract_course_query(normalized_query)
-            matched_courses = get_courses_for_query(course_query, course_data) if course_query else None
-
-            if course_query and course_query.get("department") and matched_courses:
-                heading = f"Here are the courses offered"
-                if course_query.get("level"):
-                    heading += f" in {course_query['level']} level"
-                if course_query.get("semester"):
-                    heading += f" ({course_query['semester']} semester)"
-                heading += f" for {course_query['department']}:\n"
-
-                bot_response = heading + "\n- " + matched_courses.replace(" | ", "\n- ")
-
-            else:
-                with st.spinner("Finding answer..."):
-                    response, related_qs = find_response(normalized_query, model, dataset, embeddings)
-                response = rewrite_with_tone(user_query, response)
-                bot_response = response
-
-    # Display animated assistant reply
-    with st.chat_message("assistant"):
-        placeholder = st.empty()
-        animated_response = ""
-        for word in bot_response.split():
-            animated_response += word + " "
-            placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
-            time.sleep(0.05)
-
-    st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
-
-    if 'related_qs' in locals() and related_qs:
-        with st.spinner("Getting related questions..."):
-            time.sleep(0.5)
-        with st.expander("💡 Related Questions"):
-            for q in related_qs:
-                st.markdown(f"- {q}")
+            fallback = "🤔 I couldn’t find any matching course info. Please check the department, level, or semester."
+            st.chat_message("assistant").markdown(fallback)
+            st.session_state.chat_history.append({"role": "assistant", "content": fallback})

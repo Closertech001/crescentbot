@@ -44,11 +44,13 @@ user_input = st.chat_input("Type your question here...")
 if user_input:
     st.session_state.chat.append({"role": "user", "text": user_input})
 
-    # Greeting logic
+    # Improved Greeting Logic (always respond to greetings)
     greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-    if any(greet in user_input.lower() for greet in greetings) and not st.session_state.bot_greeted:
+
+    normalized_input = user_input.strip().lower()
+    if any(greet in normalized_input for greet in greetings):
         response = "Hello! 👋 How can I help you with Crescent University today?"
-        st.session_state.bot_greeted = True
+
 
     else:
         # Check course-related query

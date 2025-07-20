@@ -48,12 +48,10 @@ if user_query:
     else:
         # Check for course code lookup
         course_code = extract_course_code(user_query)
-        if course_code:
-            course_info = get_course_by_code(course_code, course_data)
-            if course_info:
-                bot_response = f"**{course_code}** is:\n{course_info}"
-            else:
-                bot_response = f"Sorry, I couldn't find any course matching **{course_code}**."
+        course_info = get_course_by_code(course_code, course_data) if course_code else None
+
+        if course_info:
+            bot_response = f"**{course_code}** is:\n{course_info}"
 
         else:
             # Check for structured course-related question
@@ -66,10 +64,13 @@ if user_query:
                     heading += f" in {course_query['level']} level"
                 if course_query["semester"]:
                     heading += f" ({course_query['semester']} semester)"
-                heading += f" for {course_query['department']}:\n\n"
+                heading += f" for {course_query['department']}:
+\n"
 
                 bot_response = heading + "\n- " + matched_courses.replace(" | ", "\n- ")
+
             else:
+                # Fallback to semantic search
                 with st.spinner("Finding answer..."):
                     response, related_qs = find_response(user_query, model, dataset, embeddings)
                 response = rewrite_with_tone(user_query, response)

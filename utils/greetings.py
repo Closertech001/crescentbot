@@ -18,21 +18,31 @@ GREETING_PATTERNS = [
     r"how you dey"
 ]
 
-greeting_responses = [
-    "Hello there! 😊 How can I assist you today?",
-    "Hi! 👋 What would you like to know about Crescent University?",
-    "Hey! I’m here to help. Ask me anything!",
-    "Greetings! Ready to explore Crescent University?",
-    "How far! I'm here for any Crescent Uni gist you need."
-]
+greeting_responses_by_sentiment = {
+    "positive": [
+        "Hey there! 😊 You're sounding great today. How can I assist you?",
+        "Hi! 👋 I'm glad you're feeling good. What would you like to know?",
+        "Hello! 🌟 Ready to explore Crescent University together?"
+    ],
+    "neutral": [
+        "Hi there! 😊 How can I help you?",
+        "Hello! 👋 What would you like to know about Crescent University?",
+        "Hey! I'm here to assist you with your course or university questions.",
+        "Hi! Let me know what you're looking for.",
+        "How far! I'm here for any Crescent Uni gist you need."
+    ],
+    "negative": [
+        "I'm here to help — let’s figure it out together. 💡",
+        "Sorry if you're having a rough time. Let's fix that. What do you need?",
+        "I’ve got your back. Let me help you with that. 💪"
+    ]
+}
 
 def is_greeting(user_input: str) -> bool:
-    """Returns True if user input is a greeting."""
     text = user_input.lower()
     return any(re.search(pattern, text) for pattern in GREETING_PATTERNS)
 
 def detect_sentiment(user_input: str) -> str:
-    """Classifies sentiment of the input as 'positive', 'neutral', or 'negative'."""
     analysis = TextBlob(user_input)
     if analysis.sentiment.polarity > 0.2:
         return "positive"
@@ -40,5 +50,6 @@ def detect_sentiment(user_input: str) -> str:
         return "negative"
     return "neutral"
 
-def greeting_responses():
-    return random.choice(greeting_responses)
+def greeting_responses(user_input: str) -> str:
+    tone = detect_sentiment(user_input)
+    return random.choice(greeting_responses_by_sentiment.get(tone, greeting_responses_by_sentiment["neutral"]))

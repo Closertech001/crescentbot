@@ -97,6 +97,9 @@ def load_course_data(path="data/course_data.json"):
 
 # Get matching course(s) with fallback logic
 def get_courses_for_query(query_info, course_data):
+    if not query_info:
+        return None
+
     dept = query_info.get("department", "").lower()
     level = query_info.get("level", "").lower() if query_info.get("level") else None
     semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
@@ -115,7 +118,6 @@ def get_courses_for_query(query_info, course_data):
     if not matches:
         return None
 
-    # If multiple, combine answers
     if len(matches) > 1:
         return "\n\n".join([f"**{m['question']}**\n{m['answer']}" for m in matches])
     else:

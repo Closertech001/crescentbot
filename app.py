@@ -73,8 +73,8 @@ if user_input:
 # Display chat history with avatars
 for message in st.session_state.chat:
     if message["role"] == "user":
-        with st.chat_message("user", avatar="🧑‍💻"):  # or use a custom image URL
+        with st.chat_message("user", avatar="🧑‍🎓"):  # or use a custom image URL
             st.markdown(message["text"])
     else:
-        with st.chat_message("assistant", avatar="🎓"):  # or a logo image
+        with st.chat_message("assistant", avatar="🤖"):  # or a logo image
             st.markdown(message["text"])

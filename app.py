@@ -3,6 +3,7 @@
 import streamlit as st
 import time
 import torch
+import re
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.search import find_response
 from utils.rewrite import rewrite_with_tone
@@ -33,6 +34,22 @@ def fuzzy_match_course_code(input_code, all_course_codes):
     matches = get_close_matches(input_code.upper(), all_course_codes, n=1, cutoff=0.75)
     return matches[0] if matches else None
 
+# Normalize Pidgin phrases
+def normalize_input(text):
+    replacements = {
+        "wetin be": "what is",
+        "na wetin be": "what is",
+        "dey do": "is",
+        "abi na": "is it",
+        "which tin be": "what is",
+        "na which": "which",
+        "dey inside": "is in",
+        "course wey dem": "course that they"
+    }
+    for pidgin, standard in replacements.items():
+        text = re.sub(pidgin, standard, text, flags=re.IGNORECASE)
+    return text
+
 # Build list of all valid course codes
 all_codes = set()
 for entry in course_data:
@@ -56,13 +73,16 @@ if user_query:
         st.markdown(user_query)
     st.session_state.chat_history.append({"role": "user", "content": user_query})
 
+    # Normalize Pidgin input
+    normalized_query = normalize_input(user_query)
+
     # Check if greeting
-    if is_greeting(user_query):
-        bot_response = greeting_responses(user_query)
+    if is_greeting(normalized_query):
+        bot_response = greeting_responses(normalized_query)
 
     else:
         # Check for course code lookup
-        course_code = extract_course_code(user_query)
+        course_code = extract_course_code(normalized_query)
         if course_code and course_code not in all_codes:
             course_code = fuzzy_match_course_code(course_code, all_codes)
 
@@ -72,12 +92,11 @@ if user_query:
             # Try to extract unit count if available
             unit_match = re.search(r"\((\d+) units?\)", course_info)
             unit_text = f" ({unit_match.group(1)} units)" if unit_match else ""
-            bot_response = f"**{course_code}** is:
-{course_info}{unit_text}"
+            bot_response = f"**{course_code}** is:\n{course_info}{unit_text}"
 
         else:
             # Check for structured course-related question
-            course_query = extract_course_query(user_query)
+            course_query = extract_course_query(normalized_query)
             matched_courses = get_courses_for_query(course_query, course_data)
 
             if course_query["department"] and matched_courses:
@@ -86,15 +105,14 @@ if user_query:
                     heading += f" in {course_query['level']} level"
                 if course_query["semester"]:
                     heading += f" ({course_query['semester']} semester)"
-                heading += f" for {course_query['department']}:
-"
+                heading += f" for {course_query['department']}:\n"
 
                 bot_response = heading + "\n- " + matched_courses.replace(" | ", "\n- ")
 
             else:
                 # Fallback to semantic search
                 with st.spinner("Finding answer..."):
-                    response, related_qs = find_response(user_query, model, dataset, embeddings)
+                    response, related_qs = find_response(normalized_query, model, dataset, embeddings)
                 response = rewrite_with_tone(user_query, response)
                 bot_response = response
 

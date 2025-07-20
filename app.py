@@ -44,11 +44,23 @@ def normalize_input(text):
         "which tin be": "what is",
         "na which": "which",
         "dey inside": "is in",
-        "course wey dem": "course that they"
+        "course wey dem": "course that they",
+        "dem dey teach": "they teach",
+        "dey teach": "they teach",
+        "wey": "that",
+        "una": "you all",
+        "na for where": "where is"
     }
     for pidgin, standard in replacements.items():
         text = re.sub(pidgin, standard, text, flags=re.IGNORECASE)
     return text
+
+# Detect farewell phrases including Pidgin
+def is_farewell(text):
+    farewells = [
+        "bye", "goodbye", "see you", "i don go", "i dey go", "later na", "catch you later", "i dey bounce", "peace out"
+    ]
+    return any(term in text.lower() for term in farewells)
 
 # Build list of all valid course codes
 all_codes = set()
@@ -79,6 +91,9 @@ if user_query:
     # Check if greeting
     if is_greeting(normalized_query):
         bot_response = greeting_responses(normalized_query)
+
+    elif is_farewell(normalized_query):
+        bot_response = "Alright! Take care 😊. If you need anything about Crescent University, I'm here!"
 
     else:
         # Check for course code lookup

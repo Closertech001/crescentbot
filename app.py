@@ -70,7 +70,11 @@ if user_input:
 
     st.session_state.chat.append({"role": "bot", "text": response})
 
-# Display chat history
+# Display chat history with avatars
 for message in st.session_state.chat:
-    with st.chat_message(message["role"]):
-        st.markdown(message["text"])
+    if message["role"] == "user":
+        with st.chat_message("user", avatar="🧑‍💻"):  # or use a custom image URL
+            st.markdown(message["text"])
+    else:
+        with st.chat_message("assistant", avatar="🎓"):  # or a logo image
+            st.markdown(message["text"])

@@ -1,15 +1,15 @@
+# app.py
+
 import streamlit as st
 import time
 import torch
 import re
-from difflib import get_close_matches
-
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.search import find_response
 from utils.rewrite import rewrite_with_tone
 from utils.greetings import is_greeting, greeting_responses, extract_course_code, get_course_by_code
 from utils.course_query import extract_course_query, get_courses_for_query, load_course_data
-from utils.preprocess import preprocess_text  # 🆕 Added
+from difflib import get_close_matches
 
 # App configuration
 st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
@@ -34,7 +34,7 @@ def fuzzy_match_course_code(input_code, all_course_codes):
     matches = get_close_matches(input_code.upper(), all_course_codes, n=1, cutoff=0.75)
     return matches[0] if matches else None
 
-# Normalize Pidgin phrases only (initial layer)
+# Normalize Pidgin phrases
 def normalize_input(text):
     replacements = {
         "wetin be": "what is",
@@ -85,19 +85,19 @@ if user_query:
         st.markdown(user_query)
     st.session_state.chat_history.append({"role": "user", "content": user_query})
 
-    # 🔄 Normalize Input
-    pidgin_normalized = normalize_input(user_query)
-    normalized_query = preprocess_text(pidgin_normalized)  # Full cleaning
+    # Normalize Pidgin input
+    normalized_query = normalize_input(user_query)
 
-    # Check if greeting
-    if is_greeting(normalized_query):
+    # Greeting check (only if no question words present)
+    question_keywords = ["what", "which", "who", "when", "where", "how", "?"]
+    if is_greeting(normalized_query) and not any(q in normalized_query.lower() for q in question_keywords):
         bot_response = greeting_responses(normalized_query)
 
     elif is_farewell(normalized_query):
         bot_response = "Alright! Take care 😊. If you need anything about Crescent University, I'm here!"
 
     else:
-        # 🔍 Course Code Match
+        # Course code detection
         course_code = extract_course_code(normalized_query)
         if course_code and course_code not in all_codes:
             course_code = fuzzy_match_course_code(course_code, all_codes)
@@ -110,14 +110,15 @@ if user_query:
             bot_response = f"**{course_code}** is:\n{course_info}{unit_text}"
 
         else:
+            # Try full course query
             course_query = extract_course_query(normalized_query)
             matched_courses = get_courses_for_query(course_query, course_data) if course_query else None
 
-            if course_query and course_query["department"] and matched_courses:
+            if course_query and course_query.get("department") and matched_courses:
                 heading = f"Here are the courses offered"
-                if course_query["level"]:
+                if course_query.get("level"):
                     heading += f" in {course_query['level']} level"
-                if course_query["semester"]:
+                if course_query.get("semester"):
                     heading += f" ({course_query['semester']} semester)"
                 heading += f" for {course_query['department']}:\n"
 
@@ -125,33 +126,21 @@ if user_query:
 
             else:
                 with st.spinner("Finding answer..."):
-                    response, related_qs = find_response(
-                        normalized_query,
-                        model=model,
-                        dataset=dataset,
-                        embeddings=embeddings,
-                        top_k=4,
-                        threshold=0.45
-                    )
-
+                    response, related_qs = find_response(normalized_query, model, dataset, embeddings)
                 response = rewrite_with_tone(user_query, response)
                 bot_response = response
 
-    # 💬 Display Assistant Reply with Animation
+    # Display animated assistant reply
     with st.chat_message("assistant"):
         placeholder = st.empty()
         animated_response = ""
         for word in bot_response.split():
             animated_response += word + " "
-            placeholder.markdown(
-                f'<div class="chat-message-assistant">{animated_response.strip()}</div>',
-                unsafe_allow_html=True
-            )
+            placeholder.markdown(f'<div class="chat-message-assistant">{animated_response.strip()}</div>', unsafe_allow_html=True)
             time.sleep(0.05)
 
     st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
 
-    # 💡 Related Questions
     if 'related_qs' in locals() and related_qs:
         with st.spinner("Getting related questions..."):
             time.sleep(0.5)

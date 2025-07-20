@@ -44,13 +44,11 @@ user_input = st.chat_input("Type your question here...")
 if user_input:
     st.session_state.chat.append({"role": "user", "text": user_input})
 
-    # Improved Greeting Logic (always respond to greetings)
+    # Greeting logic
     greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-
-    normalized_input = user_input.strip().lower()
-    if any(greet in normalized_input for greet in greetings):
+    if any(greet in user_input.lower() for greet in greetings) and not st.session_state.bot_greeted:
         response = "Hello! 👋 How can I help you with Crescent University today?"
-
+        st.session_state.bot_greeted = True
 
     else:
         # Check course-related query
@@ -72,11 +70,7 @@ if user_input:
 
     st.session_state.chat.append({"role": "bot", "text": response})
 
-# Display chat history with avatars
+# Display chat history
 for message in st.session_state.chat:
-    if message["role"] == "user":
-        with st.chat_message("user", avatar="🧑‍🎓"):  # or use a custom image URL
-            st.markdown(message["text"])
-    else:
-        with st.chat_message("assistant", avatar="🤖"):  # or a logo image
-            st.markdown(message["text"])
+    with st.chat_message(message["role"]):
+        st.markdown(message["text"])

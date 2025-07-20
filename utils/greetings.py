@@ -1,3 +1,6 @@
+# utils/greetings.py
+
+import random
 import re
 from textblob import TextBlob
 
@@ -10,7 +13,9 @@ GREETING_PATTERNS = [
     r"howdy",
     r"yo",
     r"sup",
-    r"greetings"
+    r"greetings",
+    r"how far",
+    r"how you dey"
 ]
 
 greeting_responses = [
@@ -18,6 +23,7 @@ greeting_responses = [
     "Hi! 👋 What would you like to know about Crescent University?",
     "Hey! I’m here to help. Ask me anything!",
     "Greetings! Ready to explore Crescent University?",
+    "How far! I'm here for any Crescent Uni gist you need."
 ]
 
 def is_greeting(user_input: str) -> bool:
@@ -33,3 +39,6 @@ def detect_sentiment(user_input: str) -> str:
     elif analysis.sentiment.polarity < -0.2:
         return "negative"
     return "neutral"
+
+def greeting_responses():
+    return random.choice(greeting_responses)

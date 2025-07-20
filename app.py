@@ -17,7 +17,7 @@ def load_all():
 
 model, df, embeddings, course_data = load_all()
 
-# Function to find best matching question
+# Find best match in Q&A
 def find_best_match(user_question, model, embeddings, df, threshold=0.6):
     from sentence_transformers.util import cos_sim
     user_embedding = model.encode(user_question.strip().lower(), convert_to_tensor=True)
@@ -28,49 +28,59 @@ def find_best_match(user_question, model, embeddings, df, threshold=0.6):
         return df.iloc[best_idx]["answer"]
     return None
 
-# UI setup
+# Setup UI
 st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
 st.title("🎓 Crescent University Chatbot")
 st.markdown("Ask me anything about departments, courses, or general university info!")
 
-# Session state
+# Chat state
 if "chat" not in st.session_state:
     st.session_state.chat = []
 if "bot_greeted" not in st.session_state:
     st.session_state.bot_greeted = False
 
-# Handle chat input
+# Avatar icons
+USER_AVATAR = "🧑‍💻"
+BOT_AVATAR = "🎓"
+
+# Handle input
 user_input = st.chat_input("Type your question here...")
 if user_input:
     st.session_state.chat.append({"role": "user", "text": user_input})
 
-    # Greeting logic
+    # Normalize input
+    normalized_input = user_input.lower()
+
+    # Friendly greeting
     greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-    if any(greet in user_input.lower() for greet in greetings) and not st.session_state.bot_greeted:
+    if any(greet in normalized_input for greet in greetings) and not st.session_state.bot_greeted:
         response = "Hello! 👋 How can I help you with Crescent University today?"
         st.session_state.bot_greeted = True
 
     else:
-        # Check course-related query
-        query_info = extract_course_query(user_input)
-        if query_info and any([query_info.get("department"), query_info.get("level"), query_info.get("semester")]):
-            result = get_courses_for_query(query_info, course_data)
-        else:
-            result = None
-
-        # Fallback to general Q&A
-        if not result:
+        # If general Q&A (not course listing)
+        general_keywords = [
+            "admission", "requirement", "fee", "tuition", "duration", "length",
+            "cut off", "hostel", "accommodation", "location", "accreditation"
+        ]
+        if any(word in normalized_input for word in general_keywords):
             result = find_best_match(user_input, model, embeddings, df)
+        else:
+            query_info = extract_course_query(user_input)
+            if query_info and any([query_info.get("department"), query_info.get("level"), query_info.get("semester")]):
+                result = get_courses_for_query(query_info, course_data)
+            else:
+                result = find_best_match(user_input, model, embeddings, df)
 
-        # Still nothing found
-        if not result:
-            result = "I'm sorry, I couldn't find an answer to that. Try rephrasing your question."
-
-        response = result
+        if result:
+            response = f"Here’s what I found for you:\n\n{result}"
+        else:
+            response = "Hmm, I couldn’t find an answer to that. Could you try rephrasing it? 😊"
 
     st.session_state.chat.append({"role": "bot", "text": response})
 
 # Display chat history
 for message in st.session_state.chat:
-    with st.chat_message(message["role"]):
+    avatar = USER_AVATAR if message["role"] == "user" else BOT_AVATAR
+    with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["text"])

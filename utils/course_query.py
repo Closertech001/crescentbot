@@ -3,7 +3,7 @@
 import json
 import re
 
-# Map informal phrases/slang/abbreviations to standardized terms
+# Normalize informal inputs and slangs
 NORMALIZATION_MAP = {
     "comp sci": "computer science",
     "mass comm": "mass communication",
@@ -35,6 +35,7 @@ NORMALIZATION_MAP = {
     "course wey dem dey do": "courses"
 }
 
+# Known departments
 DEPARTMENTS = [
     "computer science", "anatomy", "biochemistry", "accounting",
     "business administration", "political science and international studies",
@@ -42,7 +43,24 @@ DEPARTMENTS = [
     "law", "nursing", "physiology", "architecture"
 ]
 
-# Normalize input text using the maps
+# Department to faculty map
+DEPARTMENT_TO_FACULTY_MAP = {
+    "computer science": "CONAS",
+    "anatomy": "COHES",
+    "biochemistry": "CONAS",
+    "accounting": "CASMAS",
+    "business administration": "CASMAS",
+    "political science and international studies": "CASMAS",
+    "microbiology": "CONAS",
+    "economics with operations research": "CASMAS",
+    "mass communication": "CASMAS",
+    "law": "BACOLAW",
+    "nursing": "COHES",
+    "physiology": "COHES",
+    "architecture": "COES"
+}
+
+# Normalize input using mapping
 def normalize_text(text):
     text = text.lower()
     for key, val in NORMALIZATION_MAP.items():
@@ -58,7 +76,7 @@ def normalize_department(text):
             return dept
     return None
 
-# Extract department, level, semester from input
+# Extract query components
 def extract_course_query(text):
     text = normalize_text(text)
     level_match = re.search(r"\b(100|200|300|400)\s*level\b", text)
@@ -68,21 +86,37 @@ def extract_course_query(text):
     return {
         "level": level_match.group(1) if level_match else None,
         "semester": semester_match.group(1).capitalize() if semester_match else None,
-        "department": department.title() if department else None
+        "department": department.title() if department else None,
+        "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department, "") if department else ""
     }
 
-# Load course data
+# Load data
 def load_course_data(path="data/course_data.json"):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# Fetch matching course info
+# Get matching course(s) with fallback logic
 def get_courses_for_query(query_info, course_data):
+    dept = query_info.get("department", "").lower()
+    level = query_info.get("level", "").lower() if query_info.get("level") else None
+    semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
+
+    matches = []
+
     for entry in course_data:
-        if (
-            entry["department"].lower() == query_info["department"].lower()
-            and entry["level"].lower() == query_info["level"].lower()
-            and entry["question"].lower().find(query_info["semester"].lower()) != -1
-        ):
-            return entry["answer"]
-    return None
+        if entry["department"].lower() != dept:
+            continue
+        if level and entry["level"].lower() != level:
+            continue
+        if semester and semester not in entry["question"].lower():
+            continue
+        matches.append(entry)
+
+    if not matches:
+        return None
+
+    # If multiple, combine answers
+    if len(matches) > 1:
+        return "\n\n".join([f"**{m['question']}**\n{m['answer']}" for m in matches])
+    else:
+        return matches[0]["answer"]

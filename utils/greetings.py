@@ -53,3 +53,21 @@ def detect_sentiment(user_input: str) -> str:
 def greeting_responses(user_input: str = "") -> str:
     tone = detect_sentiment(user_input) if user_input else "neutral"
     return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
+
+# --- NEW: Course code helpers ---
+
+def extract_course_code(text: str) -> str:
+    match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())
+    if match:
+        return f"{match.group(1)} {match.group(2)}"
+    return None
+
+def get_course_by_code(course_code: str, course_data: list) -> str:
+    course_code = course_code.upper().strip()
+    for entry in course_data:
+        if course_code in entry.get("answer", ""):
+            parts = [part.strip() for part in entry["answer"].split(" | ")]
+            for part in parts:
+                if part.startswith(course_code):
+                    return part
+    return None

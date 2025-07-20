@@ -1,92 +1,76 @@
 import streamlit as st
-from utils.course_query import extract_course_query, load_course_data, get_courses_for_query
-import random
-import time
-import re
+import json
+import torch
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from utils.embedding import load_dataset, compute_question_embeddings
+from utils.course_query import extract_course_query, get_courses_for_query, load_course_data
 
-# Load course data once
-course_data = load_course_data("data/course_data.json")
+# Load model and dataset
+@st.cache_resource
+def load_all():
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    df = load_dataset("data/crescent_qa.json")
+    embeddings = compute_question_embeddings(df["question"].tolist(), model)
+    course_data = load_course_data("data/course_data.json")
+    return model, df, embeddings, course_data
 
-# Greetings and farewells
-GREETINGS = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-GREET_RESPONSES = [
-    "Hi there! 👋", "Hello! How can I help you today?", "Hey! 😊 What would you like to know?"
-]
-FAREWELLS = ["bye", "goodbye", "see you", "take care", "later"]
-FAREWELL_RESPONSES = [
-    "Goodbye! 👋", "Take care!", "See you later!", "Bye! Have a great day!"
-]
+model, df, embeddings, course_data = load_all()
 
-# Typing simulation
-def bot_typing(delay=1.5):
-    with st.empty():
-        st.markdown("**Bot is typing...**")
-        time.sleep(delay)
+# Function to find best matching question
+def find_best_match(user_question, model, embeddings, df, threshold=0.6):
+    from sentence_transformers.util import cos_sim
+    user_embedding = model.encode(user_question.strip().lower(), convert_to_tensor=True)
+    cosine_scores = cos_sim(user_embedding, embeddings)[0]
+    best_score = torch.max(cosine_scores).item()
+    best_idx = torch.argmax(cosine_scores).item()
+    if best_score >= threshold:
+        return df.iloc[best_idx]["answer"]
+    return None
 
-# Initialize session state
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-    st.session_state.started = False
+# UI setup
+st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
+st.title("🎓 Crescent University Chatbot")
+st.markdown("Ask me anything about departments, courses, or general university info!")
 
-# App UI setup
-st.set_page_config(page_title="Crescent Chatbot", layout="centered")
-st.title("🎓 Crescent University Course Chatbot")
+# Session state
+if "chat" not in st.session_state:
+    st.session_state.chat = []
+if "bot_greeted" not in st.session_state:
+    st.session_state.bot_greeted = False
 
-with st.sidebar:
-    st.markdown("### 🤖 Chat Info")
-    st.markdown("This bot can help you find **courses** by department, level, and semester.")
-    if st.button("🧹 Clear Chat"):
-        st.session_state.chat_history = []
-        st.session_state.started = False
-        st.experimental_rerun()
-
-# Display chat history
-for message in st.session_state.chat_history:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# Greet user on first open
-if not st.session_state.started:
-    greeting = random.choice(GREET_RESPONSES)
-    st.chat_message("assistant").markdown(greeting)
-    st.session_state.chat_history.append({"role": "assistant", "content": greeting})
-    st.session_state.started = True
-
-# Input box for user prompt
-user_input = st.chat_input("Ask about courses (e.g. 'What are 200 level Nursing courses?')")
-
-# Handle user message
+# Handle chat input
+user_input = st.chat_input("Type your question here...")
 if user_input:
-    st.chat_message("user").markdown(user_input)
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    st.session_state.chat.append({"role": "user", "text": user_input})
 
-    lower_input = user_input.strip().lower()
-
-    # Check for farewell
-    if any(f in lower_input for f in FAREWELLS):
-        farewell = random.choice(FAREWELL_RESPONSES)
-        bot_typing()
-        st.chat_message("assistant").markdown(farewell)
-        st.session_state.chat_history.append({"role": "assistant", "content": farewell})
-
-    # Check for greeting with no intent
-    elif any(greet in lower_input for greet in GREETINGS) and len(lower_input.split()) <= 3:
-        response = random.choice(GREET_RESPONSES)
-        bot_typing()
-        st.chat_message("assistant").markdown(response)
-        st.session_state.chat_history.append({"role": "assistant", "content": response})
+    # Greeting logic
+    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
+    if any(greet in user_input.lower() for greet in greetings) and not st.session_state.bot_greeted:
+        response = "Hello! 👋 How can I help you with Crescent University today?"
+        st.session_state.bot_greeted = True
 
     else:
-        # Handle actual query
+        # Check course-related query
         query_info = extract_course_query(user_input)
-        result = get_courses_for_query(query_info, course_data)
-
-        bot_typing()
-
-        if result:
-            st.chat_message("assistant").markdown(result)
-            st.session_state.chat_history.append({"role": "assistant", "content": result})
+        if query_info and any([query_info.get("department"), query_info.get("level"), query_info.get("semester")]):
+            result = get_courses_for_query(query_info, course_data)
         else:
-            fallback = "🤔 I couldn’t find any matching course info. Please check the department, level, or semester."
-            st.chat_message("assistant").markdown(fallback)
-            st.session_state.chat_history.append({"role": "assistant", "content": fallback})
+            result = None
+
+        # Fallback to general Q&A
+        if not result:
+            result = find_best_match(user_input, model, embeddings, df)
+
+        # Still nothing found
+        if not result:
+            result = "I'm sorry, I couldn't find an answer to that. Try rephrasing your question."
+
+        response = result
+
+    st.session_state.chat.append({"role": "bot", "text": response})
+
+# Display chat history
+for message in st.session_state.chat:
+    with st.chat_message(message["role"]):
+        st.markdown(message["text"])

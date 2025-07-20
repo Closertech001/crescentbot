@@ -1,5 +1,622 @@
 [
   {
+    "question": "What is the history of Crescent University?",
+    "answer": "Founded by H.E. Bola Ajibola via IMA, licensed in 2005, and commenced academics in December 2005.",
+    "topic": "university",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the mission of Crescent University?",
+    "answer": "Mission: Deliver education with quality assurance, discipline, and societal value.",
+    "topic": "university",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the vision of Crescent University?",
+    "answer": "Vision: Promote education with integrity and societal impact.",
+    "topic": "university",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the philosophy of Crescent University?",
+    "answer": "Provide education access, build character, foster entrepreneurship, and promote loyalty to God and the nation.",
+    "topic": "university",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the university?",
+    "answer": "Equip graduates for sustainable living. | Promote Islamic principles. | Encourage women's education (60:40 female:male). | Emphasize science over arts (60:40).",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What does the university logo represent?",
+    "answer": "A book (education) and a crescent (Islam) signify knowledge guided by divine principles.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the university residential policy?",
+    "answer": "All students must reside on campus without exemptions.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the motto of the University?",
+    "answer": "The motto of the University is Knowledge and Faith emphasizing academic excellence in a Godly way.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When is the University's Founder's Day celebrated?",
+    "answer": "Founder's Day is celebrated on the 22nd of March every year.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is CONAS?",
+    "answer": "The College of Natural and Applied Sciences (CONAS), established in 2005, includes: Department of Biological Sciences. Chemical Sciences. Mathematical Sciences, Physical Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the college color for Final Year Projects in the College of Health Sciences?",
+    "answer": "Navy Blue.",
+    "topic": "general",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What is the faculty profile like?",
+    "answer": "Highly qualified PhD holders involved in national/international research with published works.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the procedure for student registration?",
+    "answer": "Pay prescribed fees and get bursary clearance. | Get clearance from Admissions Officer. | Get allocated to hostels. | Clear with College office. | Register with HOD. | Submit completed forms. | Register at Health Centre.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the matriculation requirements?",
+    "answer": "Must be officially admitted and registered. | Must take the Matriculation Oath. | No registration after matriculation.",
+    "topic": "admission",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How is the course unit system structured?",
+    "answer": "Courses follow a semester-based unit system. | 1 course unit = 15 lecture hours or equivalent practical time. | Course numbers (e.g., BCH101) reflect department and level. | 70% NUC CCMAS + 30% CUAB-customized content.",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the academic session structure?",
+    "answer": "Two semesters per year | Long vacation (July-Sept) for SIWES/training. | 15-week semesters with breaks and assessments.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are course workload limits?",
+    "answer": "15-17 units per semester (standard). | Add/drop allowed within 3 weeks for elective courses. | Fewer units allowed for Final Year Non-Graduating students.",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the exam regulations?",
+    "answer": "Must attend 70% of classes to write exams. | Exams last 1-3 hours. | Students can only repeat failed courses. | Grades range from A (5 points) to F (0 points). | CGPA determines academic standing.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the degree classification system?",
+    "answer": "First Class: 4.50 - 5.00 CGPA | Second Class Upper: 3.50 - 4.49 | Second Class Lower: 2.40 - 3.49 | Third Class: 1.50 - 2.39 | Pass: 1.00 - 1.49",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the graduation requirements?",
+    "answer": "120 credit units (UTME); 90 units (Direct Entry). | Must pass required courses and final year project (6 units). | Must complete programme within allowed timeframe.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there any student support or development activities?",
+    "answer": "Yes, career counseling, skill training, industrial visits, science fairs, etc.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are developed?",
+    "answer": "Critical thinking, analysis, and interpretation. | Innovation and creativity. | ICT and data analysis. | Research skills and effective communication.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the Direct Entry requirements?",
+    "answer": "Two A-level passes or equivalent in relevant science subjects, or NCE/ND with at least upper credit.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are transfer candidates accepted?",
+    "answer": "Yes, if they meet the minimum requirements and submit transcripts and reports with at least 1.5 CGPA.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are prohibited during exams?",
+    "answer": "Unauthorized materials (notes, phones, textbooks). | Communication with other students. | Arriving late (after 30 minutes) or leaving early (within first 30 minutes). | Possessing multiple answer booklets or scripts. | Using programmable calculators.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What counts as examination malpractice?",
+    "answer": "Possessing exam questions in advance. | Swapping scripts. | Bringing unauthorized materials. | Impersonation. | Assaulting invigilators. | Any action undermining exam integrity.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the penalties for exam misconduct?",
+    "answer": "Noise, non-display of ID (penalty : Reprimand) | Use of notes, impersonation, cheating (penalty : Expulsion) | Assault or script smuggling (penalty : Expulsion) | Refusal to submit script (penalty : Expulsion) | Unauthorized materials (penalty : Expulsion) | Non-submission to search (penalty : Rustication for 1 semester)",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How are cases of exam misconduct handled?",
+    "answer": "Written report by Chief Invigilator, | Investigation by a panel. | Disciplinary Committee reviews. | Penalty conveyed by Registrar. | Right to appeal to Council within 14 days.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Can students transfer from other universities?",
+    "answer": "Yes, provided they meet the university's requirements and submit transcripts and reports.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How many colleges does the University have and what are they?",
+    "answer": "There are Six(6) Colleges in the University which are 1. Bola Ajibola College of Law (BACOLAW) | 2. College of Arts, Social and Management Sciences (CASMAS) | 3. College of Environmental Sciences (COES) | 4. College of Information and Communication Technology (CICOT) | 5. College of Natural and Applied Sciences (CONAS) | 6. College of Health Sciences (COHES)",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the full meaning of BACOLAW",
+    "answer": "Bola Ajibola College of Law.",
+    "topic": "general",
+    "department": "",
+    "faculty": "BACOLAW",
+    "level": ""
+  },
+  {
+    "question": "What is the full meaning of CASMAS",
+    "answer": "College of Arts, Social and Management Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What is the full meaning of COES",
+    "answer": "College of Environmental Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the full meaning of CICOT",
+    "answer": "College of Information and Communication Technology",
+    "topic": "general",
+    "department": "",
+    "faculty": "CICOT",
+    "level": ""
+  },
+  {
+    "question": "What is the full meaning of CONAS",
+    "answer": "College of Natural and Applied Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What is the full meaning of COHES",
+    "answer": "College of Health Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+
+  },
+  {
+    "question": "What is the matriculation requirement?",
+    "answer": "Proper registration | Taking the matriculation oath | Allotment of matriculation number | Registration closes after matriculation",
+    "topic": "admission",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the additional admission procedures?",
+    "answer": "Submission of original documents | Payment of fees | Possible interview | University reserves the right to accept/reject applicants",
+    "topic": "admission",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What attire is prohibited for all students?",
+    "answer": "Skimpy, tight, transparent or revealing clothing | Torn jeans, hipstar/fatra/lactra styles | Public display of undergarments| Unkempt hair or beard (for males) | Obscene T-shirts or buttonless shirts | Body piercings and excessive jewellery (especially on males) | Coloured glasses and bathroom slippers (unless medically necessary) ACADEMIC CALENDAR",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When does the academic session begin?",
+    "answer": "It begins in September with the registration of fresh students.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When do returning students resume?",
+    "answer": "Returning students resume in September .",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When do first semester lectures begin?",
+    "answer": "Lectures commence on October 7",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When does the first semester end?",
+    "answer": "First semester exams begin in February 3, and ends on February 14. The semester spans 21 weeks.",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When does the second semester begin?",
+    "answer": "The second semester begins on March 3,",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When do second semester lectures end?",
+    "answer": "Lectures end on June 13, with exams beginning on June 28 and ending on July 11",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How many weeks are allocated to lectures and exams in each semester?",
+    "answer": "First Semester: 15 weeks of lectures, 2 weeks of revision, 2 weeks of exams. | Second Semester: 14 weeks of lectures, 2 weeks of revision, 2 weeks of exams.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is included in the school fees?",
+    "answer": "Tuition, general accommodation, medical, examination, sports, ID card, and development levy.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there additional compulsory payments?",
+    "answer": "5,000 for department association (at department). | 2,000 for IMASA (Student General Association) First Bank Acct No: 2022508694. | 5,000 portal registration fee.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the bank details for paying school fees?",
+    "answer": "Payments can be made to Crescent University through: 1. UBA 1007903011 | 2. Zenith 1010431785 | 3. First Bank 2012145317 | 4. GTBank 0032618306 | 5. Lotus 1000427994 | 6. Jaiz Bank 0001993958",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the minimum payment required at the start of 1st semester?",
+    "answer": "70% of the total school fees must be paid at the beginning of the 1st semester.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the penalties for late payment of tuition?",
+    "answer": "A penalty of 10,000 per month will be charged for late payment.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there private hostel options available?",
+    "answer": "Yes, at an additional cost of 150,000 - 250,000",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Who are in charge of the hostel?",
+    "answer": "Contact: Male: Mr. Lawal 08039629231 | Female: Mrs. Popoola 08183519027 | Student Affairs: 08030889805",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Who can be contacted for further admission inquiries?",
+    "answer": "Call the Admission Officer at 08030644731 or 08038362771.",
+    "topic": "admission",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When is Matriculation ceremony?",
+    "answer": "Matriculation ceremony holds in the month of January",
+    "topic": "admission",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When is the Convocation ceremony?",
+    "answer": "Convocation ceremony holds in the month of October",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "When do revisions and continuous assessments occur?",
+    "answer": "First Semester: In the month of January | Second Semester: In the month of June",
+    "topic": "university",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the semester examination periods?",
+    "answer": "First Semester Exams: February | Second Semester Exams: June - July EXTENDED",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are departmental association fees included in school fees?",
+    "answer": "No. Students must pay 5,000 directly to their departments.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How much is the IMASA fee and where is it paid?",
+    "answer": "2,000, payable to First Bank, Account Number: 2022508694.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Can students pay fees in installments?",
+    "answer": "Yes, 70% of fees is required at the start of 1st semester, and 30% at the start of 2nd semester.",
+    "topic": "finance",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the meaning of COHES?",
+    "answer": "College of Health Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Under which college is the Department of Anatomy?",
+    "answer": "It is under the College of Health Sciences (COHES).",
+    "topic": "general",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What other departments are in the College of Health Sciences?",
+    "answer": "Departments of Anatomy, Department of Nursing, and Department of Physiology.",
+    "topic": "general",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What is the philosophy of the Anatomy program?",
+    "answer": "To produce graduates of high academic standing with practical exposure in all aspects of anatomical sciences who can function in medical education, laboratory services, and entrepreneurship.",
+    "topic": "university",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Anatomy program?",
+    "answer": "1. Teach Anatomy to various health science students.  2. Use basic laboratory equipment.  3. Demonstrate organ and system functions on living subjects.  4. Identify anatomical features using radiographs and related tools.  5. Promote Anatomy through research and postgraduate studies.",
+    "topic": "general",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "Who are the academic staff in Anatomy?",
+    "answer": "Professors: Olusola Atilade Adeeyo, Kehinde T. Adenowo | Senior Lecturers: D.A. Adekomi, O.O. Ogedengbe, P.B. Fakunle, K.A. Iteire | Lecturer I: O.A. Udi, B.S. Ogunlade, P. Akwu-Bala, O.A. Morakinyo | Lecturer II: A.A. Oyeleke.",
+    "topic": "staff",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "Who are the lecturers in Anatomy?",
+    "answer": "Professors: Olusola Atilade Adeeyo, Kehinde T. Adenowo | Senior Lecturers: D.A. Adekomi, O.O. Ogedengbe, P.B. Fakunle, K.A. Iteire | Lecturer I: O.A. Udi, B.S. Ogunlade, P. Akwu-Bala, O.A. Morakinyo | Lecturer II: A.A. Oyeleke.",
+    "topic": "staff",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "List the academic staff in the Department of Anatomy.",
+    "answer": "Professors: Olusola Atilade Adeeyo, Kehinde T. Adenowo | Senior Lecturers: D.A. Adekomi, O.O. Ogedengbe, P.B. Fakunle, K.A. Iteire | Lecturer I: O.A. Udi, B.S. Ogunlade, P. Akwu-Bala, O.A. Morakinyo | Lecturer II: A.A. Oyeleke.",
+    "topic": "staff",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "Who are the technical and non-academic staff in the Department of Anatomy?",
+    "answer": "Technical: Okeniran O.S. (Senior Technologist) | Non-academic: Akindele V.O. (Secretary), Adekunle I.A. (Clerical Officer).",
+    "topic": "staff",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME admission requirements for Department of Anatomy?",
+    "answer": "5 credits in English, Mathematics, Biology, Chemistry, and Physics in not more than two sittings. UTME pass required.",
+    "topic": "admission",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What are the Direct Entry requirements in Department of Anatomy?",
+    "answer": "NCE/ND with upper credit, two A-level passes in Physics, Chemistry, and Biology/Zoology, or a related first degree.",
+    "topic": "general",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "Are transfer students accepted in Department of Anatomy?",
+    "answer": "Yes, with minimum CGPA of 1.5, required documentation, and application through the Registrar.",
+    "topic": "general",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What are the graduation requirements for B.Sc. Anatomy?",
+    "answer": "1. 150 credits for UTME, 120 credits for Direct Entry. | 2. Complete all coursework, SIWES, seminars, and projects. | 3. Register 16-25 units per semester.",
+    "topic": "exam",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What is the complete breakdown of fees for returning Anatomy students?",
+    "answer": "N840,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Anatomy",
+    "level": "200 level - 400level",
+    "semester": "",
+    "faculty": "COHES"
+  },
+  {
+    "question": "What fees do Anatomy freshers pay in total?",
+    "answer": "N928,00 tuition + N10,000 screening form + N50,000 acceptance fee + N10.000 parent form.",
+    "department": "Anatomy",
+    "level": "100 level",
+    "semester": "",
+    "faculty": "COHES"
+  },
+  {
+    "question": "Under which college is the Department Of Anatomy?",
+    "answer": "The departments of Anatomy is under the College of Health Sciences(COHES)",
+    "department": "Anatomy",
+    "level": "",
+    "semester": "",
+    "faculty": "COHES"
+  },
+  {
     "question": "What are the courses taken in the first semester of 100 level in Department of Anatomy?",
     "answer": "General Biology I (BIO 101) Unit:3 | General Biology Practical I (BIO 191) Unit:1 | General Chemistry I (CHM 101) Unit:3 | General Chemistry Practical I (CHM 191) Unit:1 | Introduction to Computer Science (CPS 101) Unit:2 | Use of English (GNS 101) Unit:2 | Nigerian Peoples and Culture (GNS 105) Unit:1 | Use of Library (LIB 101) Unit:1 | Contemporary Health Issues (GNS 107) Unit:2 | General Mathematics I (MTS 101) Unit:3 | General Physics I (PHS 101) Unit:3 | General Physics Practical I (PHS 191) Unit:1 | Philosophy of Islam I (GNS 103) Unit:1 | Introduction to Business Solution using MS - Office (MS Word) I (CCC 101) | Total Units:24 ",
     "department": "Anatomy",
@@ -72,6 +689,142 @@
     "faculty": "COHES"
   },
   {
+    "question": "Is SIWES included in the program of Department of Anatomy?",
+    "answer": "Yes, SIWES is included in both 200 Level (SIWES I) and 300 Level (SIWES II) during the long vacation.",
+    "topic": "general",
+    "department": "Department of Anatomy",
+    "faculty": "COHES",
+    "level": ""
+  },
+  {
+    "question": "What is the focus of the Department of Accounting?",
+    "answer": "The Department of Accounting focuses on providing students with a sound foundation in accounting principles, practices, and related areas in the business world, preparing them for careers in accounting, auditing, taxation, and financial management.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Accounting program?",
+    "answer": "The objectives are to equip students with theoretical and practical knowledge in accounting, develop analytical and communication skills, instill ethical standards, and prepare graduates for further studies or professional certification.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME admission requirements for the Accounting program?",
+    "answer": "Candidates must have five (5) Olevel credits including English Language, Mathematics, Economics, and any two relevant subjects, in not more than two sittings. They must also pass the UTME with appropriate subjects.",
+    "topic": "admission",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the Direct Entry requirements for the Accounting program?",
+    "answer": "Candidates should have at least two Alevel passes in Accounting, Economics, or Business Management, or possess ND/NCE/HND in relevant disciplines with at least upper credit.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What are the graduation requirements for Accounting students?",
+    "answer": "Students must complete a minimum of 150 credit units for a 4-year program and 120 units for Direct Entry, including all compulsory and required courses. They must also have a CGPA of at least 1.00 and complete the Student Industrial Work Experience Scheme (SIWES).",
+    "topic": "exam",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What should Accounting graduates be able to do?",
+    "answer": "Graduates should demonstrate understanding of accounting principles, apply analytical tools, use ICT in accounting, uphold ethical standards, and be able to work independently or in teams.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What employability skills are acquired in the Accounting program?",
+    "answer": "Skills include communication, numeracy, ICT, analytical thinking, leadership, ethical judgment, time management, teamwork, and problem-solving.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are emphasized in the Accounting program?",
+    "answer": "The program promotes critical thinking, creativity, collaboration, digital literacy, initiative, flexibility, and productivity.",
+    "topic": "general",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
+    "question": "Who are the academic staffs in the department of Accounting?",
+    "answer": "Professor/Head Of Department(HOD): Prof. T.T. Siyanbola | Reader: Dr. S.A. Babatunde | Senior Lecturer : Dr. A.M.A. Tonade, Dr. J.K. Ogunwede, Dr. (Mrs.) J.A. Isoken, Dr. R.O. Animasaun | Lecturer: Dr. A.O. Nurudeen, Dr. I. M. Falayi, J.O. Ojurongbe, H.O. Onifade, W.A. Sanyaolu",
+    "department": "Accounting",
+    "level": "",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "Who are the administrative and technical staffs in the department of Accounting? ",
+    "answer": "Laboratory Technician: Oluwalasinu O.G | Administrative Officer: Subair O.B | Administrative Secretary :Oyabunmi Y.N.",
+    "department": "Accounting",
+    "level": "",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "What is the complete breakdown of fees for returning Accounting students ?",
+    "answer": "N855,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Accounting",
+    "level": "200 level - 400level",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "What fees do Accounting freshers pay in total ?",
+    "answer": "N855,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Accounting",
+    "level": "100 level",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "Under which college is the Department Of Accounting?",
+    "answer": "The Department Of Accounting is under the College of Arts, Social and Management Sciences(CASMAS)",
+    "department": "Accounting",
+    "level": "",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "When are student suppose to go for their Student Industrial Work Experience Scheme (SIWES) in Department of Accounting?",
+    "answer": "Students to go on Industrial Work Experience during the long vacation of the third year.",
+    "department": "Accounting",
+    "level": "300",
+    "semester": "",
+    "faculty": "CASMAS"
+  },
+  {
+    "question": "Is Student Industrial Work Experience Scheme (SIWES) included in 300 Level Accounting?",
+    "answer": "Yes, the Student Industrial Work Experience Scheme (SIWES) is taken during the long vacation of the third year",
+    "topic": "academics",
+    "department": "Accounting",
+    "faculty": "CASMAS",
+    "level": "300"
+  },
+  {
+    "question": "What degrees are offered in the Department of Accounting?",
+    "answer": "B.Sc. and M.Sc. degrees in Accounting.",
+    "topic": "general",
+    "department": "Department of Accounting",
+    "faculty": "CASMAS",
+    "level": ""
+  },
+  {
     "question": "What are the courses taken in the first semester of 100 level in Department of Accounting?",
     "answer": "Communication in English Language (GST 111) Unit:2 | Principles of Management (AMS 101) Unit:2 | Introduction to Computing (AMS 103) Unit:2 | Introduction to Financial Accounting I (ACC 101) Unit:3 | Economic Principles for Accounting Students (CUAB-ACC 103) Unit:2 | Use of Library and Study Skills for Accounting Students (CUAB-ACC 107) Unit:2 | Islam and Contemporary Accounting Issues (CUAB-ACC 113) Unit:2 | Total Units:15",
     "department": "Accounting",
@@ -136,6 +889,134 @@
     "faculty": "CASMAS"
   },
   {
+    "question": "When was the Department of Architecture established?",
+    "answer": "It was established in September 2011.",
+    "topic": "general",
+    "department": "Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What degrees are offered in the Department of Architecture?",
+    "answer": "B.Sc. and M.Sc. degrees in Architecture.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the philosophy of the Architecture programme?",
+    "answer": "To provide knowledge and skills for designing and constructing human spaces using technological, artistic, and environmental approaches, rooted in cultural and traditional heritage.",
+    "topic": "university",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Architecture programme?",
+    "answer": "1. Equip students with environmental, cultural, technological, and economic design knowledge.  2. Offer quality design education with creative design skills.  3. Instill professionalism and ability to manage design processes.  4. Encourage research and community participation.  5. Promote entrepreneurial knowledge and self-reliance.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the unique features of the Architecture programme?",
+    "answer": "1. Focus on global issues (sustainability, gender, climate, etc.).  2. Emphasis on Nigerian architecture and history.  3. Integration of digital design applications.  4. Preparation for local and international practice.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What employability skills does the Architecture programme provide?",
+    "answer": "Entrepreneurship for Architects course | Digital drawing and software skills | Independent and creative design thinking. | Communication and presentation skills | Practical experience through workshops and SIWES",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are emphasized in Architecture?",
+    "answer": "Digital skills (e.g., Building Information Modelling) | Critical thinking and analysis | Creativity and innovation | Communication and teamwork | Leadership and virtual collaboration",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME requirements for Architecture?",
+    "answer": "Five credits including Mathematics, English, Physics, and two others (e.g., Chemistry, Fine Arts). UTME subjects: Mathematics, Physics, and one from Chemistry, Geography, Fine Arts, or Technical Drawing.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the programme duration for B.Sc. in Architecture?",
+    "answer": "8 semesters for UTME; 6 semesters for Direct Entry.",
+    "topic": "general",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What are the graduation requirements for B.Sc. Architecture?",
+    "answer": "120 credits (UTME), 90 or 60 (Direct Entry), and successful completion of all required courses and SIWES.",
+    "topic": "exam",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": ""
+  },
+  {
+    "question": "What is the complete breakdown of fees for returning Architecture students ?",
+    "answer": "N835,000 tuition + N5,000 portal fee + N5,000 departmental fee + N10,000 parent forum  + N2,000 Imasa.",
+    "department": "Architecture",
+    "level": "200 level - 400level",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "What fees do Architecture freshers pay in total ?",
+    "answer": "N968,00 tuition + N10,000 screening form + N50,000 acceptance fee + N10.000 parent form.",
+    "department": "Architecture",
+    "level": "100 level",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Who are the academic staff in the department of Architecture?",
+    "answer": "Dean: Prof. K.O. Ajibola | Professor: Prof. S.A. Daramola. |  Senior Lecturer: Dr. S.S. Omoniyi, Dr. O.A. Adekitan, Dr. A.S. Oguntimehin | Lecturer: Dr. T.O. Yusuf, Dr. K. Oleruntoba, Are. M.K Isiaka. ",
+    "department": "Architecture",
+    "level": "",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Who are the administrative staff in the department of Architecture?",
+    "answer": "Secretary: Halimah M. Badru | Clerk: R.A. Olanrewaju",
+    "department": "Architecture",
+    "level": "",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Under which college is the Department Of Architecture?",
+    "answer": "The Department of Architecture falls under the College of Environmental Sciences(COES)",
+    "department": "Architecture",
+    "level": "",
+    "semester": "",
+    "faculty": "COES"
+  },
+  {
+    "question": "Is SIWES part of the curriculum of the department of Architecture?",
+    "answer": "Yes, the Student Industrial Work Experience Scheme (SIWES) is integrated at 300 Level for three-month.",
+    "topic": "academics",
+    "department": "Department of Architecture",
+    "faculty": "COES",
+    "level": "300"
+  },
+  {
     "question": "What are the courses taken in 100 level first semester Department of Architecture?",
     "answer": "Communication in English (GST 111) Unit:2 | Elementary Mathematics I (MTH 101) Unit:2 | General Physics (Mechanics) I (PHY 101) Unit:2 |  Graphics Communication I (FAA 103) Unit:2 | Introduction to Basic Computer Applications (FAA 121) Unit:2 | Introduction to Architecture (ARC 101) Unit:2 | Freehand Drawing I (CUAB-ARC 105) Unit:2 | Introduction to Environmental Sciences (CUAB-ARC 107) Unit:2 | Total Units:18",
     "department": "Architecture",
@@ -198,6 +1079,78 @@
     "level": "400",
     "semester": "second",
     "faculty": "COES"
+  },
+  {
+    "question": "When was the Department of Biological Science established?",
+    "answer": "The department was established in 2005.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What degree programme is offered by the Department of Biological Science?",
+    "answer": "The department offers a B.Sc. degree in Microbiology.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What is the philosophy of the Microbiology programme?",
+    "answer": "To train graduates who apply microbiological techniques to solve developmental challenges in society.",
+    "topic": "university",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What are the objectives of the Microbiology programme?",
+    "answer": "1. Train students for careers in industry, health, and research. | 2. Prepare students for graduate and professional studies. | 3. Develop entrepreneurial skills in applied microbiology.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What are the unique features of the Microbiology programme?",
+    "answer": "The programme covers modern microbiology areas such as food, industrial, medical, systematics, environmental, biotechnology, genetic engineering, and entrepreneurship.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What employability opportunities are available to microbiology graduates?",
+    "answer": "Employment in hospitals, labs, pharmaceutical industries, agriculture, environmental firms, food and dairy industries, breweries, NGOs, and educational institutions.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What skills should a microbiology graduate possess?",
+    "answer": "Technical, laboratory, analytical, writing, interpersonal, and communication skills, as well as attention to detail and a passion for disease prevention and environmental improvement.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What 21st-century skills are emphasized in the department of biological science (Microbiology)?",
+    "answer": "Critical thinking, problem solving, analysis, research skills, creativity, adaptability, initiative, and self-direction.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
+  },
+  {
+    "question": "What are the UTME requirements for Microbiology?",
+    "answer": "Five credits including English, Mathematics, Biology, Chemistry, and Physics. UTME subjects: English, Biology, Chemistry, and one of Mathematics or Physics.",
+    "topic": "general",
+    "department": "Microbiology",
+    "faculty": "CONAS",
+    "level": ""
   },
   {
     "question": "What are the courses introduced in 100 level first semester Microbiology?",
@@ -420,7 +1373,7 @@
     "answer": "GST 111 Communication in English (2 units) | MTH 101 Elementary Mathematics I (2 units) | PHY 101 General Physics I (2 units) | PHY 107 General Practical Physics I (1 unit) | STA 111 Descriptive Statistics (3 units) | COS 101 Introduction to Computing Sciences (3 units) | CUAB-CSC 103 Islamic Perspective in ICT (2 units) | CUAB-CSC 105 Use of Library for Computer Science Students (2 units) Total Units: 17",
     "semester": "first",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -428,7 +1381,7 @@
     "answer": "GST 112 Nigerian Peoples and Culture (2 units) | MTH 102 Elementary Mathematics II (2 units) | PHY 102 General Physics II (2 units) | PHY 108 General Practical Physics II (1 unit) | COS 102 Problem Solving (3 units) | CUAB-CSC 104 System Analysis and Design (2 units) | CUAB-CSC 106 Introduction to Algebra (2 units) | CUAB-CSC 108 Foundation of Sequential Program (2 units) Total Units: 16",
     "semester": "second",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -436,7 +1389,7 @@
     "answer": "ENT 211 Entrepreneurship and Innovation (2 units) | MTH 201 Mathematical Methods I (2 units) | COS 201 Computer Programming I (3 units) | CSC 203 Discrete Structures (2 units) | CSC 299 SIWES I (3 units) | IFT 211 Digital Logic Design (2 units) | SEN 201 Introduction to Software Engineering (2 units) Total Units: 16",
     "semester": "first",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -444,7 +1397,7 @@
     "answer": "GST 212 Philosophy, Logic and Human Existence (2 units) | MTH 202 Elementary Differential Equations (2 units) | COS 202 Computer Programming II (3 units) | IFT 212 Computer Architecture and Organisation (2 units) | CUAB-CSC 204 Distributed Computing System (2 units) | CUAB-CSC 206 Software Engineering (2 units) | CUAB-CSC 208 Introduction to Numerical Analysis (2 units) Total Units: 15",
     "semester": "second",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -452,7 +1405,7 @@
     "answer": "CSC 301 Data Structures (3 units) | CSC 309 Artificial Intelligence (2 units) | CSC 399 SIWES II (3 units) | CYB 201 Introduction to Cybersecurity and Strategy (2 units) | ICT 305 Data Communication System & Network (3 units) | CUAB-CSC 303 Computational Science & Numerical Methods (2 units) Total Units: 15",
     "semester": "first",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -460,7 +1413,7 @@
     "answer": "GST 312 Peace and Conflict Resolution (2 units) | ENT 312 Venture Creation (2 units) | CSC 308 Operating Systems (3 units) | CSC 322 Computer Science Innovation and New Technologies (2 units) | DTS 304 Data Management I (3 units) | CUAB-CSC 302 Modelling and Simulation (2 units) | CUAB-CSC 304 Formal Language & Automata Theory (2 units) Total Units: 16",
     "semester": "second",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -468,7 +1421,7 @@
     "answer": "COS 409 Research Methodology and Technical Report Writing (3 units) | CSC 401 Algorithms and Complexity Analysis (2 units) | CSC 497 Final Year Project I (3 units) | INS 401 Project Management (2 units) | CUAB-CSC 403 Introduction to Operation Research (2 units) | CUAB-CSC 405 Human Computer Interface (2 units) | CUAB-CPS 407 Data Visualization for Data-Driven Decision Making (2 units) Total Units: 16",
     "semester": "first",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -476,7 +1429,7 @@
     "answer": "CSC 402 Ethics and Legal Issues in Computer Science (2 units) | CSC 498 Final Year Project II (3 units) | CUAB-CSC 404 Computer System Performance Evaluation (2 units) (Elective) | CUAB-CSC 406 Computer Graphics & Visualization (2 units) (Elective) | CUAB-CSC 408 Compiler Construction (2 units) | CUAB-CSC 410 Survey of Programming Languages (2 units) | CUAB-CSC 412 Internet Technology & Web Programming (2 units) Total Units: 15",
     "semester": "second",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -848,7 +1801,7 @@
     "level": "300"
   },
   {
-    "question": "What courses that are offered in 300level second semester Department of Physiology?",
+    "question": "What are the courses offered in 300level second semester Department of Physiology?",
     "answer": "PHY 302: Neurophysiology | PHY 304: Electrolyte & Fluid Regulation | PHY 306: Neuroscience II | PHY 308: Enzymology | PHY 310: Laboratory Teaching & Instrumentation | PHA 302: Pharmacology | BCH 302, 304: Carbohydrates, amino acids & protein metabolism | CCC 304: CRM II (non-credit)",
     "semester": "second",
     "department": "Physiology",

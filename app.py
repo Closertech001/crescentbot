@@ -104,17 +104,15 @@ if user_query:
         course_info = get_course_by_code(course_code, course_data) if course_code else None
 
         if course_info:
-            # Try to extract unit count if available
             unit_match = re.search(r"\((\d+) units?\)", course_info)
             unit_text = f" ({unit_match.group(1)} units)" if unit_match else ""
             bot_response = f"**{course_code}** is:\n{course_info}{unit_text}"
 
         else:
-            # Check for structured course-related question
             course_query = extract_course_query(normalized_query)
-            matched_courses = get_courses_for_query(course_query, course_data)
+            matched_courses = get_courses_for_query(course_query, course_data) if course_query else None
 
-            if course_query["department"] and matched_courses:
+            if course_query and course_query["department"] and matched_courses:
                 heading = f"Here are the courses offered"
                 if course_query["level"]:
                     heading += f" in {course_query['level']} level"
@@ -125,13 +123,11 @@ if user_query:
                 bot_response = heading + "\n- " + matched_courses.replace(" | ", "\n- ")
 
             else:
-                # Fallback to semantic search
                 with st.spinner("Finding answer..."):
                     response, related_qs = find_response(normalized_query, model, dataset, embeddings)
                 response = rewrite_with_tone(user_query, response)
                 bot_response = response
 
-    # Typing animation for assistant response
     with st.chat_message("assistant"):
         placeholder = st.empty()
         animated_response = ""
@@ -142,7 +138,6 @@ if user_query:
 
     st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
 
-    # Show related questions if from embedding path
     if 'related_qs' in locals() and related_qs:
         with st.spinner("Getting related questions..."):
             time.sleep(0.5)

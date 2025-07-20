@@ -10,10 +10,12 @@ def extract_course_query(text):
     semester_match = re.search(r"\b(first|second)\s*semester\b", text)
 
     departments = [
-        "computer science", "anatomy", "biochemistry", "accounting", "business administration", "Political Science and International Studies",
-        "microbiology", "Economics with Operations Research", "mass communication", "law", "nursing", "Physiology", "Architecture"
+        "computer science", "anatomy", "biochemistry", "accounting",
+        "business administration", "political science and international studies",
+        "microbiology", "economics with operations research", "mass communication",
+        "law", "nursing", "physiology", "architecture"
     ]
-    department_match = next((d for d in departments if d.lower() in text), None)
+    department_match = next((d for d in departments if d in text), None)
 
     return {
         "level": level_match.group(1) if level_match else None,
@@ -31,8 +33,8 @@ def get_courses_for_query(query_info, course_data):
     for entry in course_data:
         if (
             entry["department"].lower() == query_info["department"].lower()
-            and entry["level"] == query_info["level"]
-            and entry["semester"].lower() == query_info["semester"].lower()
+            and entry["level"].lower() == query_info["level"].lower()
+            and entry["question"].lower().find(query_info["semester"].lower()) != -1
         ):
-            return entry["courses"]
+            return entry["answer"]
     return None

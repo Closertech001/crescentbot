@@ -18,7 +18,7 @@ GREETING_PATTERNS = [
     r"how you dey"
 ]
 
-greeting_responses_by_sentiment = {
+_greeting_responses_by_sentiment = {
     "positive": [
         "Hey there! 😊 You're sounding great today. How can I assist you?",
         "Hi! 👋 I'm glad you're feeling good. What would you like to know?",
@@ -50,6 +50,6 @@ def detect_sentiment(user_input: str) -> str:
         return "negative"
     return "neutral"
 
-def greeting_responses(user_input: str) -> str:
-    tone = detect_sentiment(user_input)
-    return random.choice(greeting_responses_by_sentiment.get(tone, greeting_responses_by_sentiment["neutral"]))
+def greeting_responses(user_input: str = "") -> str:
+    tone = detect_sentiment(user_input) if user_input else "neutral"
+    return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))

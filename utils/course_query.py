@@ -60,19 +60,21 @@ DEPARTMENT_TO_FACULTY_MAP = {
     "architecture": "COES"
 }
 
-# Normalize input using mapping
+# Normalize full input using mapping
 def normalize_text(text):
     text = text.lower()
     for key, val in NORMALIZATION_MAP.items():
         text = text.replace(key, val)
     return text
 
+# Normalize department name
 def normalize_department(text):
-    for keyword, standard in NORMALIZATION_MAP.items():
-        if keyword in text and standard in DEPARTMENTS:
+    norm_text = text.lower()
+    for slang, standard in NORMALIZATION_MAP.items():
+        if slang in norm_text and standard in DEPARTMENTS:
             return standard
     for dept in DEPARTMENTS:
-        if dept in text:
+        if dept in norm_text:
             return dept
     return None
 
@@ -87,15 +89,15 @@ def extract_course_query(text):
         "level": level_match.group(1) if level_match else None,
         "semester": semester_match.group(1).capitalize() if semester_match else None,
         "department": department.title() if department else None,
-        "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department, "") if department else ""
+        "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
     }
 
-# Load data
+# Load course data JSON
 def load_course_data(path="data/course_data.json"):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# Get matching course(s) with fallback logic
+# Get matching course(s) from query and dataset
 def get_courses_for_query(query_info, course_data):
     if not query_info:
         return None
@@ -107,13 +109,16 @@ def get_courses_for_query(query_info, course_data):
     matches = []
 
     for entry in course_data:
-        if entry["department"].lower() != dept:
-            continue
-        if level and entry["level"].lower() != level:
-            continue
-        if semester and semester not in entry["question"].lower():
-            continue
-        matches.append(entry)
+        try:
+            if entry["department"].lower() != dept:
+                continue
+            if level and entry["level"].lower() != level:
+                continue
+            if semester and semester not in entry["question"].lower():
+                continue
+            matches.append(entry)
+        except KeyError:
+            continue  # skip bad/missing data
 
     if not matches:
         return None

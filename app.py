@@ -8,6 +8,7 @@ from utils.search import find_response
 from utils.rewrite import rewrite_with_tone
 from utils.greetings import is_greeting, greeting_responses, extract_course_code, get_course_by_code
 from utils.course_query import extract_course_query, get_courses_for_query, load_course_data
+from difflib import get_close_matches
 
 # App configuration
 st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
@@ -26,6 +27,20 @@ def get_bot_resources():
 
 model, dataset, embeddings = get_bot_resources()
 course_data = load_course_data("data/course_data.json")
+
+# Helper to match similar course codes in case of typos
+def fuzzy_match_course_code(input_code, all_course_codes):
+    matches = get_close_matches(input_code.upper(), all_course_codes, n=1, cutoff=0.75)
+    return matches[0] if matches else None
+
+# Build list of all valid course codes
+all_codes = set()
+for entry in course_data:
+    parts = [part.strip() for part in entry.get("answer", "").split(" | ")]
+    for part in parts:
+        if ":" in part:
+            code = part.split(":")[0].strip()
+            all_codes.add(code)
 
 # User Input
 user_query = st.chat_input("Type your question here:")
@@ -48,10 +63,17 @@ if user_query:
     else:
         # Check for course code lookup
         course_code = extract_course_code(user_query)
+        if course_code and course_code not in all_codes:
+            course_code = fuzzy_match_course_code(course_code, all_codes)
+
         course_info = get_course_by_code(course_code, course_data) if course_code else None
 
         if course_info:
-            bot_response = f"**{course_code}** is:\n{course_info}"
+            # Try to extract unit count if available
+            unit_match = re.search(r"\((\d+) units?\)", course_info)
+            unit_text = f" ({unit_match.group(1)} units)" if unit_match else ""
+            bot_response = f"**{course_code}** is:
+{course_info}{unit_text}"
 
         else:
             # Check for structured course-related question
@@ -65,7 +87,7 @@ if user_query:
                 if course_query["semester"]:
                     heading += f" ({course_query['semester']} semester)"
                 heading += f" for {course_query['department']}:
-\n"
+"
 
                 bot_response = heading + "\n- " + matched_courses.replace(" | ", "\n- ")
 

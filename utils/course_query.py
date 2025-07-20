@@ -10,8 +10,8 @@ def extract_course_query(text):
     semester_match = re.search(r"\b(first|second)\s*semester\b", text)
 
     departments = [
-        "computer science", "anatomy", "biochemistry", "accounting", "business administration",
-        "microbiology", "economics and opreational research", "mass communication", "law", "nursing"
+        "computer science", "anatomy", "biochemistry", "accounting", "business administration", "Political Science and International Studies"
+        "microbiology", "Economics with Operations Research", "mass communication", "law", "nursing", "Physiology", "Architecture"
     ]
     department_match = next((d for d in departments if d.lower() in text), None)
 

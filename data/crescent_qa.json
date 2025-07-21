@@ -129,7 +129,7 @@
   },
   {
     "question": "What are course workload limits?",
-    "answer": "15-17 units per semester (standard). | Add/drop allowed within 3 weeks. | Fewer units allowed for Final Year Non-Graduating students.",
+    "answer": "15-17 units per semester (standard). | Add/drop allowed within 3 weeks for elective courses. | Fewer units allowed for Final Year Non-Graduating students.",
     "topic": "academics",
     "department": "",
     "faculty": "",
@@ -137,7 +137,7 @@
   },
   {
     "question": "What are the exam regulations?",
-    "answer": "Must attend 70% of classes to write exams. | Exams last 1-2 hours. | Students can only repeat failed courses. | Grades range from A (5 points) to F (0 points). | CGPA determines academic standing.",
+    "answer": "Must attend 70% of classes to write exams. | Exams last 1-3 hours. | Students can only repeat failed courses. | Grades range from A (5 points) to F (0 points). | CGPA determines academic standing.",
     "topic": "exam",
     "department": "",
     "faculty": "",
@@ -177,7 +177,7 @@
   },
   {
     "question": "What are the Direct Entry requirements?",
-    "answer": "Two A-level passes or equivalent in relevant science subjects, or NCE/ND with at least upper credit.",
+    "answer": " (a)NCE, ND and their approved equivalents in relevant field and at least the Upper Credit level in addition to O/L requirements stated above. (b) Two Advanced Level passes or its equivalent in relevant subiects in addition to O/L requirements stated above. (c) The Interim Joint Matriculation Board (IJMB) or JUPEB at acceptable grade levels; (d) HND with lower credit from recognized institutions may be admitted into 200 level in the relevant degree programmes provided they satisfy the minimum requirements stipulated for entry into 100 level (e) In exceptional cases, holders of ND with lower credit from recognized institutions may be admitted to 200 level in relevant degree programmes, provided they satisfy the minimum requirements stipulated for entry into 100 level. (f) Pass interview conducted by the University.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -280,6 +280,15 @@
     "level": ""
   },
   {
+    "question": "What is the full meaning of COHES",
+    "answer": "College of Health Sciences",
+    "topic": "general",
+    "department": "",
+    "faculty": "COHES",
+    "level": ""
+
+  },
+  {
     "question": "What is the matriculation requirement?",
     "answer": "Proper registration | Taking the matriculation oath | Allotment of matriculation number | Registration closes after matriculation",
     "topic": "admission",
@@ -305,7 +314,7 @@
   },
   {
     "question": "When does the academic session begin?",
-    "answer": "It begins on September with the registration of fresh students.",
+    "answer": "It begins in September with the registration of fresh students.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -313,7 +322,7 @@
   },
   {
     "question": "When do returning students resume?",
-    "answer": "Returning students resume and register on September 29.",
+    "answer": "Returning students resume in September 29.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -329,7 +338,7 @@
   },
   {
     "question": "When does the first semester end?",
-    "answer": "First semester exams begin on February 3, and end on February 14. The semester spans 21 weeks.",
+    "answer": "First semester exams begins on February 3, and ends on February 14. The semester spans 21 weeks.",
     "topic": "academics",
     "department": "",
     "faculty": "",
@@ -353,7 +362,7 @@
   },
   {
     "question": "How many weeks are allocated to lectures and exams in each semester?",
-    "answer": "First Semester: 15 weeks of lectures, 2 weeks of revision, 2 weeks of exams. | Second Semester: 14 weeks of lectures, 2 weeks of revision, 2 weeks of exams. SCHOOL FEES STRUCTURE",
+    "answer": "First Semester: 15 weeks of lectures, 2 weeks of revision, 2 weeks of exams. | Second Semester: 14 weeks of lectures, 2 weeks of revision, 2 weeks of exams.",
     "topic": "exam",
     "department": "",
     "faculty": "",
@@ -361,7 +370,7 @@
   },
   {
     "question": "What is included in the school fees?",
-    "answer": "Tuition, accommodation, medical, examination, sports, ID card, and development levy.",
+    "answer": "Tuition, general accommodation, medical, examination, sports, ID card, and development levy.",
     "topic": "finance",
     "department": "",
     "faculty": "",
@@ -425,7 +434,7 @@
   },
   {
     "question": "When is Matriculation ceremony?",
-    "answer": "January",
+    "answer": "Matriculation ceremony holds in the month of January",
     "topic": "admission",
     "department": "",
     "faculty": "",
@@ -433,7 +442,7 @@
   },
   {
     "question": "When is the Convocation ceremony?",
-    "answer": "October",
+    "answer": "Convocation ceremony holds in the month of October",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -441,7 +450,7 @@
   },
   {
     "question": "When do revisions and continuous assessments occur?",
-    "answer": "First Semester: January | Second Semester: June",
+    "answer": "First Semester:In the month of January | Second Semester: In the month of June",
     "topic": "university",
     "department": "",
     "faculty": "",
@@ -896,14 +905,6 @@
     "level": ""
   },
   {
-    "question": "What is the college color for Final Year Projects in Architecture?",
-    "answer": "Ocean Green.",
-    "topic": "general",
-    "department": "Architecture",
-    "faculty": "COES",
-    "level": ""
-  },
-  {
     "question": "When was the Department of Architecture established?",
     "answer": "It was established in September 2011.",
     "topic": "general",
@@ -1094,14 +1095,6 @@
     "department": "Department of Architecture",
     "faculty": "COES",
     "level": "300"
-  },
-  {
-    "question": "What is the college color for Final Year Projects in Biological Sciences(Microbiology)?",
-    "answer": "Coffee Brown.",
-    "topic": "general",
-    "department": "Microbiology",
-    "faculty": "CONAS",
-    "level": ""
   },
   {
     "question": "When was the Department of Biological Science established?",
@@ -2158,14 +2151,6 @@
     "department": "Economics",
     "faculty": "CASMAS",
     "level": "400"
-  },
-  {
-    "question": "What is the College colour for final year students' long essay project?",
-    "answer": "Black.",
-    "topic": "general",
-    "department": "department of law (LL.B)",
-    "faculty": "BACOLAW",
-    "level": ""
   },
   {
     "question": "What is the University's residential policy in department of law (LL.B)?",
@@ -7073,7 +7058,7 @@
   },
   {
     "question": "What course is BUS 105 and what is it about?",
-    "answer": "BUS 105 is Introduction to Insurance,  a 2 Unit course offered by Business Administration in 100 level First Semester.",
+    "answer": "BUS 105 is Introduction to Insurance, a 2 Unit course offered by Business Administration in 100 level First Semester.",
     "topic": "academics",
     "department": "Business Administration",
     "faculty": "CASMAS",
@@ -7081,7 +7066,7 @@
   },
   {
     "question": "What course is ECO 101 and what is it about?",
-    "answer": "ECO 101 is Elements of Economics I,  a 3 Unit course offered by Business Administration in 100 level First Semester.",
+    "answer": "ECO 101 is Elements of Economics I, a 3 Unit course offered by Business Administration in 100 level First Semester.",
     "topic": "academics",
     "department": "Business Administration",
     "faculty": "CASMAS",
@@ -9584,7 +9569,7 @@
     "level": ""
   },
   {
-    "question": "Which department handles Political Science?",
+    "question": "Which college is Political Science under ?",
     "answer": "The Department of Political Science is part of the College of Arts, Social and Management Sciences (CASMAS).",
     "topic": "general",
     "department": "",
@@ -9592,8 +9577,8 @@
     "level": ""
   },
   {
-    "question": "Who is the HOD of Biochemistry Department?",
-    "answer": "The Head of Department for Biochemistry is listed under the Department of Biochemistry in the College of Health Sciences.",
+    "question": "Who is the Dean of Biochemistry Department?",
+    "answer": "The Head of Department for Biochemistry is Prof. A.A. Onilude.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9608,7 +9593,7 @@
     "level": ""
   },
   {
-    "question": "What faculty is Microbiology in?",
+    "question": "What College is Microbiology under?",
     "answer": "Microbiology is part of the College of Health Sciences (COHES).",
     "topic": "general",
     "department": "",
@@ -9624,8 +9609,30 @@
     "level": ""
   },
   {
-    "question": "What is the course length for Architecture?",
+    "question": "What is the course duration for Architecture?",
     "answer": "The Architecture program takes 4 years to complete.",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the course duration for Computer Science?",
+    "answer": "The Computer Science program takes 4 years to complete.",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },{
+    "question": "What is the course duration for Political Science and International Relation",
+    "answer": "The Political Science and International Relation program takes 4 years to complete.",
+    "topic": "academics",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },{
+    "question": "What is the course duration for Anatomy?",
+    "answer": "The Anatomy program takes 4 years to complete.",
     "topic": "academics",
     "department": "",
     "faculty": "",
@@ -9648,7 +9655,7 @@
     "level": ""
   },
   {
-    "question": "What is the full name of CUAB?",
+    "question": "What is the full meaning of CUAB?",
     "answer": "CUAB stands for Crescent University, Abeokuta.",
     "topic": "general",
     "department": "",
@@ -9673,15 +9680,15 @@
   },
   {
     "question": "Where can I find the academic calendar?",
-    "answer": "You can find the academic calendar on the university website or by visiting the Registrar\u2019s Office.",
+    "answer": "You can find the academic calendar on the university website/social media or by visiting the Student Affairs Office",
     "topic": "general",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "When is the deadline to submit my application?",
-    "answer": "Application deadlines vary by program. Please check the admissions section on the university website or contact the Admission Officer.",
+    "question": "When is the admission application deadline?",
+    "answer": "October 1st,2024 for the 2024/2025 Academic session.",
     "topic": "admission",
     "department": "",
     "faculty": "",
@@ -9697,7 +9704,7 @@
   },
   {
     "question": "Where is the library located, and what are its hours?",
-    "answer": "The university library is located centrally on campus near the administrative building. It is open from 8:00 AM to 8:00 PM on weekdays and 10:00 AM to 4:00 PM on Saturdays.",
+    "answer": "The university library(Alhaja Seliat Adebutu Library) is located centrally on campus near the Architecture Department. It is open from 8:00 AM to 6:00 PM on weekdays and 10:00 AM to 4:00 PM on Saturdays.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9705,7 +9712,7 @@
   },
   {
     "question": "How do I access the Wi-Fi on campus?",
-    "answer": "Visit the ICT Department to register your device. Once registered, you will receive your username and password to connect to the campus Wi-Fi.",
+    "answer": " The University Wi-Fi namned CUAB-Google4edu can be accessed in some specific locations on campus and in all in-housing accomodation after payment and registration.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9713,15 +9720,39 @@
   },
   {
     "question": "When will exam results be published?",
-    "answer": "Exam results are typically released 2 - 3 weeks after the end of exams. Check your student portal or contact the Exams and Records office.",
+    "answer": "Exam results are typically released a month after the end of exams. Check your student portal or level advisor.",
     "topic": "exam",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "How can I request a re-evaluation of my exam paper?",
-    "answer": "Submit a formal request to your Head of Department within 7 days of result publication. Include reasons and any supporting documents.",
+    "question": "What happens if i miss an exam?",
+    "answer": "Candidates must present themselves at such University Examination for which they have registered under these regulations. Candidates who fail to do so for reasons other than illness or accident or other exceptional causes shall be deemed to have failed that examination.  Miss-reading of the time-table and such lapses on the part of the candidates shall not normally be accepted as a satisfactory explanation for absence. (i) A student who fails ill during an examination should report in writing to the Dean of his/her College through his/her Head of Department with a report from the University's Director of Health Services. (ii)A student who is absent from an examination on account of illness confirmed by medical evidence from the University Health services may obtain the permission of the College Board to make up the examination on another occasion, otherwise he/she shall take the regular examination on the following occasion.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the grading scale?",
+    "answer": "70-100:A, 60-69:B, 50-59:C, 45-49:D, 40-44:E, 0-39:F.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How do i view my exam timetable?",
+    "answer": "Exam schedules/timetables can be viewed at your respective departmental buildings.",
+    "topic": "exam",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How can I appeal a grade ?",
+    "answer": "Any students that is not satisfied with the results returned for him or her can apply for re-grading of his/her script through the respective staff adviser, who shall foward the letter with his comments to the Vice-Chancellor together with the script under confidential cover. The Vice-Chancellor shall then investigate the request and seek for a remarking confidentiall if need be. The result of the investigation  shall be communicated to the student in writing by the registrar. ",
     "topic": "exam",
     "department": "",
     "faculty": "",
@@ -9752,8 +9783,8 @@
     "level": ""
   },
   {
-    "question": "How do I reset my university email password?",
-    "answer": "Visit the ICT Help Desk or email support@crescentuniversity.edu.ng to reset your password.",
+    "question": "How do I reset my university portal password?",
+    "answer": "To reset student portal password, visit f2.cuab.online/student (full-time), click on Forget Password, Provide the email address used for the old portal, A password reset link will be sent to the provided email address, Click on the Reset Password button in the emal sent to you, Enter your desired password and click OK.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9761,14 +9792,94 @@
   },
   {
     "question": "Who do I contact for technical support with the student portal?",
-    "answer": "Contact the ICT support team at the university or email helpdesk@crescentuniversity.edu.ng.",
+    "answer": "You can contat Information and Communication Technology Centre (ICTEC) to provide tech support and provide solutions.",
     "topic": "general",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "Who are the lecturer for the my course this semester?",
+    "question": "Is there a campus shuttle or transport service?",
+    "answer": "Yes, there are campus shuttles available for easy transportation within the campus.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Where can I find dining halls or food courts??",
+    "answer": "There are various food courts situated stratetigally around the campus and in hostels, offering food, drinks and snacks services for a fee.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there cafeteria's in the university?",
+    "answer": "There are various food courts situated stratetigally around the campus and in hostels, offering food, drinks and snacks services for a fee.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there any upcoming student events??",
+    "answer": "Yes, every department holds departmental week which consists of events for their students. For example : Trade fair, Excursion, dinner, debate and quiz, academic conference etc.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there events?",
+    "answer": "Yes, every department holds departmental week which consists of events for their students. For example : Trade fair, Excursion, dinner, debate and quiz, academic conference etc.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How do I borrow books??",
+    "answer": "The main library at the university is the Seliat Adebutu Library located downtown, just after the Architecture department. To borrow books from the library, youll need to presnet a valid library card and follow the library's specific borrowing procedures.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Where is the library?",
+    "answer": "The main library at the university is the Seliat Adebutu Library located downtown, just after the Architecture department. To borrow books from the library, youll need to presnet a valid library card and follow the library's specific borrowing procedures.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How do I book a study room??",
+    "answer": "There are no study rooms, however you can make use of the main library, departmental libraries, laboratories and classroms as a study group or as an individual.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is my university email address?",
+    "answer": "Crescent Universitvs email address is info@cuab.edu.ng",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How do I print documents on campus??",
+    "answer": "There are various cyber cafe's situated strategically around the University campus for printing of documents and utilization of computers for various purposes, often in exchange for a fee.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Who are the lecturers for my courses this semester?",
     "answer": "Lecturer assignments vary by semester. Check your departmental notice board or ask your Head of Department for the current course coordinator.",
     "topic": "staff",
     "department": "",
@@ -9792,8 +9903,16 @@
     "level": ""
   },
   {
-    "question": "What are the admission requirements for undergraduate programs?",
-    "answer": "Applicants must have at least five credit passes in relevant subjects including English and Mathematics at not more than two sittings in SSCE/GCE/NECO/NABTEB. They must also sit for and pass the UTME and the university's post-UTME screening.",
+    "question": "What are the undergraduate admission requirements ",
+    "answer": "(i) Unified Tertiary Matriculation Examination (UTME) : Candidates are expected to obtain a UTME form for the current year and obtain a minimum of 180 marks. (a) Credits at SSCE, GCE, NECO, or approved equivalent in at least 5 subjects which must include English Language and Mathematics and any other three subjects as may be specified by each Department. (b) The 5 credits should be obtained in not more than two sittings and must have been obtained within the last 5 years. (c) Candidates awaiting result may apply. (d) All applicants will be required to go through Crescent University's Screening Exercise without which a candidate will not be offered admission into the University. (ii) Direct Entry (Admission to 200 Levels): (a)NCE, ND and their approved equivalents in relevant field and at least the Upper Credit level in addition to O/L requirements stated above. (b) Two Advanced Level passes or its equivalent in relevant subiects in addition to O/L requirements stated above. (c) The Interim Joint Matriculation Board (IMB) or JUPEB at acceptable grade levels; (d) HND with lower credit from recognized institutions may be admitted into 200 level in the relevant degree programmes provided they satisfy the minimum requirements stipulated for entry into 100 level. (e) In exceptional cases, holders of ND with lower credit from recognized institutions may be admitted to 200 level in relevant degree programmes, provided they satisfy the minimum requirements stipulated for entry into 100 level. (f) Pass interview conducted by the University.",
+    "topic": "admission",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the undergraduate admission requirements ",
+    "answer": "(i) Unified Tertiary Matriculation Examination (UTME) : Candidates are expected to obtain a UTME form for the current year and obtain a minimum of 180 marks. (a) Credits at SSCE, GCE, NECO, or approved equivalent in at least 5 subjects which must include English Language and Mathematics and any other three subjects as may be specified by each Department. (b) The 5 credits should be obtained in not more than two sittings and must have been obtained within the last 5 years. (c) Candidates awaiting result may apply. (d) All applicants will be required to go through Crescent University's Screening Exercise without which a candidate will not be offered admission into the University. (ii) Direct Entry (Admission to 200 Levels): (a)NCE, ND and their approved equivalents in relevant field and at least the Upper Credit level in addition to O/L requirements stated above. (b) Two Advanced Level passes or its equivalent in relevant subiects in addition to O/L requirements stated above. (c) The Interim Joint Matriculation Board (IMB) or JUPEB at acceptable grade levels; (d) HND with lower credit from recognized institutions may be admitted into 200 level in the relevant degree programmes provided they satisfy the minimum requirements stipulated for entry into 100 level. (e) In exceptional cases, holders of ND with lower credit from recognized institutions may be admitted to 200 level in relevant degree programmes, provided they satisfy the minimum requirements stipulated for entry into 100 level. (f) Pass interview conducted by the University.",
     "topic": "admission",
     "department": "",
     "faculty": "",
@@ -9809,7 +9928,7 @@
   },
   {
     "question": "Are there any scholarships or financial aid opportunities available?",
-    "answer": "Yes, Crescent University offers merit-based scholarships and financial aid for students with exceptional academic records or financial need. Visit the Bursary or Student Affairs Office for details.",
+    "answer": "Yes, Alumni and High Profile Individuals Scholarship by Crescent University's Alumni Association and high profile individuals offer scholarships for underprivileged students, with beneficiaries potentially being mentored by alumni. Institutional and Indigenous Scholarships by Bola Ajibola & The propietor of the University offer scholarships..",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9832,8 +9951,104 @@
     "level": ""
   },
   {
-    "question": "Does the university offer career counseling and job placement services?",
-    "answer": "Yes, the Career Services unit helps students with career counseling, resume building, interview preparation, and internship/job placements.",
+    "question": "Is hostel accommodation available for students?",
+    "answer": "Yes, Crescent University provides on-campus accommodation for all students. Students are required to reside on campus as per the university policy.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How do I apply for hostel accommodation?",
+    "answer": "First, you must be a registered student at Crescent Unverstity, The student affairs office will provide you with the necessary forms, procedures for on-campus housing applications. You will need to fill out the form which will include personal details. Fees may be included such as: registration fees. Submit your completed application form and any required documentation to the Student Affairs. Once the housing allocation has been reviewed, the university will allocate rooms in the halls of residence..",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What are the hostel options for first-year students?",
+    "answer": "First-year and returning students have the options of private hostel or general hostel.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is included in general hostel??",
+    "answer": "A room housing maximum of 6 students, bunk beds, matrasses, pillows, cupboards, tables and chairs..",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the cost of on-campus accommodation?",
+    "answer": "On-campus housing is divided into two: General/Main hostel in which the cost of this hostel is already included in the school fees, and Private hostel which cost 100,000 (hundred thousand naira) to 250,000(two hundred and fifty thousand naira) per session which is not included in the school fees.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the cost of hsotel accommodation?",
+    "answer": "On-campus housing is divided into two: General/Main hostel in which the cost of this hostel is already included in the school fees, and Private hostel which cost 100,000 (hundred thousand naira) to 250,000(two hundred and fifty thousand naira) per session which is not included in the school fees.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How do I request a room change?",
+    "answer": "To request a room change in the University, you typically need to submit a formal request to the student affairs office. This request should clearly state your reason for wanting to change rooms, your current room number, and the desired room number (if applicable). You'll likely need to provide supporting documentation like a medical certificate or a letter from your parents/guardian if the reason is related to health or living conditions.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Can I choose my roommate?",
+    "answer": "No.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Who do I contact for maintenance in on-campus accommodation??",
+    "answer": "To report maintenance issues in the Universitys residence halls will contact the housing contract portal which will in turn contact the Works and Service Department for the necessary maintenace.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Who do I contact for maintenance in hostel accommodation??",
+    "answer": "To report maintenance issues in the Universitys residence halls will contact the housing contract portal which will in turn contact the Works and Service Department for the necessary maintenace.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are male and female students accommodated in the same on-campus accommodation?",
+    "answer": "No, male and female students are accomodated in different on-campus accommodation buildings that are strategically located farther from one another.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are male and female students accommodated in the same hostel accommodation?",
+    "answer": "No, male and female students are accomodated in different on-campus accommodation buildings that are strategically located farther from one another.",
+    "topic": "hostel",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Does the university offer counseling ?",
+    "answer": "Yes, the University has a counselor that resides in the students affairs building, and also the level adversors of each level in various depoartments also serve as counselors  .",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9841,7 +10056,7 @@
   },
   {
     "question": "How do I contact the student affairs office for assistance?",
-    "answer": "You can visit the Student Affairs Office located near the main administrative building or call their official number listed on the university website.",
+    "answer": "You can visit the Student Affairs Office located near the female general hostel or call their official number listed on the university website.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9857,24 +10072,24 @@
   },
   {
     "question": "What is the minimum UTME score required for admission?",
-    "answer": "The minimum UTME score generally required is 160. However, some competitive departments may require higher scores.",
+    "answer": "The minimum UTME score generally required is 180. However, some competitive departments may require higher scores.",
     "topic": "admission",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "When will the admission list be released?",
-    "answer": "The admission list is usually released a few weeks after the Post-UTME screening. Check the university portal or JAMB CAPS regularly.",
+    "question": "Is there admission application fee?",
+    "answer": "Yes, A sum of 10,000(Ten thousand naira only).",
     "topic": "admission",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "How do I apply for hostel accommodation?",
-    "answer": "After gaining admission, log into the student portal to apply for hostel accommodation. Select your preferred option and pay the applicable fees.",
-    "topic": "hostel",
+    "question": "What is the process for transfer students?",
+    "answer": "Candidates will be allowed to transfer from other Universities, provided they:(i) Purchase and complete the prescribed application Forms obtainable from the Registrar, Crescent University. (ii) Hold the minimum entry requirements for admission into the University. (iii) Ensure that transcript of their academic records and special confidential report on them (forwarded by appropriate officials of their current institution) are received in the Admissions office of the Crescent University not later than two months before the commencement of the intended session for which admission is being sought. (iv) Must have C.G.P.A. of not less than 1.5.",
+    "topic": "admission",
     "department": "",
     "faculty": "",
     "level": ""
@@ -9889,7 +10104,7 @@
   },
   {
     "question": "Is part-time or distance learning available?",
-    "answer": "Currently, Crescent University offers only full-time degree programs. Part-time or distance learning is not available at this time.",
+    "answer": "Currently, Crescent University offers only full-time degree programs and part-time learning programs. Distance learning is not available at this time.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -9920,22 +10135,6 @@
     "level": ""
   },
   {
-    "question": "What is the course structure for 100 level students in Computer Science?",
-    "answer": "100 level Computer Science students take foundational courses such as Introduction to Computing, Mathematics, Physics, and General Studies. The curriculum includes both theory and practical components.",
-    "topic": "academics",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What courses are available in the Computer Science department?",
-    "answer": "The Computer Science department offers courses in programming, AI, software engineering, cybersecurity, networking, and more across 100\u2013400 levels.",
-    "topic": "academics",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "What are the graduation requirements for my program?",
     "answer": "You must complete 120 credit units (UTME) or 90 (Direct Entry), pass core and elective courses, and complete your final year project and SIWES.",
     "topic": "exam",
@@ -9944,24 +10143,8 @@
     "level": ""
   },
   {
-    "question": "How do I check my exam schedule?",
-    "answer": "Exam schedules are usually posted on the departmental notice boards and on the university portal.",
-    "topic": "exam",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How do I apply for admission to the university?",
-    "answer": "Apply online via the 'Apply Now' section of the CUAB website and follow the instructions provided for uploading documents.",
-    "topic": "admission",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "What documents are required for admission?",
-    "answer": "Documents include O'level results, birth certificate, local government identification, passport photo, and JAMB result slip.",
+    "answer": "A copy of 'level result, JAMB UTME slip, A copy of Birth Certificate, NIN slip. A copy of Local Govt Certificate of Origin, 2 Reference letters addressed to Registrar, 12 Passport Photographs, Evidence of payment of #10,000 for Admission processing.",
     "topic": "admission",
     "department": "",
     "faculty": "",
@@ -9976,14 +10159,6 @@
     "level": ""
   },
   {
-    "question": "What are the tuition fees for this academic year?",
-    "answer": "Tuition fees vary by program; for example, Nursing freshers pay 1,653,000. Check the CUAB website for program-specific fees.",
-    "topic": "finance",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "Are there any payment plans available for tuition?",
     "answer": "Yes, students can pay 70% of fees at the start of first semester and the remaining 30% at the start of second semester.",
     "topic": "finance",
@@ -9992,16 +10167,8 @@
     "level": ""
   },
   {
-    "question": "Are there any student counseling services available?",
-    "answer": "Yes, the university offers counseling services through the Student Affairs unit.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "Are there any sports facilities on campus?",
-    "answer": "Sports facilities include football fields, a gymnasium, table tennis, and basketball courts.",
+    "question": "Are there any fitness facilities on campus?",
+    "answer": "Fitness facilities on the University campus include a basketball court, a football pitch and a very spacious and large campus for jogging, running or long walks.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10032,14 +10199,6 @@
     "level": ""
   },
   {
-    "question": "Are there on-campus job opportunities for students?",
-    "answer": "Yes, limited on-campus jobs exist via departments or the library. Apply through Student Affairs.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "Can I defer my admission to the next academic session?",
     "answer": "Yes, submit a formal deferral request to the Admissions Office stating your reasons.",
     "topic": "admission",
@@ -10057,7 +10216,7 @@
   },
   {
     "question": "Where can I access past examination questions?",
-    "answer": "Past questions are available at departmental libraries or from senior students.",
+    "answer": "Past questions are available at the university library, departements or from senior students.",
     "topic": "exam",
     "department": "",
     "faculty": "",
@@ -10065,7 +10224,7 @@
   },
   {
     "question": "Is there a school clinic for medical emergencies?",
-    "answer": "Yes, the university clinic provides medical services to students on weekdays.",
+    "answer": "Yes, the university clinic provides medical services to students on both weekends and weekdays for medical consultations and emergencies.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10073,24 +10232,56 @@
   },
   {
     "question": "What is the process for course registration?",
-    "answer": "Course registration is done online after payment of fees and department clearance.",
+    "answer": "To register for classes, students typically log into the university's online portal (ft2.cuab.online/student). On your dashboard, locate the Student Enroll tab and click it to load where to register your courses. Scroll down to Assign Course Title and click on the input field provided below to select your courses from the list of available courses. Click the Update button to reflect your changes, then locate the Print button at the top to print as a PDF file format to your phone. Print out the file and then proceed to sign at the required offices. Proceed to stamp a copy of the signed print out at exams and records while dropping a copy in your file, drop another copy in your file at your respective department and college..",
     "topic": "academics",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "Can I change my department after admission?",
-    "answer": "Yes, subject to CGPA and approval from both departments and the Registrar.",
-    "topic": "admission",
+    "question": "How long does a bachelor's degree take?",
+    "answer": "A Bachelor's degree typically takes four years to complete at Crescent University. However, some programs, like the Bachelor of Nursing, can take five years..",
+    "topic": "general",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "What are the penalties for missing an exam?",
-    "answer": "Missing an exam without valid reason can lead to an automatic failure (grade F).",
-    "topic": "exam",
+    "question": "What are the departments in the University?",
+    "answer": "The University offers a wide range of majors across various disciplines. These include : Accounting, Anatomy, Architecture, Biochemistry, Business Administration, Computer Science, Microbiology, Islamic Studies, Law, Nursing, Physiology, Political Science & International Relations, Archy& Biochem, Mass Communication, Economics..",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How many departments are in the university?",
+    "answer": "15.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "How many departments are in Crescent University?",
+    "answer": "15.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there online classes?",
+    "answer": "Yes, the university supports online classes that takes place through Zoom, Google Classroom etc..",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Can I change my department after admission?",
+    "answer": "Yes, (i)A returning student may, in special cases, be permitted to change his/her degree programme subject to the approval of Senate on the recommendation of the College Board.(ii)Application for change of degree programme must be duly completed by the students and recommended by the present and proposed Heads of Departments. (iii) Each application, which is to be on the prescribed form, will be considered on its own merit. (iv) All applications for change of programme shall normally be considered at the end the session..",
+    "topic": "admission",
     "department": "",
     "faculty": "",
     "level": ""
@@ -10105,23 +10296,7 @@
   },
   {
     "question": "Is there a student mentorship program in University?",
-    "answer": "Yes, senior students mentor freshers via the mentorship scheme organized annually.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What is the procedure for withdrawal from a course?",
-    "answer": "Use the portal to withdraw within the add/drop period. Approval from HOD is needed.",
-    "topic": "academics",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "Can students participate in exchange programs?",
-    "answer": "Exchange programs are occasionally available through partnerships. Inquire via Academic Affairs.",
+    "answer": "Yes, senior students mentor freshers and also lecturers and speakers via the orientation scheme organized annually.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10136,14 +10311,6 @@
     "level": ""
   },
   {
-    "question": "How do I apply for a hostel change?",
-    "answer": "Submit a hostel change form at Student Affairs and wait for reassignment.",
-    "topic": "hostel",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "Is there support for students with disabilities?",
     "answer": "Yes, facilities and academic support are available. Contact Student Affairs.",
     "topic": "general",
@@ -10153,16 +10320,8 @@
   },
   {
     "question": "When do I get my matriculation number?",
-    "answer": "Matric numbers are issued after successful registration and matriculation ceremony.",
+    "answer": "Matric numbers are issued after successful registration and before matriculation ceremony at ICTECH.",
     "topic": "admission",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What happens if I miss a continuous assessment?",
-    "answer": "Missing CA without permission may lead to being barred from exams.",
-    "topic": "general",
     "department": "",
     "faculty": "",
     "level": ""
@@ -10184,6 +10343,22 @@
     "level": ""
   },
   {
+    "question": "What is the process for registration?",
+    "answer": "Below are the guidelines for registration: (i) The Admission Officer must clear all fresh students. (ii)All students must register at the beginning of each semester for the courses prescribed by their Colleges and Departments. (iii)Registration must be completed within the first 3 weeks of semester. Beyond this period an additional 2 weeks may be permitted for late registration up to a limit of 5 weeks and on the payment of late registration fee to be determined by Senate from time to time. (iv)All registration (whether late or completed at regulation time) will stop 3 weeks prior to matriculation. (v) On no account will registration be permitted after matriculation.(vi) The step-by-step registration is as follows: (a)Payment of prescribed fees and clearance from the Bursar. (b) Clearance by the Admissions Officer and collection of Registration forms from Academic Office. (c) Allocation of students into halls of residence by the Registry for only those that have paid their fees. (d)Clearance by the College office. (e) Completion of Registration Forms by consultation with the Head of Departments concerned. (f) Submission of completed Registration Forms, duly signed, to the Departments, Exam and Record Office through the College Office. (g)A copy of the completed Registration Form must be collected from the College Office to be kept by the student. (h) During the period of registration, all fresh students must register at the University Health Centre..",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "What is the procedure for registration?",
+    "answer": "Below are the guidelines for registration: (i) The Admission Officer must clear all fresh students. (ii)All students must register at the beginning of each semester for the courses prescribed by their Colleges and Departments. (iii)Registration must be completed within the first 3 weeks of semester. Beyond this period an additional 2 weeks may be permitted for late registration up to a limit of 5 weeks and on the payment of late registration fee to be determined by Senate from time to time. (iv)All registration (whether late or completed at regulation time) will stop 3 weeks prior to matriculation. (v) On no account will registration be permitted after matriculation.(vi) The step-by-step registration is as follows: (a)Payment of prescribed fees and clearance from the Bursar. (b) Clearance by the Admissions Officer and collection of Registration forms from Academic Office. (c) Allocation of students into halls of residence by the Registry for only those that have paid their fees. (d)Clearance by the College office. (e) Completion of Registration Forms by consultation with the Head of Departments concerned. (f) Submission of completed Registration Forms, duly signed, to the Departments, Exam and Record Office through the College Office. (g)A copy of the completed Registration Form must be collected from the College Office to be kept by the student. (h) During the period of registration, all fresh students must register at the University Health Centre..",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
     "question": "Is there an orientation program for new students?",
     "answer": "Yes, all new students must attend orientation at the beginning of the session.",
     "topic": "general",
@@ -10193,7 +10368,7 @@
   },
   {
     "question": "Can I register for extra credit courses?",
-    "answer": "Yes, with approval from your department, you may register extra courses.",
+    "answer": "Yes, with approval from your department(level advisor and HOD), you may register extra courses.",
     "topic": "academics",
     "department": "",
     "faculty": "",
@@ -10215,25 +10390,10 @@
     "faculty": "",
     "level": ""
   },
-  {
-    "question": "What courses are offered in the Department of Computer Science?",
-    "answer": "The Department of Computer Science offers courses in programming, data structures, databases, networks, artificial intelligence, and web development.",
-    "topic": "academics",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How do I register for my courses each semester?",
-    "answer": "You can register for courses online through the student portal after school fees payment and departmental clearance.",
-    "topic": "academics",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
+
   {
     "question": "Who is the HOD of the Mass Communication department?",
-    "answer": "The current Head of Department for Mass Communication can be found on the department notice board or via the university website.",
+    "answer": "The Head of Department for Mass Communication is Dr Kola Adeshina .",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10249,7 +10409,7 @@
   },
   {
     "question": "Can I take elective courses outside my department?",
-    "answer": "Yes, with approval from your academic adviser and the host department.",
+    "answer": "Yes, with approval from your academic adviser and the department.",
     "topic": "academics",
     "department": "",
     "faculty": "",
@@ -10272,14 +10432,6 @@
     "level": ""
   },
   {
-    "question": "How do I access my exam timetable?",
-    "answer": "Exam timetables are posted on departmental notice boards and the student portal.",
-    "topic": "exam",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "When will the exam results be released?",
     "answer": "Exam results are released after Senate approval and can be viewed on the student portal.",
     "topic": "exam",
@@ -10296,14 +10448,6 @@
     "level": ""
   },
   {
-    "question": "What are the admission requirements for Nursing?",
-    "answer": "Applicants must have at least five credits including English, Mathematics, Chemistry, Physics, and Biology at not more than two sittings.",
-    "topic": "admission",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "Is there a Direct Entry option for Computer Science?",
     "answer": "Yes, candidates with suitable qualifications such as ND or A-levels can apply for Direct Entry.",
     "topic": "general",
@@ -10314,14 +10458,6 @@
   {
     "question": "Can I defer my admission to next year?",
     "answer": "Yes, by submitting a formal request to the Admissions Office stating your reason.",
-    "topic": "admission",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How do I check my admission status?",
-    "answer": "Visit the university portal or the admission section of the website.",
     "topic": "admission",
     "department": "",
     "faculty": "",
@@ -10352,14 +10488,6 @@
     "level": ""
   },
   {
-    "question": "Where do I pay my school fees?",
-    "answer": "Fees are paid via the online portal or designated bank accounts provided by the Bursary.",
-    "topic": "finance",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "What is the deadline for school fee payment?",
     "answer": "The deadline is usually two weeks into the new semester.",
     "topic": "finance",
@@ -10369,7 +10497,7 @@
   },
   {
     "question": "Can I get a refund if I withdraw?",
-    "answer": "Refunds are subject to university policies and approval from the Registrar's office.",
+    "answer": "The University's tuition refund policy typically covers full withdrawals, with eligibility depending on whether a student meets certain criteria. If a student withdraws completely and meets the specified transfer or refund criteria, they may be eligible for a fee transfer to the next semester or a full refund. Full refunds are usually granted to students who have a visa refusal letter or medical documentation confirming their inability to study.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10377,63 +10505,23 @@
   },
   {
     "question": "Is cooking allowed in the hostels?",
-    "answer": "No, cooking is not allowed inside student hostels.",
+    "answer": "Cooking is only allowed in private hostels.",
     "topic": "hostel",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
-    "question": "What are the library opening hours?",
-    "answer": "The library opens from 8:00 AM to 6:00 PM on weekdays.",
+    "question": "Where is the registrars office located?",
+    "answer": "It is located opposite the administrative building .",
     "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How can I access the university Wi-Fi?",
-    "answer": "Wi-Fi credentials are issued by the ICT department after registration.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "Is there a clinic on campus for students?",
-    "answer": "Yes, Crescent University provides a health center for medical consultations and emergencies.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "Where is the registrar\u2019s office located?",
-    "answer": "It is located in the administrative building near the Senate building.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How do I get my transcript?",
-    "answer": "Apply through the Registrar's Office or online via the university website.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What is the procedure for course withdrawal?",
-    "answer": "You must fill a course withdrawal form and get approval from your HOD before the deadline.",
-    "topic": "academics",
     "department": "",
     "faculty": "",
     "level": ""
   },
   {
     "question": "How do I contact the Dean of Student Affairs?",
-    "answer": "Visit the Dean's office in the administrative building or send an email via the university contact page.",
+    "answer": "Visit the Dean's office in the student affairs building beside the female general hsotel.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10448,24 +10536,8 @@
     "level": ""
   },
   {
-    "question": "Is there a student mentorship program?",
-    "answer": "Yes, new students are paired with mentors through the Student Affairs Division.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "Who do I talk to about career guidance?",
     "answer": "The Career and Counseling Unit under Student Affairs handles that.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "Can alumni help current students with job placement?",
-    "answer": "Yes, the Alumni Relations Office occasionally shares job opportunities.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10480,22 +10552,6 @@
     "level": ""
   },
   {
-    "question": "How do I apply for a remark of my exam script?",
-    "answer": "Submit a remark request form through your department.",
-    "topic": "exam",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What is the penalty for exam malpractice?",
-    "answer": "Penalties range from suspension to expulsion depending on the offense.",
-    "topic": "exam",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "How is GPA calculated at CUAB?",
     "answer": "GPA is calculated by dividing total weighted grade points by total credit units attempted.",
     "topic": "general",
@@ -10504,24 +10560,8 @@
     "level": ""
   },
   {
-    "question": "Can I get a printout of my results?",
-    "answer": "Yes, from the Exams and Records Unit or your portal.",
-    "topic": "exam",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What is the dress code for students?",
-    "answer": "Students are expected to dress smartly and decently. Revealing clothes are not permitted.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "Are religious activities allowed on campus?",
-    "answer": "Yes, there are regular Muslim prayers and Jummah services.",
+    "question": "What clubs and organizations are available?",
+    "answer": "Chess club, Rotary society club, Literary and debate club, Islamic mission for africa student association.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10536,24 +10576,16 @@
     "level": ""
   },
   {
+    "question": "How do i join a club?",
+    "answer": "To join a club, you contact the president of the clubs respectively. President of the chess club 08085642193 Jamiu, President of the literary and debate club 09169289749 Muhsin.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
     "question": "Are there any active clubs or societies I can join?",
-    "answer": "Yes, including JCI, Literary and Debating Society, ICT club, and more.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How can I join the Student Union Government?",
-    "answer": "You can contest for positions or volunteer during elections.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "How do I reset my student portal password?",
-    "answer": "Visit the ICT department to request a reset.",
+    "answer": "Chess club, Rotary society club, Literary and debate club, Islamic mission for africa student association.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10562,6 +10594,14 @@
   {
     "question": "Where can I submit complaints or suggestions?",
     "answer": "Submit to the Student Affairs office or through the official online feedback system.",
+    "topic": "general",
+    "department": "",
+    "faculty": "",
+    "level": ""
+  },
+  {
+    "question": "Are there mental health counseling services?",
+    "answer": "Yes, the University provides mental health counseling services. The University has a counseling staff that is qualified in mental and behavioural health. Also, each department has a student adviser to guide students academic and behavioural wise.",
     "topic": "general",
     "department": "",
     "faculty": "",
@@ -10657,7 +10697,7 @@
   },
   {
     "question": "Can I pay my school fees in installments?",
-    "answer": "Yes, Crescent University allows installment payments, typically in two phases per semester."
+    "answer": "Yes, Crescent University allows installment payments, typically in two phases per semester(70% in 1st semester, 30% before the commencement of 2nd semester)."
   },
   {
     "question": "How much is the hostel fee per semester?",
@@ -10672,40 +10712,20 @@
     "answer": "Yes, ICT and laboratory fees are charged separately and are part of the itemized school fees breakdown."
   },
   {
-    "question": "How do I get a payment receipt?",
-    "answer": "Receipts can be printed from your student portal after completing any payment."
+    "question": "How do I get school fees payment receipt?",
+    "answer": "Print out evidence of payment with your information e.g matric number, department etc, take it to bursary where the evidence of payment will be converted to school fees receipt."
   },
   {
-    "question": "How many credit units are required to graduate?",
-    "answer": "A minimum of 125\u2013195 credit units is required to graduate, depending on your program."
+    "question": "Who is the Head of department of the Computer Science department?",
+    "answer": "The Head of Department of Computer Science is Dr Lasisi Ismail Olalekan"
   },
   {
-    "question": "Who is the HOD of the Computer Science department?",
-    "answer": "The Head of Department may change each session. For the latest, visit the department's page or check with the Dean\u2019s office."
-  },
-  {
-    "question": "Where can I find the lecture timetable?",
-    "answer": "The lecture timetable is posted on your departmental notice board and uploaded to the student portal each semester."
-  },
-  {
-    "question": "Is there a make-up exam policy?",
-    "answer": "Yes, students who miss exams for valid reasons can apply for make-up exams through the Exams and Records Office."
-  },
-  {
-    "question": "What is the grading system at Crescent University?",
-    "answer": "The grading system follows the NUC standard: A (70\u2013100), B (60\u201369), C (50\u201359), D (45\u201349), E (40\u201344), F (0\u201339)."
+    "question": "Who is the Dean of the Computer Science department?",
+    "answer": "The Dean of Department of Computer Science is Dr A.M Oyelakin"
   },
   {
     "question": "Are final year projects mandatory?",
     "answer": "Yes, final year projects are compulsory for all undergraduate students as a graduation requirement."
-  },
-  {
-    "question": "Are there internet facilities on campus?",
-    "answer": "Yes, Wi-Fi is available in academic blocks and hostels for students with valid credentials."
-  },
-  {
-    "question": "Who do I contact for hostel maintenance issues?",
-    "answer": "Report to the Hall Administrator or Hostel Porters\u2019 Lodge in your residence block."
   },
   {
     "question": "Are there any counseling or support services?",
@@ -10716,24 +10736,20 @@
     "answer": "Phones may be carried but must remain silent during lectures. Use is subject to lecturer discretion."
   },
   {
-    "question": "What are the rules in the hostel?",
-    "answer": "Rules include no cooking, curfews, mandatory lights-out, and proper dress. Violations attract penalties."
+    "question": "What are the rules in the general hostel?",
+    "answer": "Rules include no cooking, curfews, and proper dress. Violations attract penalties."
   },
   {
-    "question": "Can I cook in the hostel?",
+    "question": "Can I cook in the general hostel?",
     "answer": "No, cooking is not allowed in the hostel. Students are expected to use the campus cafeteria."
   },
   {
     "question": "Are students allowed to drive on campus?",
-    "answer": "Only staff and approved final-year students with permits may drive on campus. Most students are not permitted."
+    "answer": "Only staff and approved students with permits may drive on campus. Most students are not permitted."
   },
   {
     "question": "Is there a curfew in the hostel?",
-    "answer": "Yes, the hostel curfew is 10:00 PM daily. Late returns require clearance from the hostel warden."
-  },
-  {
-    "question": "How can I check my results online?",
-    "answer": "Log into the student portal and navigate to Academic Records\u201d to view your semester results."
+    "answer": "Yes, the hostel curfew is 9:00 PM daily. Late returns require clearance from the hostel warden."
   },
   {
     "question": "How many units do I need to graduate in Accounting and other department?",
@@ -10800,14 +10816,6 @@
     "faculty": ""
   },
   {
-    "question": "How do I register for my final year project?",
-    "answer": "Obtain the project form from your department, get approval from your supervisor, and submit the completed form to your HOD.",
-    "department": "",
-    "level": "",
-    "semester": "",
-    "faculty": ""
-  },
-  {
     "question": "What is the duration of a B.Sc. in Biochemistry?",
     "answer": "B.Sc. Biochemistry runs for 4 years (8 semesters) for UTME students and 3 years (6 semesters) for Direct Entry students.",
     "department": "",
@@ -10842,14 +10850,6 @@
   {
     "question": "What is the difference between Physiology and Anatomy courses?",
     "answer": "Anatomy focuses on the structure of the human body, while Physiology deals with how body systems function.",
-    "department": "",
-    "level": "",
-    "semester": "",
-    "faculty": ""
-  },
-  {
-    "question": "What are the research focus areas in Sociology?",
-    "answer": "Research areas include family studies, gender and development, criminology, rural sociology, and social policy.",
     "department": "",
     "level": "",
     "semester": "",
@@ -11001,7 +11001,7 @@
   },
   {
     "question": "How do I join the Crescent University debate team?",
-    "answer": "Check announcements from Student Affairs or your department. Tryouts are usually held at the start of each semester.",
+    "answer": "Contact the president of literary and debate club 09169289749:Muhsin",
     "department": "",
     "level": "",
     "semester": "",
@@ -11012,7 +11012,7 @@
     "answer": "The course code for Communication in English is GST 111.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11020,7 +11020,7 @@
     "answer": "The course code for Elementary Mathematics I is MTH 101.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11028,7 +11028,7 @@
     "answer": "The course code for General Physics I is PHY 101.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11036,7 +11036,7 @@
     "answer": "The course code for General Practical Physics I is PHY 107.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11044,7 +11044,7 @@
     "answer": "The course code for Descriptive Statistics is STA 111.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11052,7 +11052,7 @@
     "answer": "The course code for Introduction to Computing Sciences is COS 101.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11060,7 +11060,7 @@
     "answer": "The course code for Islamic Perspective in ICT is CUAB-CSC 103.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11068,7 +11068,7 @@
     "answer": "The course code for Use of Library for Computer Science Students is CUAB-CSC 105.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11076,7 +11076,7 @@
     "answer": "The course code for Nigerian Peoples and Culture is GST 112.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11084,7 +11084,7 @@
     "answer": "The course code for Elementary Mathematics II is MTH 102.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11092,7 +11092,7 @@
     "answer": "The course code for General Physics II is PHY 102.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11100,7 +11100,7 @@
     "answer": "The course code for General Practical Physics II is PHY 108.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11108,7 +11108,7 @@
     "answer": "The course code for Problem Solving is COS 102.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11116,7 +11116,7 @@
     "answer": "The course code for System Analysis and Design is CUAB-CSC 104.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11124,7 +11124,7 @@
     "answer": "The course code for Introduction to Algebra is CUAB-CSC 106.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11132,7 +11132,7 @@
     "answer": "The course code for Foundation of Sequential Program is CUAB-CSC 108.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "100"
   },
   {
@@ -11140,7 +11140,7 @@
     "answer": "The course code for Entrepreneurship and Innovation is ENT 211.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11148,7 +11148,7 @@
     "answer": "The course code for Mathematical Methods I is MTH 201.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11156,7 +11156,7 @@
     "answer": "The course code for Computer Programming I is COS 201.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11164,7 +11164,7 @@
     "answer": "The course code for Discrete Structures is CSC 203.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11172,7 +11172,7 @@
     "answer": "The course code for SIWES I is CSC 299.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11180,7 +11180,7 @@
     "answer": "The course code for Digital Logic Design is IFT 211.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11188,7 +11188,7 @@
     "answer": "The course code for Introduction to Software Engineering is SEN 201.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11196,7 +11196,7 @@
     "answer": "The course code for Philosophy, Logic and Human Existence is GST 212.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11204,7 +11204,7 @@
     "answer": "The course code for Elementary Differential Equations is MTH 202.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11212,7 +11212,7 @@
     "answer": "The course code for Computer Programming II is COS 202.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11220,7 +11220,7 @@
     "answer": "The course code for Computer Architecture and Organisation is IFT 212.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11228,7 +11228,7 @@
     "answer": "The course code for Distributed Computing System is CUAB-CSC 204.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11236,7 +11236,7 @@
     "answer": "The course code for Software Engineering is CUAB-CSC 206.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11244,7 +11244,7 @@
     "answer": "The course code for Introduction to Numerical Analysis is CUAB-CSC 208.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "200"
   },
   {
@@ -11252,7 +11252,7 @@
     "answer": "The course code for Data Structures is CSC 301.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11260,7 +11260,7 @@
     "answer": "The course code for Artificial Intelligence is CSC 309.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11268,7 +11268,7 @@
     "answer": "The course code for SIWES II is CSC 399.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11276,7 +11276,7 @@
     "answer": "The course code for Introduction to Cybersecurity and Strategy is CYB 201.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11284,7 +11284,7 @@
     "answer": "The course code for Data Communication System & Network is ICT 305.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11292,7 +11292,7 @@
     "answer": "The course code for Computational Science & Numerical Methods is CUAB-CSC 303.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11300,7 +11300,7 @@
     "answer": "The course code for Peace and Conflict Resolution is GST 312.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11308,7 +11308,7 @@
     "answer": "The course code for Venture Creation is ENT 312.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11316,7 +11316,7 @@
     "answer": "The course code for Operating Systems is CSC 308.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11324,7 +11324,7 @@
     "answer": "The course code for Computer Science Innovation and New Technologies is CSC 322.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11332,7 +11332,7 @@
     "answer": "The course code for Data Management I is DTS 304.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11340,7 +11340,7 @@
     "answer": "The course code for Modelling and Simulation is CUAB-CSC 302.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11348,7 +11348,7 @@
     "answer": "The course code for Formal Language & Automata Theory is CUAB-CSC 304.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "300"
   },
   {
@@ -11356,7 +11356,7 @@
     "answer": "The course code for Research Methodology and Technical Report Writing is COS 409.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11364,7 +11364,7 @@
     "answer": "The course code for Algorithms and Complexity Analysis is CSC 401.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11372,7 +11372,7 @@
     "answer": "The course code for Final Year Project I is CSC 497.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11380,7 +11380,7 @@
     "answer": "The course code for Project Management is INS 401.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11388,7 +11388,7 @@
     "answer": "The course code for Introduction to Operation Research is CUAB-CSC 403.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11396,7 +11396,7 @@
     "answer": "The course code for Human Computer Interface is CUAB-CSC 405.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11404,7 +11404,7 @@
     "answer": "The course code for Data Visualization for Data-Driven Decision Making is CUAB-CPS 407.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11412,7 +11412,7 @@
     "answer": "The course code for Ethics and Legal Issues in Computer Science is CSC 402.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11420,7 +11420,7 @@
     "answer": "The course code for Final Year Project II is CSC 498.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11428,7 +11428,7 @@
     "answer": "The course code for Computer System Performance Evaluation is CUAB-CSC 404.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11436,7 +11436,7 @@
     "answer": "The course code for Computer Graphics & Visualization is CUAB-CSC 406.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11444,7 +11444,7 @@
     "answer": "The course code for Compiler Construction is CUAB-CSC 408.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11452,7 +11452,7 @@
     "answer": "The course code for Survey of Programming Languages is CUAB-CSC 410.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {
@@ -11460,7 +11460,7 @@
     "answer": "The course code for Internet Technology & Web Programming is CUAB-CSC 412.",
     "topic": "course code",
     "department": "Computer Science",
-    "faculty": "CONAS",
+    "faculty": "CICOT",
     "level": "400"
   },
   {

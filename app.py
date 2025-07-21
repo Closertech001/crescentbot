@@ -10,6 +10,7 @@ from utils.greetings import (
     extract_course_code, get_course_by_code,
     is_small_talk, small_talk_response
 )
+
 from rapidfuzz import process
 
 # Match department even if user makes typos

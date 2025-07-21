@@ -49,16 +49,13 @@ st.session\_state.chat.append({"role": "user", "text": user\_input})
 normalized\_input = user\_input.lower()
 
 ```
-# Greeting check
 if is_greeting(user_input) and not st.session_state.bot_greeted:
     response = greeting_responses(user_input)
     st.session_state.bot_greeted = True
 
-# Small talk detection
 elif is_small_talk(user_input):
     response = small_talk_response(user_input)
 
-# Course code lookup
 else:
     course_code = extract_course_code(user_input)
     if course_code:

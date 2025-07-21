@@ -96,22 +96,6 @@
     "level": ""
   },
   {
-    "question": "What is the procedure for student registration?",
-    "answer": "Pay prescribed fees and get bursary clearance. | Get clearance from Admissions Officer. | Get allocated to hostels. | Clear with College office. | Register with HOD. | Submit completed forms. | Register at Health Centre.",
-    "topic": "general",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
-    "question": "What are the matriculation requirements?",
-    "answer": "Must be officially admitted and registered. | Must take the Matriculation Oath. | No registration after matriculation.",
-    "topic": "admission",
-    "department": "",
-    "faculty": "",
-    "level": ""
-  },
-  {
     "question": "How is the course unit system structured?",
     "answer": "Courses follow a semester-based unit system. | 1 course unit = 15 lecture hours or equivalent practical time. | Course numbers (e.g., BCH101) reflect department and level. | 70% NUC CCMAS + 30% CUAB-customized content.",
     "topic": "academics",
@@ -177,7 +161,7 @@
   },
   {
     "question": "What are the Direct Entry requirements?",
-    "answer": "Two A-level passes or equivalent in relevant science subjects, or NCE/ND with at least upper credit.",
+    "answer": " Direct Entry (Admission to 200 Levels) : (a)NCE, ND and their approved equivalents in relevant field and at least the Upper Credit level in addition to O/L requirements stated above. (b) Two Advanced Level passes or its equivalent in relevant subiects in addition to O/L requirements stated above. (c) The Interim Joint Matriculation Board (IMB) or JUPEB at acceptable grade levels; (d) HND with lower credit from recognized institutions may be admitted into 200 level in the relevant degree programmes provided they satisfy the minimum requirements stipulated for entry into 100 level. (e) In exceptional cases, holders of ND with lower credit from recognized institutions may be admitted to 200 level in relevant degree programmes, provided they satisfy the minimum requirements stipulated for entry into 100 level. (f) Pass interview conducted by the University..",
     "topic": "general",
     "department": "",
     "faculty": "",

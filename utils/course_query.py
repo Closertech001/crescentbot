@@ -1,7 +1,6 @@
-# utils/course_query.py
-
 import json
 import re
+from rapidfuzz import process
 
 # Normalize informal inputs and slangs
 NORMALIZATION_MAP = {
@@ -60,12 +59,17 @@ DEPARTMENT_TO_FACULTY_MAP = {
     "architecture": "COES"
 }
 
-# Normalize full input using mapping
+# Normalize full input using slang mapping
 def normalize_text(text):
     text = text.lower()
     for key, val in NORMALIZATION_MAP.items():
         text = text.replace(key, val)
     return text
+
+# Fuzzy fallback if department not found in normalization
+def fuzzy_match_department(text):
+    result, score, _ = process.extractOne(text, DEPARTMENTS)
+    return result if score >= 80 else None
 
 # Normalize department name
 def normalize_department(text):
@@ -76,9 +80,9 @@ def normalize_department(text):
     for dept in DEPARTMENTS:
         if dept in norm_text:
             return dept
-    return None
+    return fuzzy_match_department(text)
 
-# Extract query components
+# Extract query components (level, semester, department, faculty)
 def extract_course_query(text):
     text = normalize_text(text)
     level_match = re.search(r"\b(100|200|300|400)\s*level\b", text)
@@ -92,12 +96,12 @@ def extract_course_query(text):
         "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
     }
 
-# Load course data JSON
+# Load course data from JSON
 def load_course_data(path="data/course_data.json"):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# Get matching course(s) from query and dataset
+# Get matching course(s) from query and course data
 def get_courses_for_query(query_info, course_data):
     if not query_info:
         return None
@@ -107,7 +111,6 @@ def get_courses_for_query(query_info, course_data):
     semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
 
     matches = []
-
     for entry in course_data:
         try:
             if entry["department"].lower() != dept:
@@ -118,7 +121,7 @@ def get_courses_for_query(query_info, course_data):
                 continue
             matches.append(entry)
         except KeyError:
-            continue  # skip bad/missing data
+            continue  # skip malformed entry
 
     if not matches:
         return None

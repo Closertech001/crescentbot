@@ -18,15 +18,26 @@ def load_all():
 model, df, embeddings, course_data = load_all()
 
 # Find best match in Q&A
-def find_best_match(user_question, model, embeddings, df, threshold=0.6):
+def find_best_match(user_question, model, embeddings, df, threshold=0.6, top_k=5):
     from sentence_transformers.util import cos_sim
     user_embedding = model.encode(user_question.strip().lower(), convert_to_tensor=True)
     cosine_scores = cos_sim(user_embedding, embeddings)[0]
-    best_score = torch.max(cosine_scores).item()
-    best_idx = torch.argmax(cosine_scores).item()
-    if best_score >= threshold:
-        return df.iloc[best_idx]["answer"]
-    return None
+    
+    # Get top_k most similar
+    top_results = torch.topk(cosine_scores, k=top_k)
+    
+    candidates = []
+    for idx, score in zip(top_results.indices, top_results.values):
+        if score >= threshold:
+            row = df.iloc[idx.item()]
+            candidates.append((score.item(), row["question"], row["answer"]))
+    
+    if not candidates:
+        return None
+    
+    # Prefer the shortest and most relevant answer among top matches
+    candidates.sort(key=lambda x: (len(x[2]), -x[0]))  # shortest answer, highest score
+    return candidates[0][2]
 
 # Setup UI
 st.set_page_config(page_title="Crescent University Chatbot", layout="centered")

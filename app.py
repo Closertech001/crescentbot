@@ -1,72 +1,67 @@
+# app.py
+
 import streamlit as st
-
-# Must be the first Streamlit command
-st.set_page_config(page_title="🎓 Crescent University Chatbot", layout="centered")
-
-import json
-import time
-import random
-from utils.memory import MemoryHandler
 from utils.embedding import load_model_and_embeddings
-from utils.course_query import extract_course_info
+from utils.search import get_best_match
+from utils.memory import MemoryHandler
 from utils.greetings import detect_greeting, generate_greeting_response
 from utils.rewrite import rewrite_followup
-from utils.search import fallback_to_gpt_if_needed
+from utils.course_query import extract_course_info
+import os
+import openai
 
-# 🔐 OpenAI key setup
-try:
-    from openai import OpenAI
-    import openai
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
-except Exception:
-    st.warning("🔑 Please set your OpenAI API key in Streamlit Secrets.", icon="⚠️")
-    st.stop()
+# 🔐 OpenAI Key
+openai.api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", "")
 
-# 🎯 Load data + embeddings
-model, qa_data, faiss_index, all_embeddings = load_model_and_embeddings()
+# 🚀 Page Setup
+st.set_page_config(page_title="🎓 Crescent University Chatbot", layout="centered")
 
-# 🧠 Memory handler
+# 🧠 Session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 memory = MemoryHandler()
 
-# 🎨 App UI
-st.title("🎓 Crescent University Chatbot")
-st.caption("Ask me anything about Crescent University: courses, units, departments, requirements and more.")
+# 🔍 Load embeddings & model
+model, data, index, embeddings = load_model_and_embeddings()
 
-# 🗨️ User input
-user_input = st.text_input("💬 Your question:", placeholder="e.g., What is the unit of GST 101 in 100 level?")
+# 🎓 Header
+st.title("🎓 Crescent University Chatbot")
+st.markdown("I'm here to help with your questions about **courses, departments, and requirements** at Crescent University.")
+
+# 💬 Show chat history
+with st.container():
+    for msg in st.session_state.messages:
+        avatar = "🧑‍🎓" if msg["role"] == "user" else "🤖"
+        with st.chat_message(msg["role"], avatar=avatar):
+            st.markdown(msg["content"])
+
+# 📥 User input
+user_input = st.chat_input("Type your question here...")
 
 if user_input:
-    with st.spinner("🤖 Let me check that for you..."):
-        question = user_input.strip().lower()
+    # Save user message
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-        # 1. Greet user
-        if detect_greeting(question):
-            st.success(generate_greeting_response())
-        else:
-            # 2. Try extracting course info
-            course_answer = extract_course_info(question, memory)
+    # Handle greeting
+    if detect_greeting(user_input):
+        response = generate_greeting_response()
 
-            if course_answer:
-                st.success(course_answer)
-            else:
-                # 3. Try embedding search
-                from sentence_transformers import util
-                user_embedding = model.encode(question, convert_to_numpy=True)
-                scores, indices = faiss_index.search(user_embedding.reshape(1, -1), k=1)
+    # Handle course-related questions
+    elif any(word in user_input.lower() for word in ["course", "unit", "semester", "level", "department", "faculty"]):
+        response = extract_course_info(user_input, memory)
+        if not response or "provide department" in response.lower():
+            response = "⚠️ Please provide the **department**, **level**, and **semester** so I can find the correct course information."
 
-                best_score = scores[0][0]
-                best_index = indices[0][0]
+    # Semantic Q&A matching
+    else:
+        match = get_best_match(user_input, model, index, data, embeddings)
+        response = match if match else "🤔 I'm not sure how to answer that. Can you rephrase or provide more details?"
 
-                threshold = 0.35
-                if best_score < threshold:
-                    # 4. Use GPT fallback
-                    rewritten = rewrite_followup(question)
-                    gpt_response = fallback_to_gpt_if_needed(rewritten, qa_data)
-                    st.info(gpt_response)
-                else:
-                    matched_answer = qa_data[best_index]["answer"]
-                    st.success(matched_answer)
+    # Optional tone rewrite
+    response = rewrite_followup(response, memory)
 
-# 💡 Footer
-st.markdown("---")
-st.caption("Built with ❤️ for Crescent University by thywillmartins")
+    # Save bot response
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant", avatar="🤖"):
+        st.markdown(response)

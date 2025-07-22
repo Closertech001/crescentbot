@@ -1,23 +1,112 @@
-.chatbox {
-    max-width: 700px;
-    margin: auto;
-    font-family: 'Segoe UI', sans-serif;
+/* Main container */
+.chat-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
 }
 
-.user-bubble {
-    background-color: #DCF8C6;
-    color: #000;
-    padding: 10px 14px;
-    margin: 10px 0;
-    border-radius: 12px;
-    text-align: right;
+/* Chat message bubble */
+.chat-message {
+  padding: 12px 18px;
+  margin: 10px 0;
+  border-radius: 16px;
+  max-width: 80%;
+  font-size: 16px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  display: inline-block;
 }
 
-.bot-bubble {
-    background-color: #E5E5EA;
-    color: #000;
-    padding: 10px 14px;
-    margin: 10px 0;
-    border-radius: 12px;
-    text-align: left;
+/* User message style */
+.user-message {
+  background-color: #DCF8C6;
+  color: #111;
+  align-self: flex-end;
+  margin-left: auto;
+  border-bottom-right-radius: 0;
+}
+
+/* Bot message style */
+.bot-message {
+  background-color: #F1F0F0;
+  color: #222;
+  align-self: flex-start;
+  margin-right: auto;
+  border-bottom-left-radius: 0;
+}
+
+/* Typing animation */
+.typing {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 8px;
+  background: #ccc;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+.typing::before,
+.typing::after {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 4px;
+  background: #ccc;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+.typing::before {
+  animation-delay: 0.2s;
+}
+
+.typing::after {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0%, 80%, 100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Clear chat button */
+.clear-button {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.clear-button:hover {
+  background-color: #e03c3e;
+}
+
+/* Input box styling */
+input:focus, textarea:focus {
+  outline: none;
+  border: 2px solid #4caf50;
+}
+
+.stTextInput > div > div > input {
+  border-radius: 10px !important;
+  padding: 12px 16px;
+  font-size: 16px;
+}
+
+/* Responsive layout for chat */
+@media screen and (max-width: 600px) {
+  .chat-message {
+    max-width: 95%;
+  }
 }

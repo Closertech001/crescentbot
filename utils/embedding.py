@@ -1,33 +1,24 @@
-# utils/embedding.py
-
+# ✅ embedding.py
 import json
-import numpy as np
-import faiss
+import pandas as pd
 from sentence_transformers import SentenceTransformer
 
 def load_model(model_name="all-MiniLM-L6-v2"):
+    """Load the SentenceTransformer model."""
     return SentenceTransformer(model_name)
 
-def load_dataset(filepath="data/crescent_qa.json"):
-    """
-    Loads the QA dataset and returns both the data and extracted questions.
-    """
-    with open(filepath, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    questions = [entry["question"] for entry in data]
-    return data, questions
+def load_dataset(path="data/crescent_qa.json"):
+    """Load the dataset from JSON or JSONL and return as a DataFrame."""
+    try:
+        if path.endswith(".jsonl"):
+            data = [json.loads(line) for line in open(path, "r", encoding="utf-8")]
+        else:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        return pd.DataFrame(data)
+    except Exception as e:
+        raise RuntimeError(f"[Dataset Load Error] Could not load file at {path}: {e}")
 
-def get_question_embeddings(questions, model):
-    """
-    Encodes a list of questions into normalized embeddings.
-    """
-    return model.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
-
-def build_faiss_index(embeddings):
-    """
-    Builds a FAISS index from the question embeddings using cosine similarity.
-    """
-    dimension = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dimension)  # Inner product = cosine similarity
-    index.add(embeddings)
-    return index
+def compute_question_embeddings(questions, model):
+    """Compute embeddings for a list of questions using the provided model."""
+    return model.encode([q.strip().lower() for q in questions], convert_to_tensor=True)

@@ -1,134 +1,118 @@
 import streamlit as st
-import os
 import json
-import faiss
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from textblob import TextBlob
-from symspellpy import SymSpell
-from dotenv import load_dotenv
-import re
+import os
+import openai
 import time
+from sentence_transformers import SentenceTransformer
+from utils.embedding import load_dataset, get_question_embeddings, build_faiss_index
+from utils.course_query import extract_course_query
+from utils.semantic_search import search_semantic
+from utils.tone import detect_tone
+from utils.greetings import check_greeting
+from dotenv import load_dotenv
 
-from utils.embedding import load_model, load_dataset, get_question_embeddings, build_faiss_index
-from utils.course_query import extract_course_query, get_course_info
-
-# Load environment variables
 load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Page config
-st.set_page_config(page_title="CrescentBot 🎓", page_icon="🤖", layout="centered")
+st.set_page_config(page_title="CrescentBot 🤖", layout="wide")
+st.markdown("""
+    <style>
+    .user-msg {
+        background-color: #DCF8C6;
+        border-radius: 20px;
+        padding: 10px 15px;
+        margin: 10px;
+        max-width: 70%;
+        align-self: flex-end;
+    }
+    .bot-msg {
+        background-color: #F1F0F0;
+        border-radius: 20px;
+        padding: 10px 15px;
+        margin: 10px;
+        max-width: 70%;
+        align-self: flex-start;
+    }
+    .chat-box {
+        display: flex;
+        flex-direction: column;
+        height: 70vh;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #fff;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Style injection
-with open("assets/style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# Load SentenceTransformer model and data
+# Preload model and data
 @st.cache_resource
-def setup_embeddings():
-    model = load_model()
+def initialize():
+    model = SentenceTransformer("all-MiniLM-L6-v2")
     qa_data, questions = load_dataset("data/crescent_qa.json")
     embeddings = get_question_embeddings(questions, model)
     index = build_faiss_index(embeddings)
-    return model, qa_data, questions, embeddings, index
 
-model, qa_data, questions, embeddings, index = setup_embeddings()
+    with open("data/course_data.json", "r", encoding="utf-8") as f:
+        course_data = json.load(f)
 
-# Load course data
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    course_data = json.load(f)
+    return model, index, qa_data, questions, course_data
 
-# SymSpell for typo correction
-@st.cache_resource
-def setup_symspell():
-    sym_spell = SymSpell(max_dictionary_edit_distance=2)
-    dictionary_path = os.path.join(os.path.dirname(__file__), "utils/frequency_dictionary_en_82_765.txt")
-    sym_spell.load_dictionary(dictionary_path, 0, 1)
-    return sym_spell
+model, index, qa_data, questions, course_data = initialize()
 
-sym_spell = setup_symspell()
-
-def correct_typos(text):
-    corrected = sym_spell.lookup_compound(text, max_edit_distance=2)
-    return corrected[0].term if corrected else text
-
-def detect_tone(text):
-    polarity = TextBlob(text).sentiment.polarity
-    if polarity > 0.5:
-        return "humorous"
-    elif polarity > 0.1:
-        return "casual"
-    else:
-        return "formal"
-
-def style_response(text, tone="formal"):
-    if tone == "humorous":
-        return f"😄 *Hehe, here's a fun one for you:*\n\n{text}"
-    elif tone == "casual":
-        return f"🧢 *Sure thing!*\n\n{text}"
-    else:
-        return f"📘 {text}"
-
-def semantic_search(query, index, model, questions, qa_data, top_k=1):
-    query_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
-    distances, indices = index.search(query_embedding, top_k)
-    top_idx = indices[0][0]
-    return qa_data[top_idx], float(distances[0][0])
-
-def generate_course_response(user_input):
-    info = extract_course_query(user_input)
-    courses = get_course_info("data/course_data.json", **info)
-    if not courses:
-        return "Sorry, I couldn't find any courses matching your query. Please check your level, semester, or department."
-
-    grouped = {}
-    for course in courses:
-        dept = course["department"]
-        grouped.setdefault(dept, []).append(f"- `{course['code']}`: {course['title']}")
-
-    messages = []
-    for dept, course_list in grouped.items():
-        messages.append(f"📚 **{dept} Courses:**\n" + "\n".join(course_list))
-    return "\n\n".join(messages)
-
-def handle_query(user_query):
-    normalized = correct_typos(user_query)
-    tone = detect_tone(user_query)
-
-    if re.search(r"\b(course|semester|level|department)\b", normalized, re.IGNORECASE):
-        response = generate_course_response(normalized)
-    else:
-        match, score = semantic_search(normalized, index, model, questions, qa_data)
-        response = match["answer"] if score > 0.55 else "Hmm, I'm not sure about that. Try rephrasing?"
-
-    return style_response(response, tone)
-
-# UI
-st.markdown("<h2 style='text-align: center;'>🎓 Crescent University Chatbot</h2>", unsafe_allow_html=True)
-st.markdown("<div class='chatbox'>", unsafe_allow_html=True)
+st.title("🤖 CrescentBot — Your Campus Assistant")
+st.markdown("""Ask me anything about Crescent University! 🏫✨""")
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Show history
-for role, message in st.session_state.chat_history:
-    if role == "user":
-        st.markdown(f"<div class='user-bubble'>{message}</div>", unsafe_allow_html=True)
+prompt = st.chat_input("Type your question here...")
+
+if prompt:
+    # Detect greeting
+    if check_greeting(prompt):
+        response = "👋 Hello! I'm CrescentBot. How can I assist you today?"
     else:
-        st.markdown(f"<div class='bot-bubble'>{message}</div>", unsafe_allow_html=True)
+        # Typing effect
+        with st.spinner("Thinking..."):
+            course_code, course_response = extract_course_query(prompt, course_data)
+            if course_response:
+                response = course_response
+            else:
+                result = search_semantic(prompt, model, index, qa_data, questions)
+                if result:
+                    response = result
+                else:
+                    try:
+                        gpt_reply = openai.ChatCompletion.create(
+                            model="gpt-4",
+                            messages=[
+                                {"role": "system", "content": "You are CrescentBot, a helpful assistant for students of Crescent University."},
+                                {"role": "user", "content": prompt}
+                            ]
+                        )
+                        response = gpt_reply["choices"][0]["message"]["content"]
+                    except:
+                        response = "❌ Sorry, I'm currently unable to fetch a response."
 
-# Input
-with st.form("chat_form", clear_on_submit=True):
-    user_input = st.text_input("Ask CrescentBot something...", placeholder="E.g., What courses are offered in 200 level second semester Law?", label_visibility="collapsed")
-    submitted = st.form_submit_button("Send")
+        tone = detect_tone(prompt)
+        tone_personality = {
+            "friendly": "😊 Hey there! CrescentBot here to help. ",
+            "formal": "Good day. Here's the information you requested: ",
+            "casual": "Yo! Here’s the scoop: ",
+            "funny": "😄 Let me crack the code for you real quick: ",
+            "neutral": ""
+        }
+        prefix = tone_personality.get(tone, "")
+        response = prefix + response
 
-if submitted and user_input:
-    st.session_state.chat_history.append(("user", user_input))
-    with st.spinner("CrescentBot is typing..."):
-        time.sleep(0.8)
-        bot_response = handle_query(user_input)
-    st.session_state.chat_history.append(("bot", bot_response))
-    st.rerun()
+    # Save to chat history
+    st.session_state.chat_history.append((prompt, response))
 
-st.markdown("</div>", unsafe_allow_html=True)
+# Display chat messages
+st.markdown('<div class="chat-box">', unsafe_allow_html=True)
+for user_msg, bot_msg in st.session_state.chat_history:
+    st.markdown(f'<div class="user-msg">🧑‍💻 {user_msg}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="bot-msg">🤖 {bot_msg}</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)

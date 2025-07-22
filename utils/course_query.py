@@ -1,9 +1,8 @@
-import json
 import re
 from rapidfuzz import fuzz
 from utils.preprocess import normalize_input
 
-# 🏛️ Department → Faculty/College map
+# Department → Faculty mapping
 DEPARTMENT_TO_FACULTY_MAP = {
     "computer science": "College of Information and Communication Technology (CICOT)",
     "mass communication": "College of Information and Communication Technology (CICOT)",
@@ -25,11 +24,10 @@ DEPARTMENT_TO_FACULTY_MAP = {
 }
 
 DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
-
 LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
 SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
-# 🔍 Fuzzy department matcher
+# Fuzzy department matcher
 def fuzzy_match_department(input_text):
     best_match = None
     highest_score = 0
@@ -40,7 +38,7 @@ def fuzzy_match_department(input_text):
             highest_score = score
     return best_match
 
-# 🧠 Query parser
+# Main query parser
 def parse_query(text):
     text = normalize_input(text)
     level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
@@ -55,7 +53,7 @@ def parse_query(text):
         "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
     }
 
-# 📦 Course fetcher
+# Filter course data by department, level, semester
 def get_courses_for_query(query_info, course_data):
     dept = query_info.get("department")
     level = query_info.get("level")
@@ -71,7 +69,7 @@ def get_courses_for_query(query_info, course_data):
             continue
         matches.append(entry)
 
-    # fallback if no full match found
+    # Fallback: if no full match found, try partial department match
     if not matches and dept:
         matches = [entry for entry in course_data if dept.lower() in entry["department"].lower()]
 

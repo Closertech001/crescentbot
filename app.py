@@ -30,7 +30,7 @@ def load_model(name="all-MiniLM-L6-v2"):
     return SentenceTransformer(name)
 
 # ----------------- Load QA dataset ---------------------
-def load_qa_data(filepath="data/crescent.json"):
+def load_qa_data(filepath="data/crescent_qa.json"):
     with open(filepath, "r", encoding="utf-8") as f:
         data = json.load(f)
     questions = [item["question"] for item in data]

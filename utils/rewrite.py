@@ -17,3 +17,9 @@ def rewrite_with_tone(user_input, response):
         return "Absolutely! Here's everything you need:\n\n" + response
     else:
         return "Here's what I found for you:\n\n" + response
+
+def rewrite_followup(user_input, memory):
+    dept, level, topic = memory.get()
+    if topic:
+        return f"Regarding {topic['question']}, you asked: {user_input}"
+    return user_input

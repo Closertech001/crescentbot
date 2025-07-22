@@ -1,85 +1,66 @@
-# app.py
-
 import streamlit as st
 import openai
 import os
 from dotenv import load_dotenv
-from utils.embedding import load_model, load_qa_data, get_question_embeddings, build_faiss_index
+from utils.embedding import load_model, load_dataset, get_question_embeddings, build_faiss_index
 from utils.search import semantic_search_faiss
 from utils.greetings import get_greeting
 from utils.memory import update_memory, get_last_context
-from textblob import TextBlob
 from datetime import datetime
 
-# --- Load environment variables ---
+# Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# --- Initialize Session State ---
-if "memory" not in st.session_state:
-    st.session_state.memory = {}
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-# --- Load and embed data ---
+# Load model and data
 @st.cache_resource
 def initialize():
     model = load_model()
-    qa_data = load_qa_data("data/crescent_qa.json")
-    questions = [entry["question"] for entry in qa_data]
+    qa_data, questions = load_dataset("data/qa_dataset.json")
     embeddings = get_question_embeddings(questions, model)
     index = build_faiss_index(embeddings)
-    return model, qa_data, questions, index
+    return model, index, qa_data, questions
 
-model, qa_data, questions, index = initialize()
+model, index, qa_data, questions = initialize()
 
-# --- Streamlit UI ---
-st.set_page_config(page_title="CrescentBot 🤖", layout="wide")
-st.title("🎓 Crescent University Assistant")
+# --- UI Styling ---
+st.set_page_config(page_title="CrescentBot 🎓", page_icon="🤖", layout="centered")
+st.markdown("<h1 style='text-align: center;'>🤖 CrescentBot</h1>", unsafe_allow_html=True)
+st.markdown("Ask me anything about Crescent University!")
 
-# --- Display chat history ---
-for chat in st.session_state.chat_history:
-    with st.chat_message(chat["role"]):
-        st.markdown(chat["content"])
+# --- Session Memory ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# --- Handle new user input ---
-user_input = st.chat_input("Ask me anything about Crescent University...")
+# --- Chat Input ---
+user_input = st.chat_input("Ask something about Crescent University...")
+
+# --- Show Greeting if No Chat Yet ---
+if len(st.session_state.chat_history) == 0:
+    greeting = get_greeting()
+    st.chat_message("assistant").markdown(f"{greeting} 👋\n\nI'm CrescentBot! Ask me anything about the university.")
+
+# --- Response Logic ---
 if user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
     st.chat_message("user").markdown(user_input)
 
-    # Greeting detection
-    lower_input = user_input.lower()
-    if any(greet in lower_input for greet in ["hello", "hi", "hey", "good morning", "good evening", "good afternoon"]):
-        greeting = get_greeting()
-        response = f"{greeting} 👋 How can I help you today?"
+    # Check memory for context (optional for future features)
+    prev_context = get_last_context(st.session_state.chat_history)
+
+    # Semantic search
+    matches = semantic_search_faiss(user_input, model, index, qa_data, questions, top_k=3)
+
+    # Pick top answer
+    best_match = matches[0] if matches else None
+
+    if best_match and best_match["score"] > 0.5:
+        response = f"📘 **Answer:** {best_match['answer']}"
+        if best_match["department"]:
+            response += f"\n\n🏛️ *Department:* {best_match['department']}"
     else:
-        # Semantic search
-        matches = semantic_search_faiss(user_input, model, index, qa_data, questions, top_k=3)
-        best_match = matches[0] if matches and matches[0]["score"] > 0.75 else None
+        response = "🤔 Sorry, I couldn't find an exact answer. Could you try rephrasing?"
 
-        if best_match:
-            response = best_match["answer"]
-        else:
-            # GPT fallback
-            try:
-                completion = openai.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant for Crescent University."},
-                        {"role": "user", "content": user_input}
-                    ]
-                )
-                response = completion.choices[0].message.content.strip()
-            except Exception as e:
-                response = "⚠️ Sorry, I couldn't fetch a response right now."
+    st.chat_message("assistant").markdown(response)
 
-    # Display assistant response
-    timestamp = datetime.now().strftime("%I:%M %p")
-    response_markdown = f"{response}\n\n⌚ _{timestamp}_"
-    st.chat_message("assistant").markdown(response_markdown)
-    st.session_state.chat_history.append({"role": "assistant", "content": response_markdown})
-
-    # Update memory
-    update_memory(st.session_state.memory, "last_query", user_input)
-    update_memory(st.session_state.memory, "last_response", response)
+    # Save memory
+    update_memory(st.session_state.chat_history, user_input, response)

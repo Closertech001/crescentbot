@@ -1,21 +1,38 @@
 # utils/search.py
 
-from utils.embedding import load_model_and_embeddings
-import numpy as np
+import openai
+import os
 
-def semantic_search(query: str, top_k: int = 3, threshold: float = 0.6):
-    model, data, index, _ = load_model_and_embeddings()
+def fallback_to_gpt_if_needed(user_input, similarity_score, matched_answer, threshold=0.75):
+    """
+    Uses GPT to generate a fallback answer if similarity is low.
 
-    query_vec = model.encode([query.strip().lower()])
-    D, I = index.search(np.array(query_vec), top_k)
+    Args:
+        user_input (str): Original user query.
+        similarity_score (float): Similarity score of best match.
+        matched_answer (str): Answer from the matched Q&A pair.
+        threshold (float): Score below which GPT fallback is triggered.
 
-    top_score = D[0][0]
-    top_index = I[0][0]
+    Returns:
+        str: Final answer (from match or GPT).
+    """
+    if similarity_score >= threshold:
+        return matched_answer
 
-    if top_score > threshold:
-        return "🤖 Sorry, I couldn’t find a close match. Please try rephrasing your question.", []
+    # Fallback prompt for GPT
+    prompt = (
+        f"The user asked: \"{user_input}\"\n"
+        "This question could not be answered from the database.\n"
+        "Please provide a helpful and friendly answer related to Crescent University."
+    )
 
-    best_answer = data[top_index]["answer"]
-    related_questions = [data[i]["question"] for i in I[0][1:] if i != top_index]
-
-    return best_answer, related_questions
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # or gpt-4
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=200
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return "Sorry, I couldn't retrieve a full answer right now. Please try again."

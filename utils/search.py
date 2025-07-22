@@ -1,36 +1,36 @@
+# utils/search.py
+
 import torch
 from sentence_transformers.util import cos_sim
+from utils.embedding import load_model_and_embeddings
 
-def find_response(query, model, dataset, embeddings, top_k=3, threshold=0.45):
+def semantic_search(query: str, top_k: int = 3, threshold: float = 0.45):
     """
-    Find the best response using semantic similarity.
+    Unified function to perform semantic search compatible with app.py
 
     Args:
-        query (str): User's query.
-        model: SentenceTransformer model.
-        dataset (pd.DataFrame): Dataset with 'question' and 'answer'.
-        embeddings (Tensor): Precomputed question embeddings.
-        top_k (int): Number of top matches to consider for related questions.
-        threshold (float): Minimum similarity score to accept as valid.
+        query (str): The user's input query.
+        top_k (int): Number of top answers to consider.
+        threshold (float): Minimum similarity threshold for match.
 
     Returns:
-        Tuple[str, List[str]]: Answer and list of related questions.
+        Tuple[str, List[str]]: Best answer and list of related questions.
     """
+    model, df, embeddings = load_model_and_embeddings()
+
     # Encode query
     query_embedding = model.encode([query.strip().lower()], convert_to_tensor=True)
-
-    # Compute cosine similarity
     similarities = cos_sim(query_embedding, embeddings)[0]
 
-    # Get top-k indices
+    # Get top-k
     top_scores, top_indices = torch.topk(similarities, top_k)
     top_score = top_scores[0].item()
     top_index = top_indices[0].item()
 
-    matched_question = dataset.iloc[top_index]["question"]
-    matched_answer = dataset.iloc[top_index]["answer"]
+    best_match = df.iloc[top_index]["question"]
+    best_answer = df.iloc[top_index]["answer"]
 
-    print(f"[DEBUG] Top match: '{matched_question}' (Score: {top_score:.4f})")
+    print(f"[DEBUG] Best match: '{best_match}' (Score: {top_score:.4f})")
 
     if top_score < threshold:
         return (
@@ -38,39 +38,10 @@ def find_response(query, model, dataset, embeddings, top_k=3, threshold=0.45):
             []
         )
 
-    # Collect related questions (excluding top match)
     related_qs = [
-        dataset.iloc[i]["question"]
+        df.iloc[i]["question"]
         for i in top_indices[1:]
         if int(i) != top_index
     ]
 
-    return matched_answer, related_qs
-
-
-def search_similar(query, df, embeddings, model, top_k=1):
-    """
-    Simple wrapper for getting a top semantic match.
-    
-    Args:
-        query (str): User's query.
-        df (pd.DataFrame): QA dataset.
-        embeddings (Tensor): Precomputed embeddings of the questions.
-        model: SentenceTransformer model.
-        top_k (int): Number of top matches to return.
-
-    Returns:
-        dict: Top match with question, answer, and score.
-    """
-    query_embedding = model.encode(query.strip().lower(), convert_to_tensor=True)
-    similarities = cos_sim(query_embedding, embeddings)[0]
-    top_scores, top_indices = torch.topk(similarities, top_k)
-
-    top_index = int(top_indices[0])
-    score = float(top_scores[0])
-
-    return {
-        "question": df.iloc[top_index]["question"],
-        "answer": df.iloc[top_index]["answer"],
-        "score": score
-    }
+    return best_answer, related_qs

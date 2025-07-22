@@ -2,78 +2,61 @@ import streamlit as st
 import json
 import os
 import re
-import time
-import random
-from datetime import datetime
-from collections import deque
-
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 from rapidfuzz import fuzz, process
-from symspellpy import SymSpell, Verbosity
-import openai
-import emoji
 
-from dotenv import load_dotenv
-load_dotenv()
+# -------------------------
+# Dataset Loaders & Helpers
+# -------------------------
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+@st.cache_data(show_spinner=True)
+def load_qa_dataset(filepath="data/crescent_qa.json"):
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    questions = [entry["question"] for entry in data]
+    return data, questions
 
-# ==== Utils Inlined ==== #
+@st.cache_data(show_spinner=True)
+def load_course_data(filepath="data/course_data.json"):
+    with open(filepath, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-# --- Embedding utils ---
-@st.cache_resource(show_spinner=False)
-def load_model(model_name="all-MiniLM-L6-v2"):
-    return SentenceTransformer(model_name)
+# -------------------------
+# Model and Embeddings
+# -------------------------
 
-@st.cache_data(show_spinner=False)
-def load_dataset(qa_path="data/crescent_qa.json", course_path="data/course_data.json"):
-    with open(qa_path, "r", encoding="utf-8") as f:
-        qa_data = json.load(f)
-    with open(course_path, "r", encoding="utf-8") as f:
-        course_data = json.load(f)
-    questions = [entry["question"] for entry in qa_data]
-    return qa_data, questions, course_data
+@st.cache_resource(show_spinner=True)
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
-@st.cache_data(show_spinner=False)
-def compute_question_embeddings(questions, model):
+@st.cache_data(show_spinner=True)
+def compute_question_embeddings(questions):
+    model = load_model()
     embeddings = model.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
     return embeddings
 
-@st.cache_resource(show_spinner=False)
 def build_faiss_index(embeddings):
     dim = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dim)  # cosine similarity
+    index = faiss.IndexFlatIP(dim)  # cosine similarity via inner product on normalized embeddings
     index.add(embeddings)
     return index
 
-def semantic_search(query_embedding, index, qa_data, top_k=1):
-    D, I = index.search(query_embedding, top_k)
-    best_idx = I[0][0]
+# -------------------------
+# Semantic Search Function
+# -------------------------
+
+def semantic_search(query, model, index, qa_data, top_k=1):
+    q_emb = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    D, I = index.search(q_emb, top_k)
+    best_match = qa_data[I[0][0]]
     score = D[0][0]
-    return qa_data[best_idx], score
+    return best_match, score
 
-# --- SymSpell typo correction ---
-@st.cache_resource(show_spinner=False)
-def load_symspell():
-    max_edit_distance_dictionary = 2
-    prefix_length = 7
-    sym_spell = SymSpell(max_edit_distance_dictionary, prefix_length)
-    dict_path = os.path.join(os.path.dirname(__file__), "frequency_dictionary_en_82_765.txt")
-    if os.path.exists(dict_path):
-        sym_spell.load_dictionary(dict_path, term_index=0, count_index=1)
-    else:
-        st.warning("SymSpell dictionary file frequency_dictionary_en_82_765.txt not found.")
-    return sym_spell
-
-def correct_text(sym_spell, text):
-    suggestions = sym_spell.lookup_compound(text, max_edit_distance=2)
-    if suggestions:
-        return suggestions[0].term
-    return text
-
-# --- Course query utils ---
+# -------------------------
+# Course Query Utils
+# -------------------------
 
 department_faculty_map = {
     "computer science": "CICOT",
@@ -102,14 +85,7 @@ def extract_course_info(user_input, course_data, memory):
     level_match = re.search(r"(\d{3}|\d{2,3}-level|\d{3} level|\d{1,3}00|\d{1}-level)", user_input)
     sem_match = re.search(r"(first|1st|second|2nd)\s+semester", user_input.lower())
 
-    department = None
-    if dept_match and dept_match.group(2):
-        department = dept_match.group(2).strip().lower()
-    elif dept_match:
-        department = dept_match.group(3).lower()
-    else:
-        department = memory.get("department")
-
+    department = dept_match.group(2).strip().lower() if dept_match else memory.get("department")
     level = level_match.group(1) if level_match else memory.get("level")
     semester = sem_match.group(1).lower() if sem_match else memory.get("semester")
 
@@ -158,6 +134,7 @@ def get_course_by_code(user_input, course_data):
     code_match = re.search(r"\b([A-Z]{2,4}\s?\d{3})\b", user_input.upper())
     if not code_match:
         return None
+
     course_code = code_match.group(1).replace(" ", "").upper()
     for dept, levels in course_data.items():
         for level, semesters in levels.items():
@@ -167,213 +144,49 @@ def get_course_by_code(user_input, course_data):
                         return f"📘 `{course_code}` is *{course['title']}* offered in `{dept.title()}`, {level}-level ({sem} semester), worth {course['unit']} unit(s)."
     return "⚠️ I couldn't find any course matching that code."
 
-# --- Tone detection and personality ---
-
-def detect_tone(text):
-    text_lower = text.lower()
-    if any(w in text_lower for w in ["thank", "thanks", "thx"]):
-        return "gratitude"
-    elif any(w in text_lower for w in ["bye", "goodbye", "see you", "later"]):
-        return "farewell"
-    elif any(w in text_lower for w in ["hello", "hi", "hey", "greetings"]):
-        return "greeting"
-    # Simple frustration detection
-    elif any(w in text_lower for w in ["stupid", "bad", "hate", "angry", "frustrat", "annoy"]):
-        return "frustrated"
-    return "neutral"
-
-def personality_response(tone, name=None):
-    if tone == "gratitude":
-        return "You're very welcome! 😊"
-    elif tone == "farewell":
-        return "Bye! Have a great day! 👋"
-    elif tone == "greeting":
-        greet = "Hello"
-        if name:
-            greet += f", {name}"
-        greet += "! How can I help you today? 🤖"
-        return greet
-    elif tone == "frustrated":
-        return "I'm sorry you're feeling frustrated. Let me try to help! 🙏"
-    else:
-        return None
-
-# --- GPT Fallback ---
-
-def gpt_fallback(prompt, personality=None):
-    messages = []
-    system_msg = "You are CrescentBot, a helpful university assistant. Keep responses concise and polite."
-    if personality == "frustrated":
-        system_msg += " The user is frustrated, be extra polite and helpful."
-    messages.append({"role": "system", "content": system_msg})
-    messages.append({"role": "user", "content": prompt})
-    try:
-        completion = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=messages,
-            temperature=0.7,
-            max_tokens=300,
-            n=1,
-            stop=None,
-        )
-        answer = completion.choices[0].message.content.strip()
-        return answer
-    except Exception as e:
-        # fallback to GPT-3.5-turbo
-        try:
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-                temperature=0.7,
-                max_tokens=300,
-                n=1,
-                stop=None,
-            )
-            answer = completion.choices[0].message.content.strip()
-            return answer
-        except Exception as e:
-            return "Sorry, I'm having trouble reaching the AI service right now."
-
-# --- Memory (simple dict in session) ---
-
-def update_memory(memory, key, value):
-    memory[key] = value
-
-def get_memory(memory, key, default=None):
-    return memory.get(key, default)
-
-# ==== Streamlit UI ==== #
-
-st.set_page_config(page_title="CrescentBot – Crescent University Assistant", page_icon="🤖", layout="wide")
-st.markdown(
-    """
-    <style>
-    /* Chat container */
-    .chat-container {
-        max-width: 800px;
-        margin: auto;
-        padding: 1rem;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .user-message {
-        background: #0084ff;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 18px 18px 0 18px;
-        max-width: 70%;
-        margin-left: auto;
-        margin-bottom: 10px;
-        font-size: 16px;
-        white-space: pre-wrap;
-    }
-    .bot-message {
-        background: #e5e5ea;
-        color: black;
-        padding: 10px 15px;
-        border-radius: 18px 18px 18px 0;
-        max-width: 70%;
-        margin-right: auto;
-        margin-bottom: 10px;
-        font-size: 16px;
-        white-space: pre-wrap;
-    }
-    .typing {
-        font-style: italic;
-        color: #666666;
-        padding-left: 10px;
-    }
-    .emoji {
-        font-size: 18px;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
-
-# Load everything once
-model = load_model()
-qa_data, questions, course_data = load_dataset()
-embeddings = compute_question_embeddings(questions, model)
-index = build_faiss_index(embeddings)
-sym_spell = load_symspell()
-
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = deque(maxlen=30)
-if "memory" not in st.session_state:
-    st.session_state.memory = {}
-if "name" not in st.session_state:
-    st.session_state.name = None
-
-def simulate_typing(text, delay=0.02):
-    # Yields text char by char to simulate typing animation
-    typed = ""
-    for c in text:
-        typed += c
-        yield typed
-        time.sleep(delay)
+# -------------------------
+# Main App
+# -------------------------
 
 def main():
+    st.set_page_config(page_title="CrescentBot - University Assistant", page_icon="🎓", layout="centered")
     st.title("🤖 CrescentBot – Crescent University Assistant")
-    st.markdown("Ask me anything about Crescent University courses, departments, policies, and more!")
 
-    # Display chat history
-    chat_container = st.container()
+    qa_data, questions = load_qa_dataset()
+    course_data = load_course_data()
+    model = load_model()
+    embeddings = compute_question_embeddings(questions)
+    index = build_faiss_index(embeddings)
 
-    with chat_container:
-        for i, chat in enumerate(st.session_state.chat_history):
-            is_user = chat["role"] == "user"
-            msg_class = "user-message" if is_user else "bot-message"
-            st.markdown(f'<div class="{msg_class}">{emoji.emojize(chat["content"])}</div>', unsafe_allow_html=True)
+    memory = {}
 
-    query = st.text_input("Your question:", key="input_text", placeholder="Type your question here...", label_visibility="collapsed")
+    query = st.text_input("Ask me anything about Crescent University:")
 
-    if st.button("Send") or (query and st.session_state.get("input_text_send", False)):
-        user_input = st.session_state.input_text.strip()
-        if not user_input:
-            st.warning("Please enter a question.")
+    if query:
+        query_lower = query.lower()
+
+        # Check for course code queries first
+        course_response = get_course_by_code(query, course_data)
+        if course_response:
+            st.markdown(course_response)
             return
 
-        # Clear input box
-        st.session_state.input_text = ""
+        # Check for course info queries
+        course_info_response = extract_course_info(query, course_data, memory)
+        if course_info_response and course_info_response.startswith("⚠️") is False:
+            st.markdown(course_info_response)
+            return
+        elif course_info_response and course_info_response.startswith("⚠️"):
+            # If error about department, just show it
+            st.markdown(course_info_response)
+            return
 
-        # SymSpell correction
-        corrected_input = correct_text(sym_spell, user_input)
-
-        # Check for greetings, farewells, gratitude first (simple responses)
-        tone = detect_tone(corrected_input)
-        name = st.session_state.get("name")
-
-        if tone == "greeting" and not any(m["role"] == "bot" and "Hello" in m["content"] for m in st.session_state.chat_history):
-            bot_resp = personality_response(tone, name)
-        elif tone in ["gratitude", "farewell"]:
-            bot_resp = personality_response(tone, name)
+        # Otherwise, do semantic search on QA dataset
+        best_match, score = semantic_search(query, model, index, qa_data)
+        if score > 0.6:
+            st.markdown(f"**Answer:** {best_match['answer']}")
         else:
-            # Try course code exact match first
-            course_resp = get_course_by_code(corrected_input, course_data)
-            if course_resp:
-                bot_resp = course_resp
-            else:
-                # Try course info extraction
-                course_info_resp = extract_course_info(corrected_input, course_data, st.session_state.memory)
-                if course_info_resp and not course_info_resp.startswith("⚠️"):
-                    bot_resp = course_info_resp
-                else:
-                    # Semantic search + threshold
-                    query_embedding = model.encode([corrected_input], convert_to_numpy=True, normalize_embeddings=True)
-                    best_match, score = semantic_search(query_embedding, index, qa_data)
-                    if score > 0.6:
-                        bot_resp = best_match["answer"]
-                    else:
-                        bot_resp = gpt_fallback(corrected_input, tone)
-
-        # Save chat history
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-        # Typing animation effect for bot
-        bot_msg_placeholder = st.empty()
-
-        for partial in simulate_typing(bot_resp, delay=0.015):
-            bot_msg_placeholder.markdown(f'<div class="bot-message">{emoji.emojize(partial)}</div>', unsafe_allow_html=True)
-
-        st.session_state.chat_history.append({"role": "bot", "content": bot_resp})
+            st.markdown("❓ Sorry, I couldn't find a confident answer. Please try rephrasing your question.")
 
 if __name__ == "__main__":
     main()

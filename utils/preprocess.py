@@ -1,40 +1,53 @@
 import re
 import emoji
-import streamlit as st
 from symspellpy import SymSpell, Verbosity
 import pkg_resources
 
+# --- Phrase replacements ---
 PHRASE_REPLACEMENTS = {
-    "biz admin": "business administration", "mass comm": "mass communication", "cresnt uni": "crescent university",
-    "CSC": "department of Computer Science", "Mass comm": "department of Mass Communication", "law": "department of law", "Acc": "department of Accounting"
+    "biz admin": "business administration",
+    "mass comm": "mass communication",
+    "cresnt uni": "crescent university",
+    "cresnt": "crescent",
+    "final year": "final level",
+    "last year": "final level",
+    "yr 1": "100 level",
+    "yr 2": "200 level",
+    "yr 3": "300 level",
+    "yr 4": "400 level",
+    "yr 5": "500 level",
+    "year 1": "100 level",
+    "year 2": "200 level",
+    "year 3": "300 level",
+    "year 4": "400 level",
+    "year 5": "500 level",
+    "1st year": "100 level",
+    "2nd year": "200 level",
+    "3rd year": "300 level",
+    "4th year": "400 level",
+    "5th year": "500 level"
 }
 
-# Abbreviations for shorthand normalization
+# --- Abbreviations for shorthand normalization ---
 ABBREVIATIONS = {
     "u": "you", "r": "are", "ur": "your", "cn": "can", "cud": "could",
     "shud": "should", "wud": "would", "abt": "about", "bcz": "because",
     "plz": "please", "pls": "please", "tmrw": "tomorrow", "wat": "what",
     "wats": "what is", "info": "information", "yr": "year", "sem": "semester",
     "admsn": "admission", "clg": "college", "sch": "school", "uni": "university",
-    "cresnt": "crescent", "l": "level", "d": "the", "msg": "message",
-    "idk": "i don't know", "imo": "in my opinion", "asap": "as soon as possible",
-    "dept": "department", "reg": "registration", "fee": "fees", "pg": "postgraduate",
-    "app": "application", "req": "requirement", "nd": "national diploma",
-    "a-level": "advanced level", "alevel": "advanced level", "2nd": "second",
-    "1st": "first", "nxt": "next", "prev": "previous", "exp": "experience",
-    "CSC": "department of Computer Science", "Mass comm": "department of Mass Communication",
-    "law": "department of law", "Acc": "department of Accounting"
+    "l": "level", "d": "the", "msg": "message", "dept": "department",
+    "reg": "registration", "fee": "fees", "pg": "postgraduate", "app": "application",
+    "req": "requirement", "nd": "national diploma", "2nd": "second", "1st": "first",
+    "nxt": "next", "prev": "previous", "exp": "experience"
 }
 
-# Synonyms to help semantic matching
+# --- Synonyms for consistent matching ---
 SYNONYMS = {
-    "lecturers": "academic staff", "professors": "academic staff",
-    "teachers": "academic staff", "instructors": "academic staff",
-    "tutors": "academic staff", "staff members": "staff",
-    "head": "dean", "hod": "head of department", "dept": "department",
-    "school": "university", "college": "faculty", "course": "subject",
-    "class": "course", "subject": "course", "unit": "credit",
-    "credit unit": "unit", "course load": "unit", "non teaching": "non-academic",
+    "lecturers": "academic staff", "professors": "academic staff", "teachers": "academic staff",
+    "instructors": "academic staff", "tutors": "academic staff", "staff members": "staff",
+    "head": "dean", "hod": "head of department", "dept": "department", "school": "university",
+    "college": "faculty", "course": "subject", "class": "course", "subject": "course",
+    "unit": "credit", "credit unit": "unit", "course load": "unit", "non teaching": "non-academic",
     "admin worker": "non-academic staff", "support staff": "non-academic staff",
     "clerk": "non-academic staff", "receptionist": "non-academic staff",
     "secretary": "non-academic staff", "tech staff": "technical staff",
@@ -45,7 +58,7 @@ SYNONYMS = {
     "needed for": "required for", "who handles": "who manages"
 }
 
-# Basic Nigerian Pidgin replacements
+# --- Pidgin normalization ---
 PIDGIN_MAP = {
     "wetin": "what", "dey": "is", "una": "you all", "na": "is",
     "abi": "right", "wey": "that", "fit": "can", "go do": "will do",
@@ -53,9 +66,8 @@ PIDGIN_MAP = {
     "comot": "leave", "carry go": "take away", "waka": "walk"
 }
 
-# SymSpell singleton for spell correction
+# --- SymSpell Setup ---
 SYM_SPELL = None
-
 def get_sym_spell():
     global SYM_SPELL
     if SYM_SPELL is None:
@@ -64,28 +76,26 @@ def get_sym_spell():
         SYM_SPELL.load_dictionary(dictionary_path, term_index=0, count_index=1)
     return SYM_SPELL
 
-# Text cleaning
+# --- Core cleaning pipeline ---
 def normalize_text(text):
     text = text.lower()
-    text = emoji.replace_emoji(text, replace='')  # remove emoji
-    text = re.sub(r"[^\w\s]", "", text)  # remove punctuation
+    text = emoji.replace_emoji(text, replace='')
+    text = re.sub(r"[^\w\s]", "", text)
     return text.strip()
 
-# Phrase-level replacement (e.g., "biz admin" → "business administration")
 def replace_phrases(text):
     for phrase, repl in PHRASE_REPLACEMENTS.items():
-        pattern = re.compile(rf"\b{re.escape(phrase)}\b", re.IGNORECASE)
-        text = pattern.sub(repl, text)
+        text = re.sub(rf"\b{re.escape(phrase)}\b", repl, text, flags=re.IGNORECASE)
     return text
 
 def apply_abbreviations(words):
-    return [ABBREVIATIONS.get(word, word) for word in words]
+    return [ABBREVIATIONS.get(w, w) for w in words]
 
 def apply_pidgin(words):
-    return [PIDGIN_MAP.get(word, word) for word in words]
+    return [PIDGIN_MAP.get(w, w) for w in words]
 
 def apply_synonyms(words):
-    return [SYNONYMS.get(word, word) for word in words]
+    return [SYNONYMS.get(w, w) for w in words]
 
 def spell_correct(words):
     sym_spell = get_sym_spell()
@@ -96,7 +106,11 @@ def spell_correct(words):
         corrected.append(corrected_word)
     return corrected
 
-# Main normalization pipeline
+def convert_final_level(words):
+    # After all other normalization steps
+    return ["400" if w == "final" else w for w in words]
+
+# --- Final Pipeline ---
 def normalize_input(text):
     text = normalize_text(text)
     text = replace_phrases(text)
@@ -105,4 +119,5 @@ def normalize_input(text):
     words = apply_pidgin(words)
     words = spell_correct(words)
     words = apply_synonyms(words)
+    words = convert_final_level(words)
     return " ".join(words)

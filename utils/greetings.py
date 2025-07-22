@@ -134,3 +134,22 @@ def detect_farewell(text: str) -> bool:
         r"\blater na\b"
     ]
     return any(re.search(pat, text.lower()) for pat in farewell_patterns)
+
+
+# --- COURSE LEVEL EXPLANATION ---
+
+LEVEL_MEANINGS = {
+    "100": "100 level na Year 1 — na your fresher year be that 🎒",
+    "200": "200 level na Year 2 — you don dey gather experience 😎",
+    "300": "300 level na Year 3 — you don dey deep inside your course 🔍",
+    "400": "400 level na Year 4 — final year or almost there 🎓",
+    "500": "500 level na for some courses like Law/Engineering — serious final year 🔥",
+    "600": "600 level na for advanced courses like Medicine 🩺"
+}
+
+def get_level_meaning(text: str) -> str:
+    match = re.search(r"\b(100|200|300|400|500|600)\s*level\b", text)
+    if match:
+        level = match.group(1)
+        return LEVEL_MEANINGS.get(level, "")
+    return ""

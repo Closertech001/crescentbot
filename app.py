@@ -1,3 +1,4 @@
+
 import streamlit as st
 import json
 import torch
@@ -93,7 +94,9 @@ if user_input:
         if course_code:
             course_response = get_course_by_code(course_code, course_data)
             if course_response:
-                response = f"📘 *Here’s the info for* `{course_code}`:\n\n{course_response}"
+                response = f"📘 *Here’s the info for* `{course_code}`:
+
+{course_response}"
             else:
                 response = f"🤔 I couldn't find any details for `{course_code}`. Please check the code and try again."
         else:
@@ -126,8 +129,19 @@ if user_input:
                 else:
                     result = find_best_match(cleaned_input, model, embeddings, df)
 
-            if result:
-                response = f"✨ Here’s what I found:\n\n{result}"
+            if isinstance(result, list):
+                if result:
+                    response = "✨ Here’s what I found:
+
+" + "\n\n".join(
+                        [f"• **{r['question']}**\n{r['answer']}" for r in result]
+                    )
+                else:
+                    response = "😕 I couldn’t find any courses matching that. Try rephrasing or check the department name."
+            elif result:
+                response = f"✨ Here’s what I found:
+
+{result}"
             else:
                 response = "😕 I couldn’t find an answer to that. Try rephrasing it?"
 

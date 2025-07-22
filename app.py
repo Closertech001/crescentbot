@@ -1,44 +1,66 @@
-# app.py
-
 import streamlit as st
 import json
-import random
 import re
-import datetime
-from sentence_transformers import SentenceTransformer
+import random
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
-# ========== Setup ==========
+# === Load QA Data ===
+@st.cache_data
+def load_qa_data(path="data/crescent_qa.json"):
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    questions = [item["question"] for item in data]
+    answers = [item["answer"] for item in data]
+    return questions, answers
 
-st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
+# === Load Sentence Transformer Model ===
+@st.cache_resource
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
-# Typing animation
-typing_placeholder = st.empty()
+# === Compute and Cache Embeddings ===
+@st.cache_data
+def get_question_embeddings(questions, model):
+    return model.encode(questions)
 
-# ========== Greeting Detection ==========
+# === Top-k Search with Precomputed Embeddings ===
+def get_top_k_matches(query, question_embeddings, questions, answers, model, k=3):
+    query_embedding = model.encode([query])[0]
+    scores = np.dot(question_embeddings, query_embedding) / (
+        np.linalg.norm(question_embeddings, axis=1) * np.linalg.norm(query_embedding)
+    )
+    top_k_idx = np.argsort(scores)[::-1][:k]
+    return [{"question": questions[i], "answer": answers[i], "score": float(scores[i])} for i in top_k_idx]
 
-def detect_greeting(text):
-    greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]
-    return any(greet in text.lower() for greet in greetings)
+# === Input Preprocessing ===
+def normalize_input(text):
+    text = text.lower().strip()
+    replacements = {
+        "ur": "your", "u": "you", "pls": "please", "asap": "urgent", "wat": "what",
+        "dept": "department", "schl": "school", "sme": "same"
+    }
+    for k, v in replacements.items():
+        text = re.sub(rf"\b{k}\b", v, text)
+    return text
 
-def get_random_greeting():
-    return random.choice(["Hello!", "Hi there!", "Greetings!", "Hey! 👋"])
+# === Memory Handling ===
+def update_memory(session, key, value):
+    session[key] = value
 
-def detect_farewell(text):
-    farewells = ["bye", "goodbye", "see you", "later", "farewell"]
-    return any(farewell in text.lower() for farewell in farewells)
+def get_last_context(session, key):
+    return session.get(key, None)
 
-# ========== Tone Detection & Rewrite ==========
-
+# === Tone Detection ===
 def detect_tone(text):
     text = text.lower()
-    if any(word in text for word in ["pls", "please", "hi", "hello", "thank"]):
+    if any(word in text for word in ["pls", "please", "hi", "hello", "thank", "good morning", "good afternoon"]):
         return "polite"
     if any(word in text for word in ["urgent", "now", "quick", "fast", "immediately", "asap"]):
         return "urgent"
-    if any(word in text for word in ["why", "what", "how", "confused", "help", "explain", "not sure"]):
+    if any(word in text for word in ["why", "what", "how", "when", "confused", "help", "not sure", "don't understand"]):
         return "confused"
-    if any(word in text for word in ["angry", "nonsense", "rubbish", "annoyed", "frustrated"]):
+    if any(word in text for word in ["angry", "nonsense", "rubbish", "dumb", "idiot", "annoyed", "useless"]):
         return "angry"
     if re.search(r"[!?]{2,}", text):
         return "emphatic"
@@ -59,161 +81,67 @@ def rewrite_with_tone(user_input, response):
     else:
         return "Here's what I found for you:\n\n" + response
 
-# ========== Memory ==========
+# === Greeting Handling ===
+def detect_greeting(text):
+    greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]
+    return any(greet in text.lower() for greet in greetings)
 
-memory = []
+def detect_farewell(text):
+    farewells = ["bye", "goodbye", "see you", "take care"]
+    return any(farewell in text.lower() for farewell in farewells)
 
-def update_memory(query):
-    memory.append({
-        "timestamp": datetime.datetime.now().isoformat(),
-        "query": query
-    })
+def get_random_greeting():
+    return random.choice([
+        "Hello! 😊 How can I assist you today?",
+        "Hi there! 👋 What would you like to know?",
+        "Hey! I'm here to help. Ask me anything about Crescent University."
+    ])
 
-def get_last_context():
-    return memory[-1]["query"] if memory else ""
-
-# ========== Load Course Data ==========
-
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    course_data = json.load(f)
-
-department_mapping = {
-    "computer science": "CICOT",
-    "mass communication": "CASMAS",
-    "nursing": "COHES",
-    "law": "BACOLAW",
-    "architecture": "COES",
-    "physics": "CONAS"
-    # Add more as needed
-}
-
-# ========== Normalize Input ==========
-
-def normalize_input(text):
-    text = text.lower().strip()
-    replacements = {
-        "comp sci": "computer science",
-        "mass comm": "mass communication",
-        "nurs": "nursing",
-        "phys": "physics",
-        "archi": "architecture"
-    }
-    for k, v in replacements.items():
-        text = text.replace(k, v)
-    return text
-
-# ========== Course Query ==========
-
-def get_course_info(user_input, course_data, dept_map):
-    user_input = user_input.lower()
-    for dept, faculty in dept_map.items():
-        if dept in user_input:
-            level_match = re.search(r"\b(100|200|300|400|500)\b", user_input)
-            semester_match = re.search(r"\b(first|second)\b", user_input)
-
-            level = level_match.group(1) if level_match else None
-            semester = semester_match.group(1) if semester_match else None
-
-            dept_data = course_data.get(faculty, {}).get(dept.title(), {})
-
-            if level and semester:
-                return format_course_response(dept_data.get(level, {}).get(semester, {}), dept, level, semester)
-            elif level:
-                return format_level_response(dept_data.get(level, {}), dept, level)
-            else:
-                return f"What level or semester are you asking about for {dept.title()}?"
-    return None
-
-def format_course_response(courses, dept, level, semester):
-    if not courses:
-        return f"No courses found for {dept.title()} {level} level {semester} semester."
-    result = f"{dept.title()} {level} Level - {semester.title()} Semester Courses:\n"
-    for course in courses:
-        result += f"- {course['code']} - {course['title']} ({course['unit']} units)\n"
-    return result
-
-def format_level_response(semesters, dept, level):
-    if not semesters:
-        return f"No course data available for {dept.title()} {level} level."
-    result = f"{dept.title()} {level} Level Courses:\n"
-    for sem, courses in semesters.items():
-        result += f"\n{sem.title()} Semester:\n"
-        for course in courses:
-            result += f"- {course['code']} - {course['title']} ({course['unit']} units)\n"
-    return result
-
-# ========== Embedding + Similarity Search ==========
-
-@st.cache_resource
-def load_model():
-    return SentenceTransformer("all-MiniLM-L6-v2")
-
-@st.cache_data
-def load_qa_data():
-    with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
-    questions = [q["question"] for q in data]
-    answers = [q["answer"] for q in data]
-    return questions, answers
-
-def get_top_k_matches(query, questions, answers, model, k=3):
-    embeddings = model.encode(questions)
-    query_embedding = model.encode([query])[0]
-    scores = np.dot(embeddings, query_embedding) / (
-        np.linalg.norm(embeddings, axis=1) * np.linalg.norm(query_embedding)
-    )
-    top_k_idx = np.argsort(scores)[::-1][:k]
-    return [{"question": questions[i], "answer": answers[i], "score": float(scores[i])} for i in top_k_idx]
-
-model = load_model()
-questions, answers = load_qa_data()
-
-# ========== Handle Input ==========
-
-def handle_input(user_input):
+# === Handle Input Logic ===
+def handle_input(user_input, questions, answers, model, question_embeddings):
     user_input_norm = normalize_input(user_input)
 
-    if detect_greeting(user_input_norm):
+    # Check for greeting or farewell
+    if detect_greeting(user_input):
         return get_random_greeting()
-    if detect_farewell(user_input_norm):
-        return "Goodbye! Have a great day."
+    if detect_farewell(user_input):
+        return "Goodbye! Feel free to come back with more questions anytime. 👋"
 
-    course_response = get_course_info(user_input_norm, course_data, department_mapping)
-    if course_response:
-        return rewrite_with_tone(user_input, course_response)
+    # Search
+    matches = get_top_k_matches(user_input_norm, question_embeddings, questions, answers, model)
 
-    last_context = get_last_context()
-    full_input = f"{last_context} {user_input_norm}" if last_context else user_input_norm
-
-    update_memory(user_input_norm)
-
-    matches = get_top_k_matches(full_input, questions, answers, model)
-    if matches and matches[0]["score"] > 0.6:
-        return rewrite_with_tone(user_input, matches[0]["answer"])
+    # Confidence logic
+    top_match = matches[0]
+    if top_match["score"] > 0.75:
+        return rewrite_with_tone(user_input, top_match["answer"])
     else:
-        return rewrite_with_tone(user_input, "Sorry, I couldn't find an answer for that.")
+        return rewrite_with_tone(user_input, "I'm not entirely sure, but here's what I found:\n\n" + top_match["answer"])
 
-# ========== UI ==========
+# === Streamlit UI ===
+st.set_page_config(page_title="CrescentBot", page_icon="🤖")
+st.title("🤖 Crescent University Chatbot")
+st.markdown("Ask me anything about departments, courses, or admission!")
 
-st.title("🎓 Crescent University Chatbot")
+# Session state
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
+# Load data
+questions, answers = load_qa_data()
+model = load_model()
+question_embeddings = get_question_embeddings(questions, model)
 
-for msg in st.session_state["messages"]:
-    st.chat_message(msg["role"]).markdown(msg["content"])
-
-user_input = st.chat_input("Ask me anything about Crescent University...")
-
+# User input
+user_input = st.text_input("You:", key="user_input")
 if user_input:
-    st.session_state["messages"].append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
+    response = handle_input(user_input, questions, answers, model, question_embeddings)
+    st.session_state.chat_history.append(("You", user_input))
+    st.session_state.chat_history.append(("Bot", response))
+    st.session_state.user_input = ""  # clear input box
 
-    typing_placeholder.markdown("🤖 *Bot is typing...*")
-    response = handle_input(user_input)
-    typing_placeholder.empty()
-
-    st.session_state["messages"].append({"role": "assistant", "content": response})
-    with st.chat_message("assistant"):
-        st.markdown(response)
+# Display history
+for sender, msg in st.session_state.chat_history:
+    if sender == "You":
+        st.markdown(f"**🧑‍💬 You:** {msg}")
+    else:
+        st.markdown(f"**🤖 Bot:** {msg}")

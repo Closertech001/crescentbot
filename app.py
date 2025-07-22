@@ -6,7 +6,7 @@ from utils.embedding import get_top_k_answers
 from utils.course_query import parse_query, get_courses_for_query
 from utils.greetings import is_greeting, get_greeting_response
 from utils.preprocess import normalize_input
-from utils.memory import Memory
+from utils.memory import store_context_from_query, enrich_query_with_context
 from openai import OpenAI
 import time
 

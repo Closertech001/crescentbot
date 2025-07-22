@@ -1,39 +1,38 @@
-from datetime import datetime
+import streamlit as st
+from typing import Dict, Any
 
-def update_memory(memory: dict, key: str, value, with_timestamp: bool = False) -> dict:
+
+def store_context_from_query(query_info: Dict[str, Any]) -> None:
     """
-    Updates the in-session memory dictionary with a key-value pair.
-    
+    Store department and level from the current query into session state.
+
     Args:
-        memory (dict): The memory dictionary to update.
-        key (str): The key to store the value under.
-        value (Any): The value to store.
-        with_timestamp (bool): Whether to store a timestamp with the value.
+        query_info (dict): Dictionary containing query information with optional 'department' and 'level'.
+    """
+    if not query_info:
+        return
+
+    if query_info.get("department"):
+        st.session_state["last_department"] = query_info["department"]
+
+    if query_info.get("level"):
+        st.session_state["last_level"] = query_info["level"]
+
+
+def enrich_query_with_context(query_info: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Enrich the current query with department/level from session state if missing.
+
+    Args:
+        query_info (dict): The current query dictionary to be enriched.
 
     Returns:
-        dict: Updated memory dictionary.
+        dict: Enriched query_info with department and level filled in if available.
     """
-    if with_timestamp:
-        memory[key] = {
-            "value": value,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-    else:
-        memory[key] = value
-    return memory
+    if not query_info.get("department") and "last_department" in st.session_state:
+        query_info["department"] = st.session_state["last_department"]
 
-def get_last_context(memory: dict, key: str):
-    """
-    Retrieves the last stored value for a given key from memory.
-    
-    Args:
-        memory (dict): The memory dictionary.
-        key (str): The key to look up.
+    if not query_info.get("level") and "last_level" in st.session_state:
+        query_info["level"] = st.session_state["last_level"]
 
-    Returns:
-        Any: The stored value, or None if key is not found.
-    """
-    entry = memory.get(key, None)
-    if isinstance(entry, dict) and "value" in entry:
-        return entry["value"]
-    return entry
+    return query_info

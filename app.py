@@ -77,7 +77,7 @@ else:
     st.warning("⚠️ SymSpell dictionary not found. Spell correction disabled.")
 
 # --- Load Crescent QA dataset ---
-def load_dataset(filepath="data/crescent.json"):
+def load_dataset(filepath="data/crescent_qa.json"):
     with open(filepath, "r", encoding="utf-8") as f:
         data = json.load(f)
     questions = [entry["question"] for entry in data]

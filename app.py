@@ -1,110 +1,123 @@
 import streamlit as st
-import openai
 import random
+import json
+import re
+from utils.embedding import get_top_k_answers
+from utils.course_query import parse_query, get_courses_for_query
+from utils.greetings import is_greeting, get_greeting_response
+from utils.preprocess import normalize_input
+from utils.memory import Memory
+from openai import OpenAI
 import time
 
-from utils.course_query import get_course_info
-from utils.embedding import load_qa_dataset
-from utils.greetings import is_greeting, respond_to_greeting
-from utils.log_utils import log_interaction
-from utils.memory import MemoryHandler
-from utils.preprocess import normalize_input
-from utils.rewrite import improve_question
-from utils.search import find_response
-from utils.tone import detect_tone
+st.set_page_config(page_title="Crescent University Chatbot")
+st.markdown("<style>div[data-testid=\"stSidebar\"]{background-color:#f0f2f6;}</style>", unsafe_allow_html=True)
 
-# Load styling
-with open("assets/style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# Load OpenAI API key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+    QA_DATA = json.load(f)
 
-# Initialize session state
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+with open("data/course_data.json", "r", encoding="utf-8") as f:
+    COURSE_DATA = json.load(f)
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 if "memory" not in st.session_state:
-    st.session_state.memory = MemoryHandler()
+    st.session_state.memory = Memory()
 
-# Load model and embeddings
-model, df, embeddings = load_qa_dataset()
+def bot_typing():
+    with st.empty():
+        for i in range(3):
+            st.markdown("**Bot is typing" + "." * (i + 1) + "**")
+            time.sleep(0.4)
 
-# Chat title
+def explain_course_level(user_input):
+    match = re.search(r"\\b(100|200|300|400|500)\\s*level\\b", user_input.lower())
+    if match:
+        level = match.group(1)
+        year_map = {
+            "100": "100 level means Year 1 (Freshman or First Year).",
+            "200": "200 level means Year 2 (Sophomore or Second Year).",
+            "300": "300 level means Year 3 (Third Year).",
+            "400": "400 level means Year 4 (Final Year for most 4-year programs).",
+            "500": "500 level means Year 5 (Final Year for programs like Law, Architecture)."
+        }
+        return year_map.get(level)
+    return None
+
+def generate_dynamic_intro():
+    choices = [
+        "Here’s what I found:",
+        "Take a look at this:",
+        "This might help:",
+        "Here’s the answer you’re looking for:",
+        "Check this out:",
+    ]
+    return random.choice(choices)
+
 st.title("🎓 Crescent University Chatbot")
-st.markdown("Ask me anything about departments, courses, or admission.")
 
-# Input box
-user_input = st.chat_input("Type your question...")
+user_input = st.chat_input("Ask me anything about Crescent University")
 
-# Typing animation
-def show_typing_indicator():
-    message = st.empty()
-    for dots in ["", ".", "..", "..."]:
-        message.markdown(f"🤖 Bot is typing{dots}")
-        time.sleep(0.3)
-    message.empty()
-
-# Message rendering
-def render_message(speaker, msg):
-    bubble_class = "chat-message-user" if speaker == "You" else "chat-message-assistant"
-    st.markdown(f'<div class="{bubble_class}"><b>{speaker}:</b><br>{msg}</div>', unsafe_allow_html=True)
-
-# Main interaction
 if user_input:
-    normalized = normalize_input(user_input)
-    tone = detect_tone(normalized)
-    st.session_state.chat_history.append(("You", user_input))
-    render_message("You", user_input)
+    normalized_input = normalize_input(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Bot typing indicator
-    show_typing_indicator()
+    # Handle greeting
+    if is_greeting(normalized_input):
+        response = get_greeting_response()
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.rerun()
 
-    # Greeting or small talk
-    if is_greeting(normalized):
-        response = respond_to_greeting()
-        render_message("Bot", response)
-        st.session_state.chat_history.append(("Bot", response))
-        log_interaction(user_input, response, tone)
+    # Handle level explanation
+    level_explanation = explain_course_level(normalized_input)
+    if level_explanation:
+        st.session_state.messages.append({"role": "assistant", "content": level_explanation})
+        st.rerun()
+
+    bot_typing()
+
+    # Try course query first
+    query_info = parse_query(normalized_input)
+    matched_courses = get_courses_for_query(query_info, COURSE_DATA)
+
+    if matched_courses:
+        st.session_state.memory.update(query_info)
+        intro = generate_dynamic_intro()
+        course_responses = [f"- **{m['question']}**\n{m['answer']}" for m in matched_courses]
+        response = intro + "\n" + "\n\n".join(course_responses)
     else:
-        # Try to match course info
-        course_answer = get_course_info(normalized, st.session_state.memory)
-        if course_answer:
-            render_message("Bot", course_answer)
-            st.session_state.chat_history.append(("Bot", course_answer))
-            log_interaction(user_input, course_answer, tone)
+        # Use last memory to improve fallback
+        enriched_input = normalized_input
+        mem = st.session_state.memory.get_memory()
+        if mem.get("departments"):
+            enriched_input += " for department " + ", ".join(mem["departments"])
+        if mem.get("level"):
+            enriched_input += f" {mem['level']} level"
+        if mem.get("semester"):
+            enriched_input += f" {mem['semester']} semester"
+
+        results = get_top_k_answers(enriched_input, QA_DATA, k=3)
+        if results:
+            intro = generate_dynamic_intro()
+            response = intro + "\n" + "\n\n".join([f"**Q:** {r['question']}\n**A:** {r['answer']}" for r in results])
         else:
-            # Improve and search
-            refined_query = improve_question(normalized, st.session_state.memory)
-            answer, related = find_response(refined_query, model, df, embeddings)
+            # Fallback to GPT
+            gpt_response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant for Crescent University. Answer questions clearly and accurately."},
+                    {"role": "user", "content": user_input}
+                ]
+            )
+            response = gpt_response.choices[0].message.content
 
-            # Dynamic intro phrases
-            tone_prefixes = {
-                "polite": ["Certainly!", "Of course!", "Glad to help!"],
-                "confused": ["Let me clarify that for you.", "Here's what I found."],
-                "angry": ["I'm here to assist despite the frustration.", "Let's fix this."],
-                "emphatic": ["Here's a strong answer for you!", "Absolutely, here you go:"],
-                "urgent": ["Quick answer:", "Right away!"],
-                "neutral": ["Here's what I found:", "Let me help with that:"]
-            }
-            prefix = random.choice(tone_prefixes.get(tone, tone_prefixes["neutral"]))
-            full_response = f"{prefix} {answer}"
-            render_message("Bot", full_response)
-            st.session_state.chat_history.append(("Bot", full_response))
-            log_interaction(user_input, full_response, tone)
+    st.session_state.messages.append({"role": "assistant", "content": response})
 
-            # Related questions
-            if related:
-                st.markdown("#### Related Questions")
-                for q in related:
-                    st.markdown(f'<div class="related-question">{q}</div>', unsafe_allow_html=True)
+# Display messages with animation
+for i, msg in enumerate(st.session_state.messages):
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-# Show chat history
-st.divider()
-for speaker, msg in st.session_state.chat_history:
-    render_message(speaker, msg)
-
-# Clear chat
-if st.button("🔄 Clear Chat"):
-    st.session_state.chat_history = []
-    st.session_state.memory.reset()
-    st.experimental_rerun()

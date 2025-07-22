@@ -28,6 +28,6 @@ def build_faiss_index(embeddings):
     Builds a FAISS index from the question embeddings using cosine similarity.
     """
     dimension = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
+    index = faiss.IndexFlatIP(dimension)  # Inner product = cosine similarity
     index.add(embeddings)
     return index

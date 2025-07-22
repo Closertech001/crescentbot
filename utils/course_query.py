@@ -31,16 +31,12 @@ SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
 # 🔍 Fuzzy matcher for multiple departments
 def fuzzy_match_departments(text):
-    """
-    Match multiple departments from input using fuzzy matching.
-    Returns a list of department names.
-    """
     matches = []
     for dept in DEPARTMENTS:
         score = fuzz.partial_ratio(text.lower(), dept.lower())
         if score > 80:
             matches.append(dept)
-    return list(set(matches))  # remove duplicates
+    return list(set(matches))
 
 # 🧠 Query parser
 def parse_query(text):
@@ -81,3 +77,8 @@ def get_courses_for_query(query_info, course_data):
         ]
 
     return matches
+
+# ✅ Add this function for compatibility with app.py
+def get_course_info(user_query, course_data):
+    query_info = parse_query(user_query)
+    return get_courses_for_query(query_info, course_data)

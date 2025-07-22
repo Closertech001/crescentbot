@@ -1,76 +1,79 @@
-import re
-from rapidfuzz import fuzz
-from utils.preprocess import normalize_input
+# utils/course_query.py
 
-# Department → Faculty mapping
-DEPARTMENT_TO_FACULTY_MAP = {
-    "computer science": "College of Information and Communication Technology (CICOT)",
-    "mass communication": "College of Information and Communication Technology (CICOT)",
-    "political science and international studies": "College of Arts, Social and Management Sciences (CASMAS)",
-    "business administration": "College of Arts, Social and Management Sciences (CASMAS)",
-    "economics with operations research": "College of Arts, Social and Management Sciences (CASMAS)",
-    "accounting": "College of Arts, Social and Management Sciences (CASMAS)",
-    "architecture": "College of Environmental Sciences (COES)",
-    "anatomy": "College of Health Sciences (COHES)",
-    "physiology": "College of Health Sciences (COHES)",
-    "nursing": "College of Health Sciences (COHES)",
-    "law": "Bola Ajibola College of Law (BACOLAW)",
-    "biochemistry": "College of Natural and Applied Sciences (CONAS)",
-    "microbiology": "College of Natural and Applied Sciences (CONAS)",
-    "chemistry": "College of Natural and Applied Sciences (CONAS)",
-    "physics": "College of Natural and Applied Sciences (CONAS)",
-    "mathematics": "College of Natural and Applied Sciences (CONAS)",
-    "medical laboratory science": "College of Natural and Applied Sciences (CONAS)",
+import json
+import os
+from rapidfuzz import fuzz, process
+
+# Load course data
+with open("data/course_data.json", "r", encoding="utf-8") as f:
+    course_data = json.load(f)
+
+# Department to faculty mapping
+department_faculty_map = {
+    "computer science": "CICOT",
+    "information technology": "CICOT",
+    "mass communication": "CASMAS",
+    "accounting": "CASMAS",
+    "business administration": "CASMAS",
+    "architecture": "COES",
+    "nursing": "COHES",
+    "physiology": "COHES",
+    "anatomy": "COHES",
+    "physics": "CONAS",
+    "chemistry": "CONAS",
+    "microbiology": "CONAS",
+    "biochemistry": "CONAS",
+    "law": "BACOLAW"
 }
 
-DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
-LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
-SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
+def fuzzy_match_department(dept_input):
+    departments = list(department_faculty_map.keys())
+    match, score = process.extractOne(dept_input.lower(), departments, scorer=fuzz.partial_ratio)
+    if score > 70:
+        return match
+    return None
 
-# Fuzzy department matcher
-def fuzzy_match_department(input_text):
-    best_match = None
-    highest_score = 0
-    for dept in DEPARTMENTS:
-        score = fuzz.partial_ratio(input_text.lower(), dept.lower())
-        if score > highest_score and score > 80:
-            best_match = dept
-            highest_score = score
-    return best_match
+def get_course_info(user_input, memory):
+    user_input = user_input.lower()
 
-# Main query parser
-def parse_query(text):
-    text = normalize_input(text)
-    level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
-    semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
-    dept = fuzzy_match_department(text)
-    faculty = DEPARTMENT_TO_FACULTY_MAP.get(dept) if dept else None
+    # Detect department
+    dept = fuzzy_match_department(user_input)
+    if dept:
+        memory["last_dept"] = dept
+    else:
+        dept = memory.get("last_dept")
 
-    return {
-        "department": dept,
-        "faculty": faculty,
-        "level": level,
-        "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
-    }
+    # Detect level and semester
+    level = None
+    semester = None
 
-# Filter course data by department, level, semester
-def get_courses_for_query(query_info, course_data):
-    dept = query_info.get("department")
-    level = query_info.get("level")
-    semester = query_info.get("semester")
+    if "100" in user_input: level = "100"
+    elif "200" in user_input: level = "200"
+    elif "300" in user_input: level = "300"
+    elif "400" in user_input: level = "400"
+    elif "500" in user_input: level = "500"
 
-    matches = []
-    for entry in course_data:
-        if dept and dept.lower() != entry["department"].lower():
+    if "first" in user_input or "1st" in user_input: semester = "first"
+    elif "second" in user_input or "2nd" in user_input: semester = "second"
+
+    if not dept or dept not in course_data:
+        return None
+
+    result = []
+    dept_courses = course_data[dept]
+
+    for course in dept_courses:
+        if level and course["level"] != level:
             continue
-        if level and level != entry.get("level"):
+        if semester and course["semester"].lower() != semester:
             continue
-        if semester and semester.lower() not in entry.get("question", "").lower():
-            continue
-        matches.append(entry)
+        result.append(f"{course['code']} - {course['title']} ({course['unit']} units)")
 
-    # Fallback: if no full match found, try partial department match
-    if not matches and dept:
-        matches = [entry for entry in course_data if dept.lower() in entry["department"].lower()]
+    if not result:
+        return f"No matching courses found for {dept.title()} with the criteria provided."
 
-    return matches
+    heading = f"Courses for {dept.title()}"
+    if level: heading += f", {level}-level"
+    if semester: heading += f", {semester} semester"
+
+    return f"📘 {heading}:\n\n" + "\n".join(result)

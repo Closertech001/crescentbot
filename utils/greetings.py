@@ -1,14 +1,21 @@
 import random
 import re
 from textblob import TextBlob
-from rapidfuzz import fuzz, process
 
 # --- GREETING DETECTION ---
 
 GREETING_PATTERNS = [
-    r"\bhi\b", r"\bhello\b", r"\bhey\b", r"\bgood (morning|afternoon|evening)\b",
-    r"\bwhat('?s| is) up\b", r"\bhowdy\b", r"\byo\b", r"\bsup\b",
-    r"\bgreetings\b", r"\bhow far\b", r"\bhow you dey\b"
+    r"\bhi\b",
+    r"\bhello\b",
+    r"\bhey\b",
+    r"\bgood (morning|afternoon|evening)\b",
+    r"\bwhat's up\b",
+    r"\bhowdy\b",
+    r"\byo\b",
+    r"\bsup\b",
+    r"\bgreetings\b",
+    r"\bhow far\b",
+    r"\bhow you dey\b"
 ]
 
 _greeting_responses_by_sentiment = {
@@ -32,10 +39,16 @@ _greeting_responses_by_sentiment = {
 }
 
 def is_greeting(user_input: str) -> bool:
+    """
+    Check if the input is a greeting.
+    """
     text = user_input.lower()
     return any(re.search(pattern, text) for pattern in GREETING_PATTERNS)
 
 def detect_sentiment(user_input: str) -> str:
+    """
+    Use TextBlob to analyze sentiment: positive, neutral, or negative.
+    """
     analysis = TextBlob(user_input)
     if analysis.sentiment.polarity > 0.2:
         return "positive"
@@ -44,63 +57,75 @@ def detect_sentiment(user_input: str) -> str:
     return "neutral"
 
 def greeting_responses(user_input: str = "") -> str:
+    """
+    Return a random greeting based on detected sentiment.
+    """
     tone = detect_sentiment(user_input) if user_input else "neutral"
     return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
 
 
 # --- SMALL TALK DETECTION ---
 
-SMALL_TALK_MAP = {
-    "how are you": [
+SMALL_TALK_PATTERNS = {
+    r"how are you": [
         "I'm doing great, thanks for asking! 😊 How can I help you today?",
         "Feeling sharp and ready to assist! ✨"
     ],
-    "who created you": [
+    r"who (are|created|made) you": [
         "I'm the Crescent University Chatbot 🤖, built to help students like you!",
         "I was created to guide you through Crescent Uni life 📘"
     ],
-    "what can you do": [
+    r"what can you do": [
         "I can help you with course info, departments, fees, and more 🎓",
         "Ask me about admission, courses, or departments — I’ve got answers! 💡"
     ],
-    "tell me about yourself": [
+    r"tell me about yourself": [
         "I'm a smart little assistant for Crescent University 🧠💬",
         "I answer questions about courses, fees, staff, and more!"
     ],
-    "are you smart": [
+    r"are you (smart|intelligent)": [
         "I try my best! 😄 Especially when it comes to university questions.",
         "Not bad for a chatbot, right? 😉"
     ],
-    "you are funny": [
+    r"you('?| )re (funny|cool|smart)": [
         "Aww, thanks! 😊 You’re not so bad yourself.",
         "Appreciate it! Let’s keep the good vibes going 🔥"
     ]
 }
 
 def is_small_talk(user_input: str) -> bool:
-    return get_best_small_talk_match(user_input) is not None
-
-def get_best_small_talk_match(user_input: str, threshold: int = 80) -> str:
-    choices = list(SMALL_TALK_MAP.keys())
-    match, score, _ = process.extractOne(user_input.lower(), choices, scorer=fuzz.ratio)
-    return match if score >= threshold else None
+    """
+    Detect if user input matches small talk patterns.
+    """
+    text = user_input.lower()
+    return any(re.search(pattern, text) for pattern in SMALL_TALK_PATTERNS)
 
 def small_talk_response(user_input: str) -> str:
-    best_match = get_best_small_talk_match(user_input)
-    if best_match:
-        return random.choice(SMALL_TALK_MAP[best_match])
+    """
+    Generate a small talk response.
+    """
+    text = user_input.lower()
+    for pattern, responses in SMALL_TALK_PATTERNS.items():
+        if re.search(pattern, text):
+            return random.choice(responses)
     return "I'm here for all your Crescent University questions! 🎓"
 
 
 # --- COURSE CODE HELPERS ---
 
 def extract_course_code(text: str) -> str:
+    """
+    Extract a course code like CSC 101 from the user input.
+    """
     match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())
     if match:
         return f"{match.group(1)} {match.group(2)}"
     return None
 
 def get_course_by_code(course_code: str, course_data: list) -> str:
+    """
+    Find course details by code from the dataset.
+    """
     course_code = course_code.upper().strip()
     for entry in course_data:
         if course_code in entry.get("answer", ""):
@@ -109,7 +134,3 @@ def get_course_by_code(course_code: str, course_data: list) -> str:
                 if part.startswith(course_code):
                     return part
     return None
-
-# Optional fallback to GPT if course not found
-def fallback_course_response(course_code: str) -> str:
-    return f"I'm not sure about {course_code}, but I can ask my GPT brain if you'd like! 🤔"

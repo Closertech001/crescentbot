@@ -1,24 +1,32 @@
 import os
 from datetime import datetime
 
+DEFAULT_LOG_DIR = "logs"
+DEFAULT_LOG_FILE = "query_log.txt"
 
-def log_query(query: str, score: float, log_filename: str = "query_log.txt") -> None:
+def log_query(query: str, score: float, log_filename: str = DEFAULT_LOG_FILE, log_dir: str = DEFAULT_LOG_DIR, verbose: bool = False) -> None:
     """
-    Logs a query and its similarity score to a log file.
+    Logs a query and its similarity score to a timestamped log file.
 
     Args:
-        query (str): User query text.
-        score (float): Similarity score of top match.
-        log_filename (str): Filename to write the log to (default: query_log.txt).
+        query (str): The user query.
+        score (float): The top similarity score.
+        log_filename (str): File to write log to.
+        log_dir (str): Directory to store logs.
+        verbose (bool): Print to console if True.
     """
     try:
-        log_dir = "logs"
         os.makedirs(log_dir, exist_ok=True)
         log_path = os.path.join(log_dir, log_filename)
 
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_line = f"{timestamp} | Score: {score:.3f} | Query: {query}\n"
+
         with open(log_path, "a", encoding="utf-8") as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"{timestamp} | Score: {score:.3f} | Query: {query}\n")
+            f.write(log_line)
+
+        if verbose:
+            print("[Logged]", log_line.strip())
+
     except Exception as e:
-        # Optional: print or silently ignore logging errors in production
         print(f"[Log Error] Could not log query: {e}")

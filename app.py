@@ -2,7 +2,7 @@ import streamlit as st
 from utils.course_query import parse_query, get_courses_for_query
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.search import search_similar
-from utils.greetings import detect_greeting, get_random_greeting, detect_farewell
+from utils.greetings import is_greeting, greeting_responses, small_talk_response
 from utils.preprocess import normalize_input
 import random
 import openai

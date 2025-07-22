@@ -1,14 +1,24 @@
+# ✅ embedding.py
 import json
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
 def load_model(model_name="all-MiniLM-L6-v2"):
+    """Load the SentenceTransformer model."""
     return SentenceTransformer(model_name)
 
 def load_dataset(path="data/crescent_qa.json"):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return pd.DataFrame(data)
+    """Load the dataset from JSON or JSONL and return as a DataFrame."""
+    try:
+        if path.endswith(".jsonl"):
+            data = [json.loads(line) for line in open(path, "r", encoding="utf-8")]
+        else:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        return pd.DataFrame(data)
+    except Exception as e:
+        raise RuntimeError(f"[Dataset Load Error] Could not load file at {path}: {e}")
 
 def compute_question_embeddings(questions, model):
-    return model.encode(questions, show_progress_bar=True, convert_to_tensor=True)
+    """Compute embeddings for a list of questions using the provided model."""
+    return model.encode([q.strip().lower() for q in questions], convert_to_tensor=True)

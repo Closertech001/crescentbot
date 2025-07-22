@@ -2,75 +2,65 @@
 
 import json
 import re
-from difflib import SequenceMatcher
-from utils.memory import MemoryHandler
 
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    COURSE_DATA = json.load(f)
-
-def clean_text(text):
-    return re.sub(r"[^a-zA-Z0-9\s]", "", text).strip().lower()
-
-def similarity(a, b):
-    return SequenceMatcher(None, clean_text(a), clean_text(b)).ratio()
-
-def extract_course_info(user_input: str, memory: MemoryHandler) -> str | None:
-    user_input = user_input.lower()
-
+def extract_course_info(question, memory, course_data_path="data/course_data.json"):
     dept = memory.get("department")
     level = memory.get("level")
     semester = memory.get("semester")
 
-    # Try to extract department
-    for department in COURSE_DATA:
-        if department.lower() in user_input:
-            dept = department
+    # Try to extract department, level, and semester if not already in memory
+    question_lower = question.lower()
+
+    # Simple rule-based extraction
+    if not dept:
+        match = re.search(r"(computer science|anatomy|biochemistry|accounting|business administration|microbiology|economics and operational research|mass communication|law|nursing)", question_lower)
+        if match:
+            dept = match.group(1)
             memory.set("department", dept)
 
-    # Try to extract level
-    for l in ["100", "200", "300", "400"]:
-        if l in user_input:
-            level = f"{l} level"
+    if not level:
+        match = re.search(r"(\d{3}) level", question_lower)
+        if match:
+            level = match.group(1)
             memory.set("level", level)
 
-    # Try to extract semester
-    if "first semester" in user_input:
-        semester = "first"
-        memory.set("semester", semester)
-    elif "second semester" in user_input:
-        semester = "second"
-        memory.set("semester", semester)
+    if not semester:
+        if "first semester" in question_lower:
+            semester = "first"
+            memory.set("semester", semester)
+        elif "second semester" in question_lower:
+            semester = "second"
+            memory.set("semester", semester)
 
-    # If department, level, and semester are present, return full list
-    if dept and level and semester:
-        try:
-            courses = COURSE_DATA[dept][level][semester]
-            course_lines = [f"- `{c['code']}`: {c['title']} ({c['unit']} units)" for c in courses]
-            return f"Here are the courses for **{dept.title()} - {level.title()} - {semester.title()} Semester**:\n\n" + "\n".join(course_lines)
-        except KeyError:
-            return f"Sorry, I couldn't find courses for {dept} {level} {semester}."
+    # Validate all info is present
+    if not all([dept, level, semester]):
+        return "Please provide department, level, and semester to get course information."
 
-    # Try course-specific match
-    all_courses = []
-    for dpt, lvls in COURSE_DATA.items():
-        for lvl, sems in lvls.items():
-            for sem, course_list in sems.items():
-                for course in course_list:
-                    all_courses.append((dpt, lvl, sem, course))
+    try:
+        with open(course_data_path, "r", encoding="utf-8") as f:
+            course_data = json.load(f)
+    except Exception as e:
+        return f"Error loading course data: {e}"
 
-    user_input_clean = clean_text(user_input)
-    best_match = max(all_courses, key=lambda x: max(
-        similarity(user_input_clean, x[3]['title']),
-        similarity(user_input_clean, x[3]['code'])
-    ))
+    # Search course info
+    dept_data = course_data.get(dept.lower())
+    if not dept_data:
+        return f"No data found for department: {dept}"
 
-    match_score = max(
-        similarity(user_input_clean, best_match[3]['title']),
-        similarity(user_input_clean, best_match[3]['code'])
-    )
+    level_data = dept_data.get(level)
+    if not level_data:
+        return f"No data found for {dept} at {level} level."
 
-    if match_score > 0.7:
-        course = best_match[3]
-        return f"**{course['code']}** — {course['title']} ({course['unit']} units) under {best_match[0]} ({best_match[1]}, {best_match[2]} semester)."
+    semester_data = level_data.get(semester.lower())
+    if not semester_data:
+        return f"No course info for {dept} {level} level {semester} semester."
 
-    return None
+    # Build response
+    lines = [f"📘 **{dept.title()} {level} Level - {semester.title()} Semester Courses:**"]
+    for course in semester_data:
+        code = course.get("code", "N/A")
+        title = course.get("title", "Untitled")
+        unit = course.get("unit", "N/A")
+        lines.append(f"- `{code}`: **{title}** ({unit} unit{'s' if unit != '1' else ''})")
+
+    return "\n".join(lines)

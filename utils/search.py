@@ -1,23 +1,40 @@
+# utils/search.py
+
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 
-def get_top_k_matches(user_query_embedding, question_embeddings, qa_data, k=3, threshold=0.55):
+def cosine_similarity(a, b):
     """
-    Get the top-k most similar questions to the user query based on cosine similarity.
-    Returns a list of matching (question, answer, score).
+    Compute the cosine similarity between two sets of vectors.
+    a: (n, dim), b: (1, dim) or (dim,)
     """
-    if isinstance(user_query_embedding, list):
-        user_query_embedding = np.array(user_query_embedding)
+    if b.ndim == 1:
+        b = b.reshape(1, -1)
+    return np.dot(a, b.T).squeeze()
 
-    scores = cosine_similarity([user_query_embedding], question_embeddings)[0]
-    top_indices = np.argsort(scores)[::-1]  # Sort descending
+def semantic_search(user_query, qa_data, embeddings, model, top_k=3):
+    """
+    Perform semantic search to find top_k most relevant Q&A entries.
+    
+    - user_query: str
+    - qa_data: list of Q&A dicts
+    - embeddings: numpy array of question embeddings
+    - model: SentenceTransformer
+    - top_k: number of results to return
 
-    results = []
-    for idx in top_indices[:k]:
-        if scores[idx] >= threshold:
-            q = qa_data[idx]["question"]
-            a = qa_data[idx]["answer"]
-            score = round(float(scores[idx]), 3)
-            results.append({"question": q, "answer": a, "score": score})
+    Returns:
+        List of top_k matching Q&A dictionaries
+    """
+    query_embedding = model.encode(
+        user_query, convert_to_numpy=True, normalize_embeddings=True
+    )
 
-    return results
+    scores = cosine_similarity(embeddings, query_embedding)
+    top_indices = np.argsort(scores)[-top_k:][::-1]
+
+    top_results = []
+    for idx in top_indices:
+        match = qa_data[idx]
+        match["score"] = float(scores[idx])
+        top_results.append(match)
+
+    return top_results

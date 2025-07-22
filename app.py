@@ -1,92 +1,110 @@
 import streamlit as st
-import random
+from utils.course_query import parse_query, get_courses_for_query
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
-from utils.course_query import get_course_info
-from utils.greetings import is_greeting, get_random_greeting, is_farewell
+from utils.search import search_similar
+from utils.greetings import detect_greeting, get_random_greeting, detect_farewell
 from utils.preprocess import normalize_input
-from utils.memory import update_last_context, get_last_context
-from utils.search import search_similar_qa
+import random
+import openai
+import time
 
-# Load model and data
-model = load_model()
-df = load_dataset("data/crescent_qa.json")
-questions = df["question"].tolist()
-embeddings = compute_question_embeddings(questions, model)
+# 🌐 Set page config
+st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓", layout="centered")
+st.markdown('<style>' + open("assets/style.css").read() + '</style>', unsafe_allow_html=True)
 
-# App UI
-st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
-st.markdown("<h2 style='text-align: center;'>🤖 Crescent University Chatbot</h2>", unsafe_allow_html=True)
+# 🔐 Load OpenAI key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Session state
+# 📦 Load model and data
+@st.cache_resource
+def setup():
+    model = load_model()
+    df = load_dataset()
+    embeddings = compute_question_embeddings(df['question'].tolist(), model)
+    return model, df, embeddings
+
+model, qa_df, qa_embeddings = setup()
+
+# 🧠 Session state initialization
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "last_department" not in st.session_state:
     st.session_state.last_department = None
 if "last_level" not in st.session_state:
     st.session_state.last_level = None
+if "last_topic" not in st.session_state:
+    st.session_state.last_topic = None
 
-# Typing animation
-def typing_animation():
+# 💬 Typing effect
+def bot_typing_effect():
     with st.empty():
         for dots in ["", ".", "..", "..."]:
-            st.markdown(f"<p>🤖 Bot is typing{dots}</p>", unsafe_allow_html=True)
-            st.sleep(0.3)
+            st.markdown(f"**Bot is typing{dots}**")
+            time.sleep(0.3)
 
-# Display chat history
-for msg in st.session_state.chat_history:
-    if msg["role"] == "user":
-        st.markdown(f"<div style='text-align: right;'>🧑‍💬 **You:** {msg['content']}</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div style='text-align: left;'>🤖 **Bot:** {msg['content']}</div>", unsafe_allow_html=True)
+# 🤖 Chat handler
+def handle_input(user_input):
+    normalized = normalize_input(user_input)
 
-# User input
-user_input = st.text_input("Ask me anything about Crescent University:", key="user_input")
-submit = st.button("Send")
+    # Greeting/Farewell
+    if detect_greeting(normalized):
+        return get_random_greeting()
+    if detect_farewell(normalized):
+        return "Goodbye! Feel free to return anytime. 👋"
 
-if submit and user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
-    user_message = normalize_input(user_input)
+    # Extract query info
+    query_info = parse_query(normalized)
 
-    # Respond to greetings or farewell
-    if is_greeting(user_message):
-        bot_response = get_random_greeting()
-    elif is_farewell(user_message):
-        bot_response = random.choice(["Goodbye!", "Take care!", "See you later!", "Farewell!"])
-    else:
-        # Check if it's a course code query
-        course_info = get_course_info(user_message)
-        if course_info:
-            course_code, course_title, course_unit = course_info
-            bot_response = f"""📘 *Here’s the info for* `{course_code}`:
+    # 👁️ Use memory for missing info
+    if not query_info.get("department") and st.session_state.last_department:
+        query_info["department"] = st.session_state.last_department
+    if not query_info.get("level") and st.session_state.last_level:
+        query_info["level"] = st.session_state.last_level
 
-{course_title} ({course_unit} unit{'s' if course_unit != 1 else ''})"""
-        else:
-            # Try to retrieve context (department/level) if needed
-            user_message, memory_update = get_last_context(user_message, st.session_state)
-            if memory_update:
-                update_last_context(user_message, st.session_state)
+    # 💾 Update memory
+    if query_info.get("department"):
+        st.session_state.last_department = query_info["department"]
+    if query_info.get("level"):
+        st.session_state.last_level = query_info["level"]
 
-            # Search for best matching Q&A
-            top_result = search_similar_qa(user_message, questions, embeddings, model, df)
+    # 🧠 Check if it’s a course-related query
+    course_results = get_courses_for_query(query_info, qa_df.to_dict(orient="records"))
+    if course_results:
+        response = "📚 **Here’s what I found:**\n\n"
+        for r in course_results:
+            response += f"- **{r['question']}**\n    {r['answer']}\n\n"
+        return response.strip()
 
-            if top_result:
-                response_prefixes = [
-                    "Here’s what I found for you:",
-                    "This might help:",
-                    "Got it! Here’s the answer:",
-                    "Let me assist you with this:",
-                    "Check this out:"
-                ]
-                bot_response = f"💡 {random.choice(response_prefixes)}\n\n{top_result}"
-            else:
-                bot_response = "❌ Sorry, I couldn't find a relevant answer. Could you rephrase your question?"
+    # 🔍 Semantic search
+    top_result = search_similar(normalized, qa_df, qa_embeddings, model)
+    if top_result and top_result['score'] > 0.75:
+        st.session_state.last_topic = top_result["question"]
+        return f"💡 {random.choice(['Here you go:', 'I found this for you:', 'This might help:'])}\n\n{top_result['answer']}"
 
-    # Simulate typing
-    typing_animation()
+    # 🤖 Fallback to OpenAI GPT
+    try:
+        bot_typing_effect()
+        completion = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for Crescent University."},
+                {"role": "user", "content": user_input}
+            ]
+        )
+        return completion.choices[0].message.content.strip()
+    except Exception as e:
+        return "⚠️ I’m having trouble fetching that. Please try again later."
 
-    # Show bot response and update history
-    st.markdown(f"<div style='text-align: left;'>🤖 **Bot:** {bot_response}</div>", unsafe_allow_html=True)
-    st.session_state.chat_history.append({"role": "bot", "content": bot_response})
+# 🧑‍💻 Main UI
+st.title("🎓 Crescent University Chatbot")
+user_input = st.text_input("Ask me anything about the university...", key="user_input")
 
-    # Clear input
+if user_input:
+    response = handle_input(user_input)
+    st.session_state.chat_history.append(("You", user_input))
+    st.session_state.chat_history.append(("Bot", response))
     st.session_state.user_input = ""
+
+# 📝 Display chat history
+for sender, msg in st.session_state.chat_history:
+    st.markdown(f"**{sender}:** {msg}")

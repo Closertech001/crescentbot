@@ -16,17 +16,12 @@ GREETING_PATTERNS = [
     r"\bsup\b"
 ]
 
-def is_greeting(text):
-    return any(re.search(pattern, text, re.IGNORECASE) for pattern in GREETING_PATTERNS)
-
-def get_greeting_response():
-    responses = [
-        "Hello! How can I assist you today?",
-        "Hi there! What would you like to know about Crescent University?",
-        "Hey! Need help with something related to Crescent University?",
-        "Greetings! I'm here to assist you with any CUAB info you need."
-    ]
-    return random.choice(responses)
+GREETING_RESPONSES = [
+    "Hello! How can I assist you today?",
+    "Hi there! What would you like to know about Crescent University?",
+    "Hey! Need help with something related to Crescent University?",
+    "Greetings! I'm here to assist you with any CUAB info you need."
+]
 
 # --- SMALL TALK DETECTION ---
 
@@ -58,14 +53,33 @@ SMALL_TALK_PATTERNS = {
     ]
 }
 
+
+def is_greeting(text):
+    return any(re.search(pattern, text, re.IGNORECASE) for pattern in GREETING_PATTERNS)
+
+
+def get_greeting_response():
+    return random.choice(GREETING_RESPONSES)
+
+
 def is_small_talk(text):
-    for pattern in SMALL_TALK_PATTERNS:
-        if re.search(pattern, text, re.IGNORECASE):
-            return True
-    return False
+    return any(re.search(pattern, text, re.IGNORECASE) for pattern in SMALL_TALK_PATTERNS)
+
 
 def respond_to_small_talk(text):
     for pattern, responses in SMALL_TALK_PATTERNS.items():
         if re.search(pattern, text, re.IGNORECASE):
             return random.choice(responses)
+    return None
+
+
+def get_bot_reply_if_smalltalk(text):
+    """
+    Check if user message is a greeting or small talk and return an appropriate response.
+    Returns None if not matched.
+    """
+    if is_greeting(text):
+        return get_greeting_response()
+    if is_small_talk(text):
+        return respond_to_small_talk(text)
     return None

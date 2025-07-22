@@ -2,18 +2,6 @@ import re
 import streamlit as st
 from symspellpy import SymSpell, Verbosity
 import pkg_resources
-
-# Abbreviations for shorthand normalization
-ABBREVIATIONS = {
-    "u": "you", "r": "are", "ur": "your", "cn": "can", "cud": "could",
-    "shud": "should", "wud": "would", "abt": "about", "bcz": "because",
-    "plz": "please", "pls": "please", "tmrw": "tomorrow", "wat": "what",
-    "wats": "what is", "info": "information", "yr": "year", "sem": "semester",
-    "admsn": "admission", "clg": "college", "sch": "school", "uni": "university",
-    "cresnt": "crescent", "l": "level", "d": "the", "msg": "message",
-    "idk": "i don't know", "imo": "in my opinion", "asap": "as soon as possible",
-    "dept": "department", "reg": "registration", "fee": "fees", "pg": "postgraduate",
-    "app": "application", "req": "requirement", "nd": "import re
 from rapidfuzz import process, fuzz
 
 # --- Phrase replacements ---

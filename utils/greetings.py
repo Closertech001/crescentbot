@@ -5,17 +5,17 @@ from textblob import TextBlob
 # --- GREETING DETECTION ---
 
 GREETING_PATTERNS = [
-    r"hi",
-    r"hello",
-    r"hey",
-    r"good (morning|afternoon|evening)",
-    r"what's up",
-    r"howdy",
-    r"yo",
-    r"sup",
-    r"greetings",
-    r"how far",
-    r"how you dey"
+    r"\bhi\b",
+    r"\bhello\b",
+    r"\bhey\b",
+    r"\bgood (morning|afternoon|evening)\b",
+    r"\bwhat's up\b",
+    r"\bhowdy\b",
+    r"\byo\b",
+    r"\bsup\b",
+    r"\bgreetings\b",
+    r"\bhow far\b",
+    r"\bhow you dey\b"
 ]
 
 _greeting_responses_by_sentiment = {
@@ -39,10 +39,16 @@ _greeting_responses_by_sentiment = {
 }
 
 def is_greeting(user_input: str) -> bool:
+    """
+    Check if the input is a greeting.
+    """
     text = user_input.lower()
     return any(re.search(pattern, text) for pattern in GREETING_PATTERNS)
 
 def detect_sentiment(user_input: str) -> str:
+    """
+    Use TextBlob to analyze sentiment: positive, neutral, or negative.
+    """
     analysis = TextBlob(user_input)
     if analysis.sentiment.polarity > 0.2:
         return "positive"
@@ -51,8 +57,12 @@ def detect_sentiment(user_input: str) -> str:
     return "neutral"
 
 def greeting_responses(user_input: str = "") -> str:
+    """
+    Return a random greeting based on detected sentiment.
+    """
     tone = detect_sentiment(user_input) if user_input else "neutral"
     return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
+
 
 # --- SMALL TALK DETECTION ---
 
@@ -84,25 +94,38 @@ SMALL_TALK_PATTERNS = {
 }
 
 def is_small_talk(user_input: str) -> bool:
+    """
+    Detect if user input matches small talk patterns.
+    """
     text = user_input.lower()
     return any(re.search(pattern, text) for pattern in SMALL_TALK_PATTERNS)
 
 def small_talk_response(user_input: str) -> str:
+    """
+    Generate a small talk response.
+    """
     text = user_input.lower()
     for pattern, responses in SMALL_TALK_PATTERNS.items():
         if re.search(pattern, text):
             return random.choice(responses)
     return "I'm here for all your Crescent University questions! 🎓"
 
+
 # --- COURSE CODE HELPERS ---
 
 def extract_course_code(text: str) -> str:
+    """
+    Extract a course code like CSC 101 from the user input.
+    """
     match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())
     if match:
         return f"{match.group(1)} {match.group(2)}"
     return None
 
 def get_course_by_code(course_code: str, course_data: list) -> str:
+    """
+    Find course details by code from the dataset.
+    """
     course_code = course_code.upper().strip()
     for entry in course_data:
         if course_code in entry.get("answer", ""):

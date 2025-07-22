@@ -1,27 +1,26 @@
-# app.py
+# app.py - Crescent University Chatbot with Full Features
 
 import streamlit as st
-import os
 import json
-import re
+import faiss
+import os
 import time
 import numpy as np
-import faiss
-import openai
+from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from textblob import TextBlob
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# --- Inject CSS for chat styling ---
+def inject_css():
+    with open("assets/style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# ------------------- Inlined utils/embedding.py -------------------
-def load_model(model_name="all-MiniLM-L6-v2"):
-    return SentenceTransformer(model_name)
+# --- Utils: Embedding ---
+def load_model(name="all-MiniLM-L6-v2"):
+    return SentenceTransformer(name)
 
-def load_dataset(filepath="data/crescent_qa.json"):
-    with open(filepath, "r", encoding="utf-8") as f:
+def load_dataset(path="data/crescent_qa.json"):
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     questions = [entry["question"] for entry in data]
     return data, questions
@@ -30,152 +29,133 @@ def get_question_embeddings(questions, model):
     return model.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
 
 def build_faiss_index(embeddings):
-    dimension = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dimension)
+    dim = embeddings.shape[1]
+    index = faiss.IndexFlatIP(dim)
     index.add(embeddings)
     return index
 
-# ------------------- Inlined utils/semantic_search.py -------------------
-def search_semantic(query, model, index, questions, top_k=1):
-    query_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
-    D, I = index.search(query_embedding, top_k)
-    if I[0][0] == -1:
-        return None, 0.0
-    return questions[I[0][0]], float(D[0][0])
+# --- Utils: Semantic Search ---
+def search_semantic(query, model, index, questions, data, top_k=1):
+    q_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    scores, indices = index.search(q_embedding, top_k)
+    result = []
+    for i in indices[0]:
+        result.append(data[i])
+    return result[0] if result else {"answer": "Sorry, I couldn't find that."}
 
-# ------------------- Inlined utils/preprocess.py -------------------
-def normalize_query(query):
-    return query.strip().lower()
+# --- Utils: Preprocessing ---
+def normalize_text(text):
+    return text.strip().lower()
 
-def correct_typos(query):
-    corrected = str(TextBlob(query).correct())
-    return corrected if corrected != query else query
+def correct_spelling(text):
+    blob = TextBlob(text)
+    return str(blob.correct())
 
-# ------------------- Inlined utils/greetings.py -------------------
-import random
-def get_smalltalk_response():
-    responses = [
-        "Sure thing! Here's what I found 👇",
-        "Let me get that info for you 📘",
-        "Alright, here’s what I know 🤖",
-        "Absolutely! Let me explain 👇"
-    ]
-    return random.choice(responses)
+# --- Utils: Course Query Extraction ---
+def extract_course_query(query):
+    query = query.lower()
+    keywords = ["100", "200", "300", "400", "first", "second", "semester", "level"]
+    if any(k in query for k in keywords) and "course" in query:
+        return query
+    return None
 
-# ------------------- Inlined utils/tone.py -------------------
-def detect_tone(query):
-    if any(w in query.lower() for w in ["please", "could you", "kindly"]):
-        return "formal"
-    elif any(w in query.lower() for w in ["lol", "😂", "btw", "hey", "yo"]):
-        return "casual"
-    elif any(w in query.lower() for w in ["joke", "funny", "humor"]):
+def search_courses(query, course_file="data/course_data.json"):
+    with open(course_file, "r", encoding="utf-8") as f:
+        course_data = json.load(f)
+    query = normalize_text(query)
+    results = []
+    for item in course_data:
+        course_name = item.get("course_name", "").lower()
+        course_code = item.get("course_code", "").lower()
+        if course_name in query or course_code in query or str(item.get("level")) in query:
+            results.append(item)
+    return results
+
+# --- Utils: Tone Detection ---
+def detect_tone(user_input):
+    input_lower = user_input.lower()
+    if "😂" in user_input or "joke" in input_lower:
         return "humorous"
+    elif any(w in input_lower for w in ["please", "kindly", "would you"]):
+        return "formal"
+    elif any(w in input_lower for w in ["yo", "sup", "hey bro", "what's up"]):
+        return "casual"
     return "neutral"
 
-def format_tone_response(tone, response):
+def respond_with_tone(response, tone):
     if tone == "formal":
         return f"Certainly. {response}"
     elif tone == "casual":
         return f"Cool! 😎 {response}"
     elif tone == "humorous":
-        return f"Here's something to tickle your brain 🧠😄: {response}"
-    return response
+        return f"Alright, here's the scoop... 😂 {response}"
+    else:
+        return response
 
-# ------------------- Inlined utils/rewrite.py -------------------
-def rephrase_query_if_needed(query, known_questions, threshold=0.75):
-    from difflib import SequenceMatcher
-    best_match = None
-    best_score = 0
-    for q in known_questions:
-        score = SequenceMatcher(None, query.lower(), q.lower()).ratio()
-        if score > best_score:
-            best_score = score
-            best_match = q
-    return best_match if best_score > threshold else query
+# --- Utils: Greetings ---
+def detect_greeting(text):
+    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
+    return any(greet in text.lower() for greet in greetings)
 
-# ------------------- Inlined utils/log_utils.py -------------------
-def log_query(user_query, matched_question, score):
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    with open("logs.txt", "a", encoding="utf-8") as f:
-        f.write(f"[{timestamp}] User: {user_query} | Match: {matched_question} | Score: {score:.2f}\n")
+def get_greeting_response():
+    return "👋 Hello! How can I assist you with Crescent University today?"
 
-# ------------------- Inlined utils/memory.py -------------------
-def init_memory():
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
+# --- Chat UI Display ---
+def display_chat(message, sender="bot"):
+    css_class = "bot-message" if sender == "bot" else "user-message"
+    st.markdown(f'<div class="chat-message {css_class}">{message}</div>', unsafe_allow_html=True)
 
-def update_memory(user_msg, bot_msg):
-    st.session_state.chat_history.append({"user": user_msg, "bot": bot_msg})
+# --- App Execution ---
+def main():
+    st.set_page_config("CrescentBot 🎓", page_icon="🤖", layout="centered")
+    inject_css()
 
-def get_memory():
-    return st.session_state.chat_history[-3:] if len(st.session_state.chat_history) >= 3 else st.session_state.chat_history
+    st.title("🤖 CrescentBot — University Assistant")
+    st.markdown("Ask me anything about Crescent University!")
 
-# ------------------- Inlined utils/course_query.py -------------------
-def extract_course_query(query, course_data):
-    query = query.lower()
-    found = None
-    for course in course_data:
-        name = course["course_title"].lower()
-        if name in query or course["course_code"].lower() in query:
-            found = course
-            break
-    return found
+    # Initialize session state
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-# ------------------- Load Everything -------------------
-model = load_model()
-qa_data, questions = load_dataset("data/crescent_qa.json")
-course_data = json.load(open("data/course_data.json", "r", encoding="utf-8"))
-question_embeddings = get_question_embeddings(questions, model)
-faiss_index = build_faiss_index(question_embeddings)
-init_memory()
+    model = load_model()
+    data, questions = load_dataset()
+    embeddings = get_question_embeddings(questions, model)
+    index = build_faiss_index(embeddings)
 
-# ------------------- Streamlit UI -------------------
-st.set_page_config(page_title="CrescentBot 🎓", page_icon="🤖")
-st.markdown("<h1 style='text-align: center;'>🎓 CrescentBot – University Assistant</h1>", unsafe_allow_html=True)
+    # Chat interface
+    user_input = st.chat_input("Ask a question...")
 
-with st.chat_message("assistant"):
-    st.markdown("Hi there! Ask me anything about Crescent University. 💬")
+    if user_input:
+        tone = detect_tone(user_input)
+        norm_query = normalize_text(correct_spelling(user_input))
 
-# ------------------- Handle User Input -------------------
-user_query = st.chat_input("Type your question here...")
-if user_query:
-    with st.spinner("Typing..."):
-        norm_query = normalize_query(user_query)
-        corrected_query = correct_typos(norm_query)
-        rewritten_query = rephrase_query_if_needed(corrected_query, questions)
-        tone = detect_tone(user_query)
+        st.session_state.messages.append({"sender": "user", "text": user_input})
+        display_chat(user_input, sender="user")
 
-        # First check for course info
-        course = extract_course_query(user_query, course_data)
-        if course:
-            response = f"📘 *{course['course_code']} – {course['course_title']}*\n\n**Level**: {course['level']}\n**Semester**: {course['semester']}\n**Department**: {course['department']}\n**Faculty**: {course['faculty']}"
-        else:
-            matched_question, score = search_semantic(rewritten_query, model, faiss_index, questions)
-            log_query(user_query, matched_question, score)
-            if score > 0.7:
-                answer = next((item["answer"] for item in qa_data if item["question"] == matched_question), "Sorry, I don't have an answer to that yet.")
-                response = f"{get_smalltalk_response()}\n\n{answer}"
-            else:
-                fallback_prompt = f"You are CrescentBot, a helpful university assistant. Answer clearly and conversationally.\nUser: {user_query}"
-                try:
-                    completion = openai.ChatCompletion.create(
-                        model="gpt-4",
-                        messages=[{"role": "user", "content": fallback_prompt}],
-                        temperature=0.7,
-                        max_tokens=300
+        with st.spinner("Typing..."):
+            time.sleep(0.8)  # simulate typing delay
+            if detect_greeting(norm_query):
+                bot_reply = get_greeting_response()
+            elif extract_course_query(norm_query):
+                results = search_courses(norm_query)
+                if results:
+                    course_lines = "\n".join(
+                        f"📘 **{c['course_code']}**: {c['course_name']}" for c in results
                     )
-                    response = completion.choices[0].message.content.strip()
-                except Exception as e:
-                    response = "Sorry, I couldn't reach my brain (OpenAI) right now. Please try again later."
+                    bot_reply = f"Here are the matching courses:\n\n{course_lines}"
+                else:
+                    bot_reply = "I couldn't find any matching courses."
+            else:
+                result = search_semantic(norm_query, model, index, questions, data)
+                bot_reply = result["answer"]
 
-        # Tone & memory
-        styled_response = format_tone_response(tone, response)
-        update_memory(user_query, styled_response)
+            styled_reply = respond_with_tone(bot_reply, tone)
+            st.session_state.messages.append({"sender": "bot", "text": styled_reply})
+            display_chat(styled_reply, sender="bot")
 
-        # Display chat history
-        for chat in get_memory():
-            st.chat_message("user").markdown(chat["user"])
-            st.chat_message("assistant").markdown(chat["bot"])
+    # Display message history
+    for msg in st.session_state.messages:
+        display_chat(msg["text"], sender=msg["sender"])
 
-        # Clear input
-        st.experimental_rerun()
+if __name__ == "__main__":
+    main()

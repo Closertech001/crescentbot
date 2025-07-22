@@ -2,7 +2,7 @@
 
 import json
 import os
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, util
 import numpy as np
 
 # Load QA dataset and compute embeddings for semantic search
@@ -13,23 +13,33 @@ EMBEDDINGS_FILE = "data/qa_embeddings.json"
 QA_FILE = "data/crescent_qa.json"
 
 
-def load_qa_data():
-    with open(QA_FILE, "r", encoding="utf-8") as f:
+def load_qa_data(filepath=QA_FILE):
+    with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def compute_embeddings(questions):
-    return MODEL.encode(questions, convert_to_numpy=True, normalize_embeddings=True).tolist()
+    return MODEL.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
 
 
-def get_stored_embeddings():
-    if os.path.exists(EMBEDDINGS_FILE):
-        with open(EMBEDDINGS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+def load_qa_embeddings(qa_path=QA_FILE, emb_path=EMBEDDINGS_FILE):
+    qa_data = load_qa_data(qa_path)
+    questions = [item["question"] for item in qa_data]
+
+    if os.path.exists(emb_path):
+        with open(emb_path, "r", encoding="utf-8") as f:
+            embeddings = np.array(json.load(f))
     else:
-        qa_data = load_qa_data()
-        questions = [item["question"] for item in qa_data]
         embeddings = compute_embeddings(questions)
-        with open(EMBEDDINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(embeddings, f)
-        return embeddings
+        with open(emb_path, "w", encoding="utf-8") as f:
+            json.dump(embeddings.tolist(), f)
+
+    return qa_data, embeddings
+
+
+def find_most_similar_question(query, qa_data, embeddings, top_k=1):
+    query_embedding = compute_embeddings([query])[0]
+    scores = util.cos_sim(query_embedding, embeddings)[0]
+    best_idx = int(np.argmax(scores))
+    best_score = float(scores[best_idx])
+    return qa_data[best_idx], best_score

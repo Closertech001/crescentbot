@@ -1,192 +1,134 @@
 import streamlit as st
 import json
-import os
-import re
-import numpy as np
-import faiss
-from sentence_transformers import SentenceTransformer
-from rapidfuzz import fuzz, process
+import time
 
-# -------------------------
-# Dataset Loaders & Helpers
-# -------------------------
+from utils.embedding import load_model, load_dataset, compute_question_embeddings
+from utils.course_query import parse_query, get_courses_for_query
+from utils.greetings import is_greeting, get_greeting_response
+from utils.preprocess import normalize_input
+from utils.memory import store_context_from_query, enrich_query_with_context
+from utils.rewrite import rewrite_with_tone
+from openai import OpenAI
 
-@st.cache_data(show_spinner=True)
-def load_qa_dataset(filepath="data/crescent_qa.json"):
-    with open(filepath, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    questions = [entry["question"] for entry in data]
-    return data, questions
+st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
+st.markdown("<style>div[data-testid=\"stSidebar\"]{background-color:#f0f2f6;}</style>", unsafe_allow_html=True)
 
-@st.cache_data(show_spinner=True)
-def load_course_data(filepath="data/course_data.json"):
-    with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# -------------------------
-# Model and Embeddings
-# -------------------------
-
-@st.cache_resource(show_spinner=True)
-def load_model():
-    return SentenceTransformer("all-MiniLM-L6-v2")
-
-@st.cache_data(show_spinner=True)
-def compute_question_embeddings(questions):
+# --- Cache resources so we don't reload each interaction ---
+@st.cache_resource
+def load_resources():
     model = load_model()
-    embeddings = model.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
-    return embeddings
+    qa_df = load_dataset("data/crescent_qa.json")
+    questions = qa_df["question"].tolist()
+    embeddings = compute_question_embeddings(questions, model)
+    with open("data/course_data.json", "r", encoding="utf-8") as f:
+        course_data = json.load(f)
+    return model, qa_df, embeddings, course_data
 
-def build_faiss_index(embeddings):
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dim)  # cosine similarity via inner product on normalized embeddings
-    index.add(embeddings)
-    return index
+model, qa_df, embeddings, COURSE_DATA = load_resources()
 
-# -------------------------
-# Semantic Search Function
-# -------------------------
+# Initialize session state variables
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-def semantic_search(query, model, index, qa_data, top_k=1):
-    q_emb = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
-    D, I = index.search(q_emb, top_k)
-    best_match = qa_data[I[0][0]]
-    score = D[0][0]
-    return best_match, score
+if "memory" not in st.session_state:
+    # Simple dictionary to hold last department/level etc.
+    st.session_state.memory = {}
 
-# -------------------------
-# Course Query Utils
-# -------------------------
+def bot_typing():
+    with st.empty():
+        for i in range(3):
+            st.markdown("**Bot is typing" + "." * (i + 1) + "**")
+            time.sleep(0.3)
 
-department_faculty_map = {
-    "computer science": "CICOT",
-    "information technology": "CICOT",
-    "mass communication": "CASMAS",
-    "accounting": "CASMAS",
-    "business administration": "CASMAS",
-    "architecture": "COES",
-    "nursing": "COHES",
-    "physiology": "COHES",
-    "anatomy": "COHES",
-    "physics": "CONAS",
-    "chemistry": "CONAS",
-    "microbiology": "CONAS",
-    "biochemistry": "CONAS",
-    "law": "BACOLAW"
-}
+def generate_dynamic_intro():
+    intros = [
+        "Here's what I found for you:",
+        "Check this out:",
+        "Take a look:",
+        "This might help:",
+        "Here's the information you requested:"
+    ]
+    import random
+    return random.choice(intros)
 
-def fuzzy_match_department(dept, course_data, threshold=80):
-    all_depts = list(course_data.keys())
-    match, score = process.extractOne(dept, all_depts, scorer=fuzz.token_sort_ratio)
-    return match if score >= threshold else None
+def explain_course_level(user_input):
+    import re
+    match = re.search(r"\b(100|200|300|400|500)\s*level\b", user_input.lower())
+    if match:
+        level = match.group(1)
+        year_map = {
+            "100": "100 level means Year 1 (Freshman or First Year).",
+            "200": "200 level means Year 2 (Sophomore or Second Year).",
+            "300": "300 level means Year 3 (Third Year).",
+            "400": "400 level means Year 4 (Final Year for most 4-year programs).",
+            "500": "500 level means Year 5 (Final Year for programs like Law, Architecture)."
+        }
+        return year_map.get(level)
+    return None
 
-def extract_course_info(user_input, course_data, memory):
-    dept_match = re.search(r"(?:in|for|of)?\s*(\b[a-zA-Z ]{3,}\b department)?\s*(computer science|mass communication|nursing|law|biochemistry|architecture|accounting|microbiology|anatomy|physiology|physics|chemistry)", user_input, re.IGNORECASE)
-    level_match = re.search(r"(\d{3}|\d{2,3}-level|\d{3} level|\d{1,3}00|\d{1}-level)", user_input)
-    sem_match = re.search(r"(first|1st|second|2nd)\s+semester", user_input.lower())
+# Main Streamlit app
+st.title("🎓 Crescent University Chatbot")
 
-    department = dept_match.group(2).strip().lower() if dept_match else memory.get("department")
-    level = level_match.group(1) if level_match else memory.get("level")
-    semester = sem_match.group(1).lower() if sem_match else memory.get("semester")
+user_input = st.chat_input("Ask me anything about Crescent University")
 
-    if level:
-        level = re.findall(r"\d+", level)[0] + "00"
-    if semester:
-        semester = "first" if "1" in semester or "first" in semester else "second"
+if user_input:
+    normalized_input = normalize_input(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-    if department:
-        department = fuzzy_match_department(department, course_data)
+    # Handle greeting
+    if is_greeting(normalized_input):
+        response = get_greeting_response()
+
     else:
-        return None
-
-    if not department or department not in course_data:
-        return "⚠️ I couldn't find that department."
-
-    memory["department"] = department
-    if level: memory["level"] = level
-    if semester: memory["semester"] = semester
-
-    dept_data = course_data[department]
-    if level not in dept_data:
-        return f"📘 No course data found for {level}-level {department.title()}."
-
-    level_data = dept_data[level]
-
-    if semester:
-        sem_key = "1st" if "first" in semester else "2nd"
-        courses = level_data.get(sem_key, [])
-        if not courses:
-            return f"📙 No courses found for {semester} semester."
-        return f"📘 Courses for {department.title()} {level}-level ({semester} semester):\n" + "\n".join(
-            [f"- `{c['code']}`: *{c['title']}* ({c['unit']} units)" for c in courses]
-        )
-    else:
-        courses_1 = level_data.get("1st", [])
-        courses_2 = level_data.get("2nd", [])
-        response = f"{department.title()} {level}-level courses:\n"
-        if courses_1:
-            response += "\n📘 First Semester:\n" + "\n".join([f"- `{c['code']}`: *{c['title']}* ({c['unit']} units)" for c in courses_1])
-        if courses_2:
-            response += "\n\n📗 Second Semester:\n" + "\n".join([f"- `{c['code']}`: *{c['title']}* ({c['unit']} units)" for c in courses_2])
-        return response
-
-def get_course_by_code(user_input, course_data):
-    code_match = re.search(r"\b([A-Z]{2,4}\s?\d{3})\b", user_input.upper())
-    if not code_match:
-        return None
-
-    course_code = code_match.group(1).replace(" ", "").upper()
-    for dept, levels in course_data.items():
-        for level, semesters in levels.items():
-            for sem, courses in semesters.items():
-                for course in courses:
-                    if course["code"].replace(" ", "").upper() == course_code:
-                        return f"📘 `{course_code}` is *{course['title']}* offered in `{dept.title()}`, {level}-level ({sem} semester), worth {course['unit']} unit(s)."
-    return "⚠️ I couldn't find any course matching that code."
-
-# -------------------------
-# Main App
-# -------------------------
-
-def main():
-    st.set_page_config(page_title="CrescentBot - University Assistant", page_icon="🎓", layout="centered")
-    st.title("🤖 CrescentBot – Crescent University Assistant")
-
-    qa_data, questions = load_qa_dataset()
-    course_data = load_course_data()
-    model = load_model()
-    embeddings = compute_question_embeddings(questions)
-    index = build_faiss_index(embeddings)
-
-    memory = {}
-
-    query = st.text_input("Ask me anything about Crescent University:")
-
-    if query:
-        query_lower = query.lower()
-
-        # Check for course code queries first
-        course_response = get_course_by_code(query, course_data)
-        if course_response:
-            st.markdown(course_response)
-            return
-
-        # Check for course info queries
-        course_info_response = extract_course_info(query, course_data, memory)
-        if course_info_response and course_info_response.startswith("⚠️") is False:
-            st.markdown(course_info_response)
-            return
-        elif course_info_response and course_info_response.startswith("⚠️"):
-            # If error about department, just show it
-            st.markdown(course_info_response)
-            return
-
-        # Otherwise, do semantic search on QA dataset
-        best_match, score = semantic_search(query, model, index, qa_data)
-        if score > 0.6:
-            st.markdown(f"**Answer:** {best_match['answer']}")
+        # Explain course level if asked
+        level_explanation = explain_course_level(normalized_input)
+        if level_explanation:
+            response = level_explanation
         else:
-            st.markdown("❓ Sorry, I couldn't find a confident answer. Please try rephrasing your question.")
+            bot_typing()
 
-if __name__ == "__main__":
-    main()
+            # Parse query and enrich with memory context
+            query_info = parse_query(normalized_input)
+            query_info = enrich_query_with_context(query_info)
+
+            matched_courses = get_courses_for_query(query_info, COURSE_DATA)
+
+            if matched_courses:
+                # Update memory for next queries
+                st.session_state.memory.update(query_info)
+                intro = generate_dynamic_intro()
+                course_texts = [f"- **{entry['question']}**\n{entry['answer']}" for entry in matched_courses]
+                response = intro + "\n\n" + "\n\n".join(course_texts)
+
+            else:
+                # Semantic search fallback on QA dataset
+                from utils.embedding import get_top_k_answers
+
+                # Updated get_top_k_answers to accept model, dataset, embeddings
+                top_answers = get_top_k_answers(normalized_input, model=model, dataset=qa_df, embeddings=embeddings, top_k=3)
+
+                if top_answers:
+                    intro = generate_dynamic_intro()
+                    response = intro + "\n\n" + "\n\n".join([f"**A:** {ans}" for ans, score in top_answers])
+                else:
+                    # Final fallback to GPT
+                    gpt_resp = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant for Crescent University. Answer clearly and politely."},
+                            {"role": "user", "content": user_input}
+                        ]
+                    )
+                    response = gpt_resp.choices[0].message.content
+
+    # Optionally rewrite response based on detected tone
+    response = rewrite_with_tone(user_input, response)
+
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
+# Display chat messages
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])

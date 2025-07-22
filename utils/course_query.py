@@ -3,52 +3,51 @@ import re
 from rapidfuzz import fuzz
 from utils.preprocess import normalize_input
 
-# 🏛️ Mapping from department to faculty/college
+# 🏛️ Department → Faculty/College map
 DEPARTMENT_TO_FACULTY_MAP = {
     "computer science": "College of Information and Communication Technology (CICOT)",
     "mass communication": "College of Information and Communication Technology (CICOT)",
     "political science and international studies": "College of Arts, Social and Management Sciences (CASMAS)",
     "business administration": "College of Arts, Social and Management Sciences (CASMAS)",
     "economics with operations research": "College of Arts, Social and Management Sciences (CASMAS)",
+    "accounting": "College of Arts, Social and Management Sciences (CASMAS)",
+    "architecture": "College of Environmental Sciences (COES)",
     "anatomy": "College of Health Sciences (COHES)",
     "physiology": "College of Health Sciences (COHES)",
     "nursing": "College of Health Sciences (COHES)",
     "law": "Bola Ajibola College of Law (BACOLAW)",
-    "architecture": "College of Environmental Sciences (COES)",
     "biochemistry": "College of Natural and Applied Sciences (CONAS)",
     "microbiology": "College of Natural and Applied Sciences (CONAS)",
     "chemistry": "College of Natural and Applied Sciences (CONAS)",
     "physics": "College of Natural and Applied Sciences (CONAS)",
     "mathematics": "College of Natural and Applied Sciences (CONAS)",
     "medical laboratory science": "College of Natural and Applied Sciences (CONAS)",
-    "accounting": "College of Arts, Social and Management Sciences (CASMAS)"
 }
 
-# 📚 Department list
 DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
 
-# 🎓 Levels and semesters
 LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
 SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
-# 🔍 Fuzzy match department
+# 🔍 Fuzzy department matcher
 def fuzzy_match_department(input_text):
     best_match = None
     highest_score = 0
     for dept in DEPARTMENTS:
-        score = fuzz.partial_ratio(input_text, dept)
+        score = fuzz.partial_ratio(input_text.lower(), dept.lower())
         if score > highest_score and score > 80:
             best_match = dept
             highest_score = score
     return best_match
 
-# 🧠 Extract query info
+# 🧠 Query parser
 def parse_query(text):
     text = normalize_input(text)
     level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
     semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
     dept = fuzzy_match_department(text)
     faculty = DEPARTMENT_TO_FACULTY_MAP.get(dept) if dept else None
+
     return {
         "department": dept,
         "faculty": faculty,
@@ -56,8 +55,8 @@ def parse_query(text):
         "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
     }
 
-# 📦 Get courses from structured course_data
-def get_courses_for_query(course_data, query_info):
+# 📦 Course fetcher
+def get_courses_for_query(query_info, course_data):
     dept = query_info.get("department")
     level = query_info.get("level")
     semester = query_info.get("semester")
@@ -72,6 +71,7 @@ def get_courses_for_query(course_data, query_info):
             continue
         matches.append(entry)
 
+    # fallback if no full match found
     if not matches and dept:
         matches = [entry for entry in course_data if dept.lower() in entry["department"].lower()]
 

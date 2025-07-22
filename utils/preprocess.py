@@ -3,6 +3,11 @@ import streamlit as st
 from symspellpy import SymSpell, Verbosity
 import pkg_resources
 
+# Load SymSpell
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
+
 # Abbreviations for shorthand normalization
 ABBREVIATIONS = {
     "u": "you", "r": "are", "ur": "your", "cn": "can", "cud": "could",
@@ -59,39 +64,19 @@ PIDGIN_MAP = {
 # --- SymSpell Singleton ---
 SYM_SPELL = None
 
-def get_sym_spell():
-    global SYM_SPELL
-    if SYM_SPELL is None:
-        SYM_SPELL = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
-        dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
-        SYM_SPELL.load_dictionary(dictionary_path, term_index=0, count_index=1)
-    return SYM_SPELL
+def correct_spelling(text):
+    suggestions = sym_spell.lookup_compound(text, max_edit_distance=2)
+    return suggestions[0].term if suggestions else text
 
-# --- Cleaning ---
 def normalize_text(text):
     text = text.lower()
-    text = emoji.replace_emoji(text, replace='')  # Remove emojis
-    text = re.sub(r"[^\w\s]", "", text)
-    return text.strip()
+    for abbr, full in ABBREVIATION_MAP.items():
+        text = re.sub(rf"\b{abbr}\b", full, text)
+    for word, synonym in SYNONYM_MAP.items():
+        text = re.sub(rf"\b{word}\b", synonym, text)
+    return text
 
-def apply_abbreviations(words):
-    return [ABBREVIATION_MAP.get(word, word) for word in words]
-
-def apply_pidgin(words):
-    return [PIDGIN_MAP.get(word, word) for word in words]
-
-def apply_synonyms(words):
-    return [SYNONYM_MAP.get(word, word) for word in words]
-
-def normalize_input(text):
+def preprocess_user_input(text):
+    text = correct_spelling(text)
     text = normalize_text(text)
-    words = text.split()
-    words = apply_abbreviations(words)
-    words = apply_pidgin(words)
-    sym_spell = get_sym_spell()
-    corrected = [
-        sym_spell.lookup(w, Verbosity.CLOSEST, 2)[0].term if sym_spell.lookup(w, Verbosity.CLOSEST, 2) else w
-        for w in words
-    ]
-    final = apply_synonyms(corrected)
-    return " ".join(final)
+    return text.strip()

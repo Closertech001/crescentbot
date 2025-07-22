@@ -24,8 +24,10 @@ DEPARTMENT_TO_FACULTY_MAP = {
     "medical laboratory science": "College of Natural and Applied Sciences (CONAS)",
 }
 
+# 📚 Static department list
 DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
 
+# 🎓 Recognized level and semester keywords
 LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
 SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
@@ -43,6 +45,7 @@ def fuzzy_match_department(input_text):
 # 🧠 Query parser
 def parse_query(text):
     text = normalize_input(text)
+
     level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
     semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
     dept = fuzzy_match_department(text)
@@ -52,7 +55,11 @@ def parse_query(text):
         "department": dept,
         "faculty": faculty,
         "level": level,
-        "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
+        "semester": (
+            "First" if semester in ["first", "1st"]
+            else "Second" if semester in ["second", "2nd"]
+            else None
+        ),
     }
 
 # 📦 Course fetcher
@@ -71,7 +78,7 @@ def get_courses_for_query(query_info, course_data):
             continue
         matches.append(entry)
 
-    # fallback if no full match found
+    # 🔁 Fallback: return department matches even if level/semester mismatch
     if not matches and dept:
         matches = [entry for entry in course_data if dept.lower() in entry["department"].lower()]
 

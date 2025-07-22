@@ -63,18 +63,6 @@ def greeting_responses(user_input: str = "") -> str:
     tone = detect_sentiment(user_input) if user_input else "neutral"
     return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
 
-# Aliases for compatibility with app.py
-detect_greeting = is_greeting
-get_random_greeting = greeting_responses
-
-def detect_farewell(text: str) -> bool:
-    """
-    Detect farewell keywords like 'bye', 'goodbye', 'see you', etc.
-    """
-    FAREWELLS = ["bye", "goodbye", "see you", "later", "farewell", "take care"]
-    text = text.lower()
-    return any(farewell in text for farewell in FAREWELLS)
-
 
 # --- SMALL TALK DETECTION ---
 

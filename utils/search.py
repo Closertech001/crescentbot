@@ -18,10 +18,10 @@ def find_response(query, model, dataset, embeddings, top_k=3, threshold=0.45):
     """
     # Encode query
     query_embedding = model.encode([query], convert_to_tensor=True)
-    
+
     # Compute cosine similarity
     similarities = cos_sim(query_embedding, embeddings)[0]
-    
+
     # Get top-k indices
     top_scores, top_indices = torch.topk(similarities, top_k)
     top_score = top_scores[0].item()
@@ -37,7 +37,7 @@ def find_response(query, model, dataset, embeddings, top_k=3, threshold=0.45):
             "I'm sorry, I couldn't find an exact answer to that. Try rephrasing your question.",
             []
         )
-    
+
     # Collect related questions (excluding top match)
     related_qs = [
         dataset.iloc[i]["question"]
@@ -46,3 +46,21 @@ def find_response(query, model, dataset, embeddings, top_k=3, threshold=0.45):
     ]
 
     return matched_answer, related_qs
+
+
+def search_similar(query, df, embeddings, model, top_k=1):
+    """
+    Simple wrapper for backward compatibility.
+    """
+    query_embedding = model.encode(query.lower().strip(), convert_to_tensor=True)
+    similarities = cos_sim(query_embedding, embeddings)[0]
+    top_scores, top_indices = torch.topk(similarities, top_k)
+
+    top_index = int(top_indices[0])
+    score = float(top_scores[0])
+
+    return {
+        "question": df.iloc[top_index]["question"],
+        "answer": df.iloc[top_index]["answer"],
+        "score": score
+    }

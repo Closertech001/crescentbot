@@ -1,85 +1,72 @@
 import streamlit as st
-import openai
-from utils.embedding import load_model_and_embeddings, find_most_similar_question
-from utils.course_query import extract_course_info
-from utils.preprocess import normalize_input
+
+# Must be the first Streamlit command
+st.set_page_config(page_title="🎓 Crescent University Chatbot", layout="centered")
+
+import json
+import time
+import random
 from utils.memory import MemoryHandler
-from utils.greetings import detect_greeting, generate_greeting_response, is_small_talk, generate_small_talk_response
+from utils.embedding import load_model_and_embeddings
+from utils.course_query import extract_course_info
+from utils.greetings import detect_greeting, generate_greeting_response
 from utils.rewrite import rewrite_followup
 from utils.search import fallback_to_gpt_if_needed
 
 # 🔐 OpenAI key setup
 try:
+    from openai import OpenAI
+    import openai
     openai.api_key = st.secrets["OPENAI_API_KEY"]
-except KeyError:
-    st.error("❌ OpenAI API key not found. Please set OPENAI_API_KEY in .streamlit/secrets.toml")
+except Exception:
+    st.warning("🔑 Please set your OpenAI API key in Streamlit Secrets.", icon="⚠️")
     st.stop()
 
-# 🚀 Load model and FAISS index (cached)
-model, qa_data, index, embeddings = load_model_and_embeddings("data/crescent_qa.json")
+# 🎯 Load data + embeddings
+model, qa_data, faiss_index, all_embeddings = load_model_and_embeddings()
 
-# 🧠 Memory for conversation state
+# 🧠 Memory handler
 memory = MemoryHandler()
 
-# 🔍 Confidence threshold for match
-CONFIDENCE_THRESHOLD = 0.75
+# 🎨 App UI
+st.title("🎓 Crescent University Chatbot")
+st.caption("Ask me anything about Crescent University: courses, units, departments, requirements and more.")
 
-# 💬 Main chatbot function
-def crescent_chatbot():
-    st.set_page_config(page_title="🎓 Crescent University Chatbot", layout="centered")
-    st.markdown("<h1 style='text-align: center;'>🎓 Crescent University Chatbot 🤖</h1>", unsafe_allow_html=True)
+# 🗨️ User input
+user_input = st.text_input("💬 Your question:", placeholder="e.g., What is the unit of GST 101 in 100 level?")
 
-    # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+if user_input:
+    with st.spinner("🤖 Let me check that for you..."):
+        question = user_input.strip().lower()
 
-    # Display messages
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+        # 1. Greet user
+        if detect_greeting(question):
+            st.success(generate_greeting_response())
+        else:
+            # 2. Try extracting course info
+            course_answer = extract_course_info(question, memory)
 
-    # Chat input
-    user_input = st.chat_input("Ask me anything about Crescent University...")
+            if course_answer:
+                st.success(course_answer)
+            else:
+                # 3. Try embedding search
+                from sentence_transformers import util
+                user_embedding = model.encode(question, convert_to_numpy=True)
+                scores, indices = faiss_index.search(user_embedding.reshape(1, -1), k=1)
 
-    if user_input and user_input.strip():
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
+                best_score = scores[0][0]
+                best_index = indices[0][0]
 
-        with st.chat_message("assistant"):
-            with st.spinner("🔎 Let me check that for you..."):
-                response = get_bot_response(user_input)
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                threshold = 0.35
+                if best_score < threshold:
+                    # 4. Use GPT fallback
+                    rewritten = rewrite_followup(question)
+                    gpt_response = fallback_to_gpt_if_needed(rewritten, qa_data)
+                    st.info(gpt_response)
+                else:
+                    matched_answer = qa_data[best_index]["answer"]
+                    st.success(matched_answer)
 
-# 🤖 Bot logic
-def get_bot_response(user_input):
-    normalized_input = normalize_input(user_input)
-
-    # Only respond to greetings if that's *all* the user said
-    if detect_greeting(normalized_input) and len(normalized_input.split()) <= 3:
-        return generate_greeting_response()
-
-    if is_small_talk(normalized_input):
-        return generate_small_talk_response()
-
-    # Rewrite follow-up queries using memory
-    user_input = rewrite_followup(user_input, memory)
-
-    # Try course-related question
-    course_response = extract_course_info(user_input, memory)
-    if course_response:
-        return course_response
-
-    # Semantic search via FAISS
-    best_match, score = find_most_similar_question(user_input, model, index, qa_data)
-    if score > CONFIDENCE_THRESHOLD:
-        memory.update_last_topic(best_match)
-        return best_match["answer"]
-
-    # Fallback to GPT
-    return fallback_to_gpt_if_needed(user_input)
-
-# 🔧 Run app
-if __name__ == "__main__":
-    crescent_chatbot()
+# 💡 Footer
+st.markdown("---")
+st.caption("Built with ❤️ for Crescent University by thywillmartins")

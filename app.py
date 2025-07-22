@@ -1,81 +1,117 @@
+# app.py - Crescent University Chatbot
+
 import streamlit as st
 import os
 import json
 import faiss
 import numpy as np
+import openai
 from sentence_transformers import SentenceTransformer
+from textblob import TextBlob
 from dotenv import load_dotenv
+import re
+
 from utils.embedding import load_model, load_dataset, get_question_embeddings, build_faiss_index
-from utils.course_query import extract_course_query
-from utils.semantic_search import semantic_search
+from utils.course_query import extract_course_info, get_course_by_code
 
+# Load environment variables
 load_dotenv()
-st.set_page_config(page_title="CrescentBot 🤖", layout="wide")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Apply custom CSS
-with open("assets/style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# UI setup
+st.set_page_config(page_title="CrescentBot 🎓", layout="wide")
+st.markdown("<h2 style='text-align: center;'>🎓 Crescent University Assistant</h2>", unsafe_allow_html=True)
 
-# --- Load Course Data ---
-@st.cache_data
-def load_course_data(filepath="data/course_data.json"):
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
-    else:
-        st.warning("⚠️ 'course_data.json' not found. Some course-specific queries may not work.")
-        return {}
+# Style
+st.markdown("""
+    <style>
+    .stChatMessage { padding: 10px 15px; border-radius: 15px; margin-bottom: 8px; max-width: 85%; }
+    .user { background-color: #e0f7fa; margin-left: auto; }
+    .bot { background-color: #f1f8e9; margin-right: auto; }
+    </style>
+""", unsafe_allow_html=True)
 
-# --- Initialization ---
+
+# --- Utility functions ---
 @st.cache_resource
 def initialize():
-    qa_data, questions = load_dataset("data/crescent_qa.json")
     model = load_model()
+    qa_data, questions = load_dataset("data/crescent_qa.json")
     embeddings = get_question_embeddings(questions, model)
     index = build_faiss_index(embeddings)
-    course_data = load_course_data()
+
+    try:
+        with open("data/course_data.json", "r", encoding="utf-8") as f:
+            course_data = json.load(f)
+    except FileNotFoundError:
+        st.warning("⚠️ 'course_data.json' not found. Some course-specific queries may not work.")
+        course_data = []
+
     return model, index, qa_data, questions, course_data
 
+
+def correct_spelling(text):
+    return str(TextBlob(text).correct())
+
+
+def search(query, index, model, questions, qa_data, top_k=1):
+    query_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    D, I = index.search(query_embedding, top_k)
+    top_match_index = I[0][0]
+    return qa_data[top_match_index]["answer"], float(D[0][0])
+
+
+def gpt_fallback(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are CrescentBot, a helpful assistant for Crescent University students."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
+            temperature=0.5,
+        )
+        return response.choices[0].message["content"].strip()
+    except Exception as e:
+        return "⚠️ Sorry, I'm currently unable to fetch a response from GPT-4."
+
+
+# --- Initialize ---
 model, index, qa_data, questions, course_data = initialize()
 
-# --- App Title ---
-st.title("🎓 CrescentBot - Ask Me Anything!")
 
-# --- Initialize chat history ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# --- Chat interface ---
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# --- Display chat history ---
-for msg in st.session_state.messages:
-    role = msg["role"]
-    content = msg["content"]
-    align = "user" if role == "user" else "bot"
-    st.markdown(f"<div class='chat-bubble {align}'>{content}</div>", unsafe_allow_html=True)
+user_input = st.chat_input("Ask me anything about Crescent University...")
 
-# --- Chat input ---
-user_input = st.chat_input("Type your question here...")
-
-# --- Handle user query ---
 if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    # Clear input
+    st.session_state.history.append({"role": "user", "content": user_input})
 
-    # --- Check for course-specific query ---
-    course_code, course_info = extract_course_query(user_input, course_data)
-    if course_code and course_info:
-        response = f"📘 *Here’s the info for* `{course_code}`:\n\n{course_info}"
+    query = user_input.strip()
+    course_info = extract_course_info(query, course_data)
+    course_code_match = get_course_by_code(query, course_data)
+
+    # Priority 1: Course-specific queries
+    if course_info:
+        response = course_info
+    elif course_code_match:
+        response = course_code_match
     else:
-        # --- Semantic search from dataset ---
-        answer, matched_q, score = semantic_search(
-            user_input, index, model, questions, qa_data, top_k=1
-        )
-
-        if score > 0.5:
+        # Try semantic search
+        answer, score = search(query, index, model, questions, qa_data)
+        if score > 0.6:
             response = answer
         else:
-            response = "🤔 I’m not sure about that yet. Could you rephrase your question?"
+            response = gpt_fallback(query)
 
-    # Add bot response to session
-    st.session_state.messages.append({"role": "bot", "content": response})
+    st.session_state.history.append({"role": "bot", "content": response})
 
-    # Rerun to clear input box
-    st.rerun()
+
+# --- Display chat history with bubbles ---
+for msg in st.session_state.history:
+    role_class = "user" if msg["role"] == "user" else "bot"
+    st.markdown(f"<div class='stChatMessage {role_class}'>{msg['content']}</div>", unsafe_allow_html=True)

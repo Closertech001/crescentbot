@@ -1,94 +1,219 @@
+# app.py
+
 import streamlit as st
 import json
 import random
 import re
-from openai import OpenAI
-from utils.course_query import get_course_info
-from utils.embedding import load_qa_data, get_top_k_matches
-from utils.memory import update_memory, get_last_context
-from utils.preprocess import normalize_input
+import datetime
+from sentence_transformers import SentenceTransformer
+import numpy as np
 
-# 🔐 OpenAI client
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# ========== Setup ==========
 
-# 📘 Load QA data and precomputed embeddings
-qa_data, qa_embeddings = load_qa_data()
+st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
 
-# 🤖 Load greeting/small talk logic
-greeting_patterns = r"\b(hi|hello|hey|good morning|good afternoon|good evening|greetings)\b"
-small_talk_phrases = [
-    "I'm here if you need anything!",
-    "What can I help you with today?",
-    "Ask me anything about Crescent University.",
-    "How can I assist you today?"
-]
+# Typing animation
+typing_placeholder = st.empty()
 
-# 🧠 GPT fallback
-def ask_gpt(query):
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": query}],
-        temperature=0.3,
-    )
-    return response.choices[0].message.content.strip()
+# ========== Greeting Detection ==========
 
-# 🤝 Detect greetings
 def detect_greeting(text):
-    return re.search(greeting_patterns, text.lower()) is not None
+    greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]
+    return any(greet in text.lower() for greet in greetings)
 
-# 💬 Main handler
+def get_random_greeting():
+    return random.choice(["Hello!", "Hi there!", "Greetings!", "Hey! 👋"])
+
+def detect_farewell(text):
+    farewells = ["bye", "goodbye", "see you", "later", "farewell"]
+    return any(farewell in text.lower() for farewell in farewells)
+
+# ========== Tone Detection & Rewrite ==========
+
+def detect_tone(text):
+    text = text.lower()
+    if any(word in text for word in ["pls", "please", "hi", "hello", "thank"]):
+        return "polite"
+    if any(word in text for word in ["urgent", "now", "quick", "fast", "immediately", "asap"]):
+        return "urgent"
+    if any(word in text for word in ["why", "what", "how", "confused", "help", "explain", "not sure"]):
+        return "confused"
+    if any(word in text for word in ["angry", "nonsense", "rubbish", "annoyed", "frustrated"]):
+        return "angry"
+    if re.search(r"[!?]{2,}", text):
+        return "emphatic"
+    return "neutral"
+
+def rewrite_with_tone(user_input, response):
+    tone = detect_tone(user_input)
+    if tone == "polite":
+        return "Sure! 😊 " + response
+    elif tone == "urgent":
+        return "Got it — here's the information you need right away:\n\n" + response
+    elif tone == "confused":
+        return "No worries, let me explain clearly:\n\n" + response
+    elif tone == "angry":
+        return "I'm here to help — let's sort this out calmly:\n\n" + response
+    elif tone == "emphatic":
+        return "Absolutely! Here's everything you need:\n\n" + response
+    else:
+        return "Here's what I found for you:\n\n" + response
+
+# ========== Memory ==========
+
+memory = []
+
+def update_memory(query):
+    memory.append({
+        "timestamp": datetime.datetime.now().isoformat(),
+        "query": query
+    })
+
+def get_last_context():
+    return memory[-1]["query"] if memory else ""
+
+# ========== Load Course Data ==========
+
+with open("data/course_data.json", "r", encoding="utf-8") as f:
+    course_data = json.load(f)
+
+department_mapping = {
+    "computer science": "CICOT",
+    "mass communication": "CASMAS",
+    "nursing": "COHES",
+    "law": "BACOLAW",
+    "architecture": "COES",
+    "physics": "CONAS"
+    # Add more as needed
+}
+
+# ========== Normalize Input ==========
+
+def normalize_input(text):
+    text = text.lower().strip()
+    replacements = {
+        "comp sci": "computer science",
+        "mass comm": "mass communication",
+        "nurs": "nursing",
+        "phys": "physics",
+        "archi": "architecture"
+    }
+    for k, v in replacements.items():
+        text = text.replace(k, v)
+    return text
+
+# ========== Course Query ==========
+
+def get_course_info(user_input, course_data, dept_map):
+    user_input = user_input.lower()
+    for dept, faculty in dept_map.items():
+        if dept in user_input:
+            level_match = re.search(r"\b(100|200|300|400|500)\b", user_input)
+            semester_match = re.search(r"\b(first|second)\b", user_input)
+
+            level = level_match.group(1) if level_match else None
+            semester = semester_match.group(1) if semester_match else None
+
+            dept_data = course_data.get(faculty, {}).get(dept.title(), {})
+
+            if level and semester:
+                return format_course_response(dept_data.get(level, {}).get(semester, {}), dept, level, semester)
+            elif level:
+                return format_level_response(dept_data.get(level, {}), dept, level)
+            else:
+                return f"What level or semester are you asking about for {dept.title()}?"
+    return None
+
+def format_course_response(courses, dept, level, semester):
+    if not courses:
+        return f"No courses found for {dept.title()} {level} level {semester} semester."
+    result = f"{dept.title()} {level} Level - {semester.title()} Semester Courses:\n"
+    for course in courses:
+        result += f"- {course['code']} - {course['title']} ({course['unit']} units)\n"
+    return result
+
+def format_level_response(semesters, dept, level):
+    if not semesters:
+        return f"No course data available for {dept.title()} {level} level."
+    result = f"{dept.title()} {level} Level Courses:\n"
+    for sem, courses in semesters.items():
+        result += f"\n{sem.title()} Semester:\n"
+        for course in courses:
+            result += f"- {course['code']} - {course['title']} ({course['unit']} units)\n"
+    return result
+
+# ========== Embedding + Similarity Search ==========
+
+@st.cache_resource
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
+
+@st.cache_data
+def load_qa_data():
+    with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+    questions = [q["question"] for q in data]
+    answers = [q["answer"] for q in data]
+    return questions, answers
+
+def get_top_k_matches(query, questions, answers, model, k=3):
+    embeddings = model.encode(questions)
+    query_embedding = model.encode([query])[0]
+    scores = np.dot(embeddings, query_embedding) / (
+        np.linalg.norm(embeddings, axis=1) * np.linalg.norm(query_embedding)
+    )
+    top_k_idx = np.argsort(scores)[::-1][:k]
+    return [{"question": questions[i], "answer": answers[i], "score": float(scores[i])} for i in top_k_idx]
+
+model = load_model()
+questions, answers = load_qa_data()
+
+# ========== Handle Input ==========
+
 def handle_input(user_input):
     user_input_norm = normalize_input(user_input)
 
-    # Greeting
     if detect_greeting(user_input_norm):
-        return random.choice(["Hello!", "Hi there!", "Greetings!", "Hey! 👋"])
+        return get_random_greeting()
+    if detect_farewell(user_input_norm):
+        return "Goodbye! Have a great day."
 
-    # Course info
-    course_response = get_course_info(user_input_norm)
+    course_response = get_course_info(user_input_norm, course_data, department_mapping)
     if course_response:
-        return course_response
+        return rewrite_with_tone(user_input, course_response)
 
-    # Follow-up context
     last_context = get_last_context()
-    if last_context:
-        updated_input = f"{last_context} {user_input_norm}"
+    full_input = f"{last_context} {user_input_norm}" if last_context else user_input_norm
+
+    update_memory(user_input_norm)
+
+    matches = get_top_k_matches(full_input, questions, answers, model)
+    if matches and matches[0]["score"] > 0.6:
+        return rewrite_with_tone(user_input, matches[0]["answer"])
     else:
-        updated_input = user_input_norm
-    update_memory(updated_input)
+        return rewrite_with_tone(user_input, "Sorry, I couldn't find an answer for that.")
 
-    # Semantic match
-    top_matches = get_top_k_matches(updated_input, qa_data, qa_embeddings, k=3)
-    if top_matches and top_matches[0]["score"] > 0.7:
-        return top_matches[0]["answer"]
+# ========== UI ==========
 
-    # GPT fallback
-    return ask_gpt(user_input)
+st.title("🎓 Crescent University Chatbot")
 
-# 🎨 UI setup
-st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓")
-st.markdown("<h1 style='text-align:center;'>🎓 Crescent University Assistant</h1>", unsafe_allow_html=True)
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
 
-# 💬 Input field
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+for msg in st.session_state["messages"]:
+    st.chat_message(msg["role"]).markdown(msg["content"])
 
-# Input container
-with st.container():
-    user_input = st.text_input("You:", key="user_input", placeholder="Ask me anything about Crescent University...")
+user_input = st.chat_input("Ask me anything about Crescent University...")
 
-# Handle new message
 if user_input:
+    st.session_state["messages"].append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    typing_placeholder.markdown("🤖 *Bot is typing...*")
     response = handle_input(user_input)
-    st.session_state.chat_history.append(("You", user_input))
-    st.session_state.chat_history.append(("Bot", response))
-    st.experimental_rerun()
+    typing_placeholder.empty()
 
-# Display chat history
-for sender, msg in st.session_state.chat_history:
-    st.markdown(f"**{sender}:** {msg}")
-
-# Typing simulation (optional)
-if st.session_state.chat_history and st.session_state.chat_history[-1][0] == "You":
-    with st.spinner("Bot is typing..."):
-        pass
+    st.session_state["messages"].append({"role": "assistant", "content": response})
+    with st.chat_message("assistant"):
+        st.markdown(response)

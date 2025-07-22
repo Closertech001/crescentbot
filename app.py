@@ -1,91 +1,68 @@
-import streamlit as st
-import os
-import json
-import faiss
-import numpy as np
-import openai
-from dotenv import load_dotenv
-from datetime import datetime
+# app.py
 
-from sentence_transformers import SentenceTransformer
-from symspellpy import SymSpell
+import streamlit as st
+import openai
+import os
+from dotenv import load_dotenv
+from utils.embedding import load_model, load_qa_data, get_question_embeddings, build_faiss_index
+from utils.search import semantic_search_faiss
+from utils.greetings import get_greeting
+from utils.memory import update_memory, get_last_context
 from textblob import TextBlob
 
-from utils.embedding import load_dataset, compute_question_embeddings
-from utils.semantic_search import load_chunks, build_index, search
-from utils.course_query import extract_course_query
-from utils.greetings import (
-    is_greeting, greeting_responses,
-    is_small_talk, small_talk_response,
-    extract_course_code, get_course_by_code
-)
-
-
-# Load environment variables
+# --- Load environment variables ---
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Page config
-st.set_page_config(page_title="🎓 CrescentBot - University Assistant", page_icon="🤖")
-st.title("🤖 CrescentBot - Your Crescent University Assistant")
-st.markdown("Ask me anything about Crescent University! 📘")
-
-# Session state init
+# --- Initialize Session State ---
 if "memory" not in st.session_state:
     st.session_state.memory = {}
 
-# Load data, model, and build index
+# --- Load and embed data ---
 @st.cache_resource
-def init_system():
+def initialize():
     model = load_model()
-    qa_data, questions = load_dataset("data/crescent_qa.json")
-    question_embeddings = get_question_embeddings(questions, model)
-    index = build_faiss_index(question_embeddings)
+    qa_data = load_qa_data("data/crescent_qa.json")
+    questions = [entry["question"] for entry in qa_data]
+    embeddings = get_question_embeddings(questions, model)
+    index = build_faiss_index(embeddings)
     return model, qa_data, questions, index
 
-model, qa_data, questions, index = init_system()
+model, qa_data, questions, index = initialize()
 
-# Sidebar
-with st.sidebar:
-    st.markdown("### 👋 Greeting")
-    st.markdown(get_greeting())
-    st.markdown("### 🧠 Persistent Memory")
-    st.json(st.session_state.memory)
+# --- Streamlit UI ---
+st.title("🎓 Crescent University Assistant")
 
-# Chat input
-user_query = st.chat_input("Type your question here...")
+user_input = st.chat_input("Ask me anything about Crescent University...")
+if user_input:
+    st.chat_message("user").markdown(user_input)
 
-if user_query:
-    st.chat_message("user").markdown(f"💬 {user_query}")
-
-    # Store last question in memory
-    update_memory(st.session_state.memory, "last_query", user_query)
-
-    # Semantic search
-    results = semantic_search_faiss(user_query, model, index, qa_data, questions, top_k=3)
-
-    # Check confidence threshold
-    top_match = results[0] if results else None
-    if top_match and top_match["score"] > 0.6:
-        answer = top_match["answer"]
-        dept = top_match.get("department", "")
-        response = f"📘 *Here’s what I found*:\n\n**Answer:** {answer}\n\n_Department: {dept}_"
+    # --- Greeting check ---
+    lower_input = user_input.lower()
+    if any(greet in lower_input for greet in ["hello", "hi", "hey", "good morning", "good evening", "good afternoon"]):
+        greeting = get_greeting()
+        st.chat_message("assistant").markdown(f"{greeting} 👋 How can I help you today?")
     else:
-        # Fallback to GPT
-        try:
-            gpt_response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant for Crescent University. Be brief and clear."},
-                    {"role": "user", "content": user_query}
-                ],
-                max_tokens=150,
-                temperature=0.4
-            )
-            answer = gpt_response['choices'][0]['message']['content'].strip()
-            response = f"🤖 *Here's a GPT-suggested answer:*\n\n{answer}"
-        except Exception as e:
-            response = "⚠️ Sorry, I couldn’t fetch a response right now."
+        # Semantic search
+        matches = semantic_search_faiss(user_input, model, index, qa_data, questions, top_k=3)
+        best_match = matches[0] if matches and matches[0]["score"] > 0.75 else None
 
-    update_memory(st.session_state.memory, "last_response", response)
-    st.chat_message("assistant").markdown(response)
+        if best_match:
+            response = best_match["answer"]
+        else:
+            # GPT fallback
+            try:
+                completion = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[{"role": "system", "content": "You are a helpful assistant for Crescent University."},
+                              {"role": "user", "content": user_input}]
+                )
+                response = completion.choices[0].message.content.strip()
+            except Exception as e:
+                response = "⚠️ Sorry, I couldn't fetch a response right now."
+
+        st.chat_message("assistant").markdown(response)
+
+        # --- Memory update ---
+        update_memory(st.session_state.memory, "last_query", user_input)
+        update_memory(st.session_state.memory, "last_response", response)

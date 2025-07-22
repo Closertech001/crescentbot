@@ -61,27 +61,34 @@ def crescent_chatbot():
 
 
 # 🧠 Main logic for generating bot reply
-def get_bot_response(user_input: str) -> str:
+def get_bot_response(user_input):
     normalized_input = normalize_input(user_input)
 
-    # Check greetings
+    # Rewrite follow-up using memory
+    user_input = rewrite_followup(user_input, memory)
+
+    # Try course-related query first
+    course_response = extract_course_info(user_input, memory)
+    if course_response:
+        return course_response
+
+    # Semantic QA match
+    best_match, score = find_most_similar_question(user_input, qa_data, question_embeddings)
+    if score > CONFIDENCE_THRESHOLD:
+        memory.update_last_topic(best_match)
+        return best_match["answer"]
+
+    # Then greetings (only if it's standalone)
     if detect_greeting(normalized_input):
         return generate_greeting_response()
 
-    # Check small talk
+    # Then small talk
     if is_small_talk(normalized_input):
         return generate_small_talk_response()
 
-    # Tone detection (optional: can adapt tone here)
-    tone = detect_tone(normalized_input)
+    # Fallback to GPT
+    return fallback_to_gpt_if_needed(user_input)
 
-    # Rewrite follow-up using memory
-    rewritten_input = rewrite_followup(user_input, memory)
-
-    # Try course-related query
-    course_response = extract_course_info(rewritten_input, memory)
-    if course_response:
-        return course_response
 
     # Try semantic QA retrieval
     best_match, score = find_most_similar_question(rewritten_input, qa_data, question_embeddings)

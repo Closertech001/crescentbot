@@ -10,3 +10,4 @@ python-dotenv==1.0.1
 pandas==2.2.2
 emoji==2.11.1
 markdown==3.6
+rapidfuzz==2.16.1

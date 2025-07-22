@@ -8,14 +8,14 @@ import random
 import openai
 import time
 
-# 🌐 Set page config
+# 🌐 Page config
 st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓", layout="centered")
 st.markdown('<style>' + open("assets/style.css").read() + '</style>', unsafe_allow_html=True)
 
-# 🔐 Load OpenAI key
+# 🔐 OpenAI Key
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# 📦 Load model and data
+# 📦 Load everything once
 @st.cache_resource
 def setup():
     model = load_model()
@@ -25,7 +25,7 @@ def setup():
 
 model, qa_df, qa_embeddings = setup()
 
-# 🧠 Session state initialization
+# 🧠 Init session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "last_department" not in st.session_state:
@@ -35,7 +35,7 @@ if "last_level" not in st.session_state:
 if "last_topic" not in st.session_state:
     st.session_state.last_topic = None
 
-# 💬 Typing effect
+# 💬 Typing animation
 def bot_typing_effect():
     with st.empty():
         for dots in ["", ".", "..", "..."]:
@@ -55,19 +55,19 @@ def handle_input(user_input):
     # Extract query info
     query_info = parse_query(normalized)
 
-    # 👁️ Use memory for missing info
+    # Use memory fallback
     if not query_info.get("department") and st.session_state.last_department:
         query_info["department"] = st.session_state.last_department
     if not query_info.get("level") and st.session_state.last_level:
         query_info["level"] = st.session_state.last_level
 
-    # 💾 Update memory
+    # Update memory
     if query_info.get("department"):
         st.session_state.last_department = query_info["department"]
     if query_info.get("level"):
         st.session_state.last_level = query_info["level"]
 
-    # 🧠 Check if it’s a course-related query
+    # 🎯 Check if it's a course-related query
     course_results = get_courses_for_query(query_info, qa_df.to_dict(orient="records"))
     if course_results:
         response = "📚 **Here’s what I found:**\n\n"
@@ -75,27 +75,27 @@ def handle_input(user_input):
             response += f"- **{r['question']}**\n    {r['answer']}\n\n"
         return response.strip()
 
-    # 🔍 Semantic search
+    # 🔍 Try semantic search
     top_result = search_similar(normalized, qa_df, qa_embeddings, model)
     if top_result and top_result['score'] > 0.75:
         st.session_state.last_topic = top_result["question"]
-        return f"💡 {random.choice(['Here you go:', 'I found this for you:', 'This might help:'])}\n\n{top_result['answer']}"
+        return f"💡 {random.choice(['Here you go:', 'I found this for you:', 'This might help:', 'Check this out:'])}\n\n{top_result['answer']}"
 
-    # 🤖 Fallback to OpenAI GPT
+    # 🤖 Fallback to GPT
     try:
         bot_typing_effect()
         completion = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant for Crescent University."},
+                {"role": "system", "content": "You are a helpful assistant for Crescent University answering admission, departmental, and course-related questions."},
                 {"role": "user", "content": user_input}
             ]
         )
         return completion.choices[0].message.content.strip()
-    except Exception as e:
+    except Exception:
         return "⚠️ I’m having trouble fetching that. Please try again later."
 
-# 🧑‍💻 Main UI
+# 🧑‍💻 UI
 st.title("🎓 Crescent University Chatbot")
 user_input = st.text_input("Ask me anything about the university...", key="user_input")
 
@@ -105,6 +105,6 @@ if user_input:
     st.session_state.chat_history.append(("Bot", response))
     st.session_state.user_input = ""
 
-# 📝 Display chat history
+# 📝 Chat history
 for sender, msg in st.session_state.chat_history:
     st.markdown(f"**{sender}:** {msg}")

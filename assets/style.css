@@ -1,112 +1,65 @@
-/* Main container */
-.chat-container {
-  padding: 20px;
-  max-width: 800px;
-  margin: auto;
+CUSTOM_CSS = """
+<style>
+/* Page background */
+body {
+    background-color: #f7f9fc;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Chat message bubble */
-.chat-message {
-  padding: 12px 18px;
-  margin: 10px 0;
-  border-radius: 16px;
-  max-width: 80%;
-  font-size: 16px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  display: inline-block;
+/* Chat container */
+div[data-testid="stMarkdownContainer"] {
+    font-size: 16px;
+    line-height: 1.5;
 }
 
-/* User message style */
-.user-message {
-  background-color: #DCF8C6;
-  color: #111;
-  align-self: flex-end;
-  margin-left: auto;
-  border-bottom-right-radius: 0;
+/* User chat bubble */
+.stChatMessage[data-testid="stChatMessage"][data-role="user"] div[data-testid="stMarkdownContainer"] {
+    background-color: #4a90e2;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 20px 20px 0 20px;
+    max-width: 75%;
+    margin-left: auto;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
 }
 
-/* Bot message style */
-.bot-message {
-  background-color: #F1F0F0;
-  color: #222;
-  align-self: flex-start;
-  margin-right: auto;
-  border-bottom-left-radius: 0;
+/* Assistant chat bubble */
+.stChatMessage[data-testid="stChatMessage"][data-role="assistant"] div[data-testid="stMarkdownContainer"] {
+    background-color: #e2e8f0;
+    color: #1a202c;
+    padding: 12px 16px;
+    border-radius: 20px 20px 20px 0;
+    max-width: 75%;
+    margin-right: auto;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
 }
 
-/* Typing animation */
-.typing {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 8px;
-  background: #ccc;
-  border-radius: 50%;
-  animation: blink 1.5s infinite;
+/* Chat input box */
+div[role="textbox"] {
+    font-size: 16px !important;
+    padding: 12px !important;
 }
 
-.typing::before,
-.typing::after {
-  content: '';
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 4px;
-  background: #ccc;
-  border-radius: 50%;
-  animation: blink 1.5s infinite;
+/* Scrollbar for chat history */
+div[data-testid="stScrollableContainer"]::-webkit-scrollbar {
+    width: 8px;
 }
 
-.typing::before {
-  animation-delay: 0.2s;
+div[data-testid="stScrollableContainer"]::-webkit-scrollbar-thumb {
+    background-color: #a0aec0;
+    border-radius: 20px;
 }
 
-.typing::after {
-  animation-delay: 0.4s;
+/* Add subtle shadow to bubbles */
+.stChatMessage div[data-testid="stMarkdownContainer"] {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-@keyframes blink {
-  0%, 80%, 100% {
-    opacity: 0;
-  }
-  40% {
-    opacity: 1;
-  }
+/* Emoji style tweaks */
+.emojione {
+    font-size: 1.2em !important;
 }
-
-/* Clear chat button */
-.clear-button {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.clear-button:hover {
-  background-color: #e03c3e;
-}
-
-/* Input box styling */
-input:focus, textarea:focus {
-  outline: none;
-  border: 2px solid #4caf50;
-}
-
-.stTextInput > div > div > input {
-  border-radius: 10px !important;
-  padding: 12px 16px;
-  font-size: 16px;
-}
-
-/* Responsive layout for chat */
-@media screen and (max-width: 600px) {
-  .chat-message {
-    max-width: 95%;
-  }
-}
+</style>
+"""

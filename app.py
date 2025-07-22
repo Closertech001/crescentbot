@@ -1,100 +1,79 @@
-# app.py
+# app.py - Crescent University Chatbot
 
 import streamlit as st
+import os
+import json
 import openai
+import faiss
 import numpy as np
 from dotenv import load_dotenv
-import os
+from sentence_transformers import SentenceTransformer
+from textblob import TextBlob
 
-from utils.embedding import load_model, load_qa_data, get_question_embeddings, build_faiss_index
-from utils.semantic_search import search_faiss_index
-from utils.greetings import (
-    is_greeting,
-    detect_sentiment,
-    greeting_responses,
-    is_small_talk,
-    small_talk_response,
-    extract_course_code,
-    get_course_by_code
-)
+from utils.embedding import load_dataset, compute_question_embeddings
+from utils.semantic_search import load_chunks, build_index, search
+from utils.symspell_corrector import correct_text
+from utils.course_query import extract_course_query
+from utils.openai_fallback import ask_openai
+from utils.greetings import detect_greeting, get_greeting_response
 from utils.memory import update_memory, get_last_context
+from utils.preprocess import normalize_input  # NEW
 
 # --- Load environment variables ---
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# --- Page config ---
-st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓")
+# --- Load data and model ---
+chunks = load_chunks("data/qa_dataset.json")
+model = SentenceTransformer("all-MiniLM-L6-v2")
+index = build_index(chunks, model)
 
-# --- Session states ---
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# --- UI Setup ---
+st.set_page_config(page_title="CrescentBot 🤖", layout="wide")
+st.title("🎓 Crescent University Chat Assistant")
+st.markdown("Ask me anything about Crescent University. I'm here to help! 🤝")
 
+# --- In-session memory ---
 if "memory" not in st.session_state:
     st.session_state.memory = {}
 
-# --- Load model and dataset ---
-with st.spinner("🔄 Loading model and dataset..."):
-    model = load_model()
-    qa_data = load_qa_data()
-    questions = [item["question"] for item in qa_data]
-    embeddings = get_question_embeddings(questions, model)
-    index = build_faiss_index(embeddings)
+# --- Chat interface ---
+query = st.text_input("You:", placeholder="e.g., What are the courses in 200 level law?", key="input")
 
-# --- Title ---
-st.title("🎓 Crescent University Chatbot")
+if query:
+    # Normalize + correct
+    normalized = normalize_input(query)  # 👈 Use normalization
+    corrected = correct_text(normalized)
+    st.markdown(f"🛠️ Corrected: `{corrected}`")
 
-# --- Chat UI ---
-user_query = st.chat_input("Ask me anything about Crescent University...")
-
-if user_query:
-    st.session_state.chat_history.append(("user", user_query))
-
-    # --- Memory update ---
-    st.session_state.memory = update_memory(st.session_state.memory, "last_query", user_query)
-
-    # --- Greeting handling ---
-    if is_greeting(user_query):
-        response = greeting_responses(user_query)
-
-    # --- Small talk ---
-    elif is_small_talk(user_query):
-        response = small_talk_response(user_query)
-
-    # --- Course code match ---
+    # Greeting handling
+    if detect_greeting(corrected):
+        st.markdown(get_greeting_response())
     else:
-        course_code = extract_course_code(user_query)
-        if course_code:
-            course_info = get_course_by_code(course_code, qa_data)
-            if course_info:
-                response = f"📘 *Here’s the info for* `{course_code}`:\n\n{course_info}"
-            else:
-                response = f"⚠️ I couldn't find any course with the code `{course_code}`."
+        # Search
+        top_match, score = search(corrected, index, model, chunks, top_k=1)
+
+        # Use OpenAI fallback if confidence is low
+        if score < 0.65:
+            response = ask_openai(corrected)
         else:
-            # --- FAISS Semantic Search ---
-            match, score = search_faiss_index(user_query, model, index, qa_data, questions)
-            if match and score > 0.6:
-                response = f"🔍 *Here’s what I found:*\n\n{match}"
+            # Course-specific format
+            course_code = extract_course_query(corrected)
+            if course_code:
+                response = f"📘 *Here’s the info for* `{course_code}`:\n\n{top_match['answer']}"
             else:
-                # --- OpenAI fallback ---
-                try:
-                    completion = openai.ChatCompletion.create(
-                        model="gpt-4",
-                        messages=[{"role": "system", "content": "You are a helpful assistant for Crescent University."},
-                                  {"role": "user", "content": user_query}]
-                    )
-                    response = completion.choices[0].message.content
-                except Exception:
-                    response = "❌ Sorry, I couldn't retrieve a response at the moment."
+                response = top_match['answer']
 
-    st.session_state.chat_history.append(("bot", response))
+        st.markdown(f"**CrescentBot:** {response}")
 
-# --- Display chat history ---
-for sender, msg in st.session_state.chat_history:
-    if sender == "user":
-        st.markdown(f"👤 **You:** {msg}", unsafe_allow_html=True)
-    else:
-        st.markdown(f"🤖 **CrescentBot:** {msg}", unsafe_allow_html=True)
+        # Save last response in memory
+        update_memory(st.session_state.memory, "last_response", response)
 
-# --- Optional persistent memory (SQLite, not implemented here) ---
-# Future toggle: Add support for `db.save_memory(user_id, memory)` and reload across sessions
+    # Optional: show debug info
+    # st.json({
+    #     "normalized": normalized,
+    #     "corrected": corrected,
+    #     "score": score,
+    #     "top_question": top_match['question'],
+    #     "memory": st.session_state.memory
+    # })

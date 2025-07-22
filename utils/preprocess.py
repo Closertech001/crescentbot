@@ -1,3 +1,5 @@
+# utils/preprocess.py
+
 import re
 import emoji
 from symspellpy import SymSpell, Verbosity
@@ -107,8 +109,14 @@ def spell_correct(words):
     return corrected
 
 def convert_final_level(words):
-    # After all other normalization steps
-    return ["400" if w == "final" else w for w in words]
+    new_words = []
+    for w in words:
+        if w == "final":
+            new_words.append("400")
+            new_words.append("500")
+        else:
+            new_words.append(w)
+    return new_words
 
 # --- Final Pipeline ---
 def normalize_input(text):

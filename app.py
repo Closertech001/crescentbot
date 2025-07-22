@@ -6,107 +6,59 @@ import numpy as np
 import openai
 from sentence_transformers import SentenceTransformer
 from textblob import TextBlob
-from symspellpy import SymSpell
 from dotenv import load_dotenv
 from datetime import datetime
 import re
 import time
 
+from utils.embedding import load_dataset, compute_question_embeddings
+from utils.semantic_search import build_index, search
+from utils.course_query import extract_course_query
+from utils.text_utils import normalize_query
+from utils.typo_corrector import correct_typos
+from utils.department_detector import detect_department
+from utils.logger import log_user_feedback
+
 # --- Load environment variables ---
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# --- Load dataset ---
-@st.cache_resource
-def load_dataset():
-    with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
-        return json.load(f)
-
-@st.cache_resource
-def load_course_data():
-    with open("data/course_data.json", "r", encoding="utf-8") as f:
-        return json.load(f)
-
-# --- Compute embeddings ---
+# --- Load model without caching unhashables ---
 @st.cache_resource
 def load_model():
     return SentenceTransformer("all-MiniLM-L6-v2")
 
-@st.cache_resource
-def compute_question_embeddings(data, model):
-    questions = [item["question"] for item in data]
-    embeddings = model.encode(questions, show_progress_bar=True)
-    return np.array(embeddings)
+# --- UI Styling ---
+st.set_page_config(page_title="CrescentBot - University Assistant", layout="wide")
+st.markdown(
+    "<h2 style='text-align: center; color: #4B8BBE;'>🎓 Crescent University Chatbot</h2>", 
+    unsafe_allow_html=True
+)
 
-# --- FAISS Index ---
-@st.cache_resource
-def build_faiss_index(embeddings):
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(embeddings)
-    return index
+# --- Memory store ---
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# --- Spell Correction ---
-@st.cache_resource
-def load_symspell():
-    sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
-    dict_path = "frequency_dictionary_en_82_765.txt"
-    sym_spell.load_dictionary(dict_path, term_index=0, count_index=1)
-    return sym_spell
+# --- Greeting/Farewell logic ---
+def detect_greeting_farewell(query):
+    greetings = ["hello", "hi", "good morning", "good afternoon", "good evening", "hey"]
+    thanks = ["thank you", "thanks", "thx", "thank u"]
+    farewells = ["bye", "goodbye", "see you", "later"]
 
-def correct_query(sym_spell, query):
-    suggestion = sym_spell.lookup_compound(query, max_edit_distance=2)
-    return suggestion[0].term if suggestion else query
-
-# --- Tone Detection ---
-def detect_tone(query):
-    blob = TextBlob(query)
-    polarity = blob.sentiment.polarity
-    if polarity > 0.3:
-        return "positive"
-    elif polarity < -0.3:
-        return "negative"
-    else:
-        return "neutral"
-
-# --- Emotion Detection ---
-def detect_emotion(query):
-    emotions = {
-        "happy": ["happy", "glad", "great", "awesome", "fantastic", "😊"],
-        "sad": ["sad", "down", "depressed", "unhappy", "😢"],
-        "angry": ["angry", "mad", "frustrated", "annoyed", "😠"],
-        "confused": ["confused", "lost", "don't get it", "stuck", "🤔"],
-    }
-    for emotion, keywords in emotions.items():
-        if any(kw in query.lower() for kw in keywords):
-            return emotion
+    norm = query.lower()
+    if any(greet in norm for greet in greetings):
+        hour = datetime.now().hour
+        if hour < 12:
+            return "🌅 Good morning! How can I assist you today?"
+        elif hour < 17:
+            return "🌞 Good afternoon! What would you like to know?"
+        else:
+            return "🌙 Good evening! Feel free to ask anything about Crescent University."
+    elif any(thank in norm for thank in thanks):
+        return "😊 You're welcome! Let me know if you need anything else."
+    elif any(farewell in norm for farewell in farewells):
+        return "👋 Goodbye! Have a great day!"
     return None
-
-# --- Greeting Detection ---
-def detect_greeting(query):
-    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-    return any(greet in query.lower() for greet in greetings)
-
-# --- Name Detection ---
-def detect_name(query):
-    name_patterns = [
-        r"i'?m\s+([A-Z][a-z]+)",
-        r"my name is\s+([A-Z][a-z]+)",
-        r"it's\s+([A-Z][a-z]+)",
-    ]
-    for pattern in name_patterns:
-        match = re.search(pattern, query, re.IGNORECASE)
-        if match:
-            return match.group(1)
-    return None
-
-# --- Semantic Search ---
-def search_semantic(query, index, model, data, top_k=1):
-    query_embedding = model.encode([query])
-    D, I = index.search(query_embedding, top_k)
-    if I[0][0] < len(data):
-        return data[I[0][0]], 1 - D[0][0]
-    return None, 0.0
 
 # --- GPT fallback ---
 def gpt_fallback(query):
@@ -114,91 +66,56 @@ def gpt_fallback(query):
         res = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a helpful university assistant."},
-                {"role": "user", "content": query},
+                {"role": "system", "content": "You are a helpful assistant for Crescent University. Only answer questions relevant to the university."},
+                {"role": "user", "content": query}
             ],
-            temperature=0.4,
+            temperature=0.3
         )
-        return res["choices"][0]["message"]["content"]
-    except Exception:
-        res = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful university assistant."},
-                {"role": "user", "content": query},
-            ],
-            temperature=0.4,
-        )
-        return res["choices"][0]["message"]["content"]
+        return res["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        return "❌ Sorry, I'm currently unable to fetch a response from GPT-4."
 
-# --- Streamlit UI ---
-st.set_page_config(page_title="CrescentBot 🤖", page_icon="🌙")
-st.markdown("""
-    <style>
-    .message-user { background-color: #DCF8C6; padding: 8px; border-radius: 10px; margin-bottom: 5px; }
-    .message-bot { background-color: #F1F0F0; padding: 8px; border-radius: 10px; margin-bottom: 5px; }
-    </style>
-""", unsafe_allow_html=True)
+# --- Main chatbot logic ---
+def main():
+    # Load data and model
+    data = load_dataset("data/qa_dataset.json")
+    model = load_model()
+    embeddings = compute_question_embeddings(data, model)
+    index = build_index(embeddings)
 
-st.title("🌙 Crescent University Chatbot")
-model = load_model()
-data = load_dataset()
-courses = load_course_data()
-embeddings = compute_question_embeddings(data, model)
-index = build_faiss_index(embeddings)
-sym_spell = load_symspell()
+    st.markdown("##### Ask CrescentBot anything about the university below 👇")
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "user_name" not in st.session_state:
-    st.session_state.user_name = None
+    user_input = st.chat_input("Ask me a question...")
 
-# --- Chat Loop ---
-for msg in st.session_state.messages:
-    role = msg["role"]
-    content = msg["content"]
-    css_class = "message-user" if role == "user" else "message-bot"
-    st.markdown(f'<div class="{css_class}">{content}</div>', unsafe_allow_html=True)
+    if user_input:
+        st.session_state.history.append({"role": "user", "content": user_input})
+        norm_query = normalize_query(correct_typos(user_input))
 
-query = st.chat_input("Ask me anything about Crescent University... 🏫")
-if query:
-    st.session_state.messages.append({"role": "user", "content": query})
-    query = correct_query(sym_spell, query)
-
-    # Greeting
-    if detect_greeting(query):
-        greeting = "👋 Hello again! How can I help you today?"
-        if st.session_state.user_name:
-            greeting = f"👋 Hello again, {st.session_state.user_name}! How can I help you today?"
-        st.session_state.messages.append({"role": "assistant", "content": greeting})
-
-    # Name
-    elif name := detect_name(query):
-        st.session_state.user_name = name
-        st.session_state.messages.append({"role": "assistant", "content": f"😊 Nice to meet you, {name}! How can I assist you today?"})
-
-    # Gratitude
-    elif "thank" in query.lower():
-        st.session_state.messages.append({"role": "assistant", "content": "🙏 You're most welcome!"})
-
-    # Farewell
-    elif any(f in query.lower() for f in ["bye", "see you", "goodbye"]):
-        st.session_state.messages.append({"role": "assistant", "content": "👋 Bye for now! Feel free to ask anything anytime."})
-
-    # Emotion
-    elif emotion := detect_emotion(query):
-        response_map = {
-            "happy": "😄 I'm glad you're feeling good! Let me know how I can help further.",
-            "sad": "😢 I'm here for you. Let me know how I can assist or make things better.",
-            "angry": "😠 I understand your frustration. Let me help solve the issue.",
-            "confused": "🤔 Let's work through this together. Could you tell me a bit more?",
-        }
-        st.session_state.messages.append({"role": "assistant", "content": response_map[emotion]})
-
-    else:
-        top_match, score = search_semantic(query, index, model, data, top_k=1)
-        if top_match and score > 0.6:
-            st.session_state.messages.append({"role": "assistant", "content": top_match["answer"]})
+        # Handle greetings/thanks/farewell directly
+        quick_response = detect_greeting_farewell(norm_query)
+        if quick_response:
+            st.session_state.history.append({"role": "assistant", "content": quick_response})
         else:
-            response = gpt_fallback(query)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            # Semantic search
+            top_match, score = search(norm_query, index, model, data, top_k=1)
+            course_code = extract_course_query(user_input)
+            department = detect_department(norm_query)
+
+            if score > 0.6:
+                response = f"📘 *Here’s the info for* `{course_code}`:\n\n{top_match['answer']}" if course_code else top_match["answer"]
+            else:
+                response = gpt_fallback(norm_query)
+
+            # Save and show response
+            st.session_state.history.append({"role": "assistant", "content": response})
+
+    # Display chat history
+    for chat in st.session_state.history:
+        if chat["role"] == "user":
+            st.chat_message("user").markdown(f"👤 **You**: {chat['content']}")
+        else:
+            st.chat_message("assistant").markdown(f"🤖 **CrescentBot**: {chat['content']}")
+
+# --- Run the app ---
+if __name__ == "__main__":
+    main()

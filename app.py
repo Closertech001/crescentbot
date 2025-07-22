@@ -6,7 +6,7 @@ import time
 from utils.course_query import get_course_info
 from utils.embedding import get_top_k_answer
 from utils.search import semantic_search
-from utils.memory import MemoryHandler
+from utils.memory import store_context_from_query, enrich_query_with_context
 from utils.greetings import is_greeting, is_small_talk, respond_to_small_talk, get_greeting_response
 from utils.preprocess import normalize_input
 from openai import OpenAI

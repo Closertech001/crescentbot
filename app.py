@@ -1,135 +1,90 @@
+# app.py - Crescent University Chatbot
+
 import streamlit as st
-import random
+import os
 import json
+import faiss
+import numpy as np
+import openai
+from sentence_transformers import SentenceTransformer
+from textblob import TextBlob
+from symspellpy import SymSpell
+from dotenv import load_dotenv
 import re
 import time
-from openai import OpenAI
 
-from utils.embedding import get_top_k_answers
-from utils.course_query import parse_query, get_courses_for_query
+# --- Internal utility imports ---
 from utils.greetings import is_greeting, get_greeting_response
 from utils.preprocess import normalize_input
-from utils.memory import Memory
 from utils.memory import store_context_from_query, enrich_query_with_context
+from utils.tone import detect_tone, get_tone_response
+from utils.semantic_search import load_chunks, build_index, search
+from log_utils import log_query  # for logging user interactions
 
-# --- Page Setup ---
-st.set_page_config(page_title="Crescent University Chatbot")
-st.markdown("<style>div[data-testid=\"stSidebar\"]{background-color:#f0f2f6;}</style>", unsafe_allow_html=True)
+# --- Load environment variables ---
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# --- Load resources ---
+@st.cache_resource
+def get_model_and_index():
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    chunks = load_chunks()
+    index = build_index(model, chunks)
+    return model, chunks, index
 
-# --- Load Data ---
-with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
-    QA_DATA = [item for item in json.load(f) if "question" in item and "answer" in item]
+model, chunks, index = get_model_and_index()
 
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    COURSE_DATA = json.load(f)
-
-# --- Session Setup ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "memory" not in st.session_state:
-    st.session_state.memory = Memory()
-
-# --- Helpers ---
-def bot_typing():
-    with st.empty():
-        for i in range(3):
-            st.markdown("**Bot is typing" + "." * (i + 1) + "**")
-            time.sleep(0.4)
-
-def explain_course_level(user_input):
-    match = re.search(r"\b(100|200|300|400|500)\s*level\b", user_input.lower())
-    if match:
-        level = match.group(1)
-        year_map = {
-            "100": "100 level means Year 1 (Freshman or First Year).",
-            "200": "200 level means Year 2 (Sophomore or Second Year).",
-            "300": "300 level means Year 3 (Third Year).",
-            "400": "400 level means Year 4 (Final Year for most 4-year programs).",
-            "500": "500 level means Year 5 (Final Year for programs like Law, Architecture)."
-        }
-        return year_map.get(level)
-    return None
-
-def generate_dynamic_intro():
-    return random.choice([
-        "Here’s what I found:",
-        "Take a look at this:",
-        "This might help:",
-        "Here’s the answer you’re looking for:",
-        "Check this out:",
-    ])
-
-# --- UI ---
+# --- Streamlit UI config ---
+st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓", layout="centered")
 st.title("🎓 Crescent University Chatbot")
+st.markdown("Ask me anything about Crescent University!")
 
-user_input = st.chat_input("Ask me anything about Crescent University")
+# --- Initialize memory ---
+if "history" not in st.session_state:
+    st.session_state["history"] = []
+
+# --- User input ---
+user_input = st.chat_input("Type your question here...")
 
 if user_input:
-    normalized_input = normalize_input(user_input)
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    st.chat_message("user").write(user_input)
 
-    # Greet
-    if is_greeting(normalized_input):
+    # Handle greetings
+    if is_greeting(user_input):
         response = get_greeting_response()
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        st.rerun()
+        st.chat_message("assistant").write(response)
+        store_context_from_query(user_input, st.session_state, response)
+        log_query(user_input, response)
+        st.stop()
 
-    # Explain course level
-    level_explanation = explain_course_level(normalized_input)
-    if level_explanation:
-        st.session_state.messages.append({"role": "assistant", "content": level_explanation})
-        st.rerun()
+    # Normalize and enrich input
+    norm_query = normalize_input(user_input)
+    enriched_query = enrich_query_with_context(norm_query, st.session_state)
 
-    bot_typing()
+    # --- Semantic Search ---
+    top_match, score = search(enriched_query, index, model, chunks, top_k=1)
 
-    # Try course-based response
-    query_info = parse_query(normalized_input)
-    matched_courses = get_courses_for_query(query_info, COURSE_DATA)
-
-    if matched_courses:
-        st.session_state.memory.update(query_info)
-        intro = generate_dynamic_intro()
-        course_responses = [f"- **{m['question']}**\n{m['answer']}" for m in matched_courses]
-        response = intro + "\n" + "\n\n".join(course_responses)
-    else:
-        # Use memory to enhance fallback query
-        enriched_input = normalized_input
-        mem = st.session_state.memory.get_memory()
-        if mem.get("departments"):
-            enriched_input += " for department " + ", ".join(mem["departments"])
-        if mem.get("level"):
-            enriched_input += f" {mem['level']} level"
-        if mem.get("semester"):
-            enriched_input += f" {mem['semester']} semester"
-
+    # --- Fallback to GPT if low confidence ---
+    if score < 0.6:
         try:
-            results = get_top_k_answers(enriched_input, top_k=3)
-            if results:
-                intro = generate_dynamic_intro()
-                response = intro + "\n" + "\n\n".join([
-                    f"**Q:** {q}\n**A:** {a}" for (a, score) in results for q in [q for q, s in results if s == score]
-                ])
-            else:
-                raise ValueError("No top results")
+            completion = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": enriched_query}],
+                max_tokens=500,
+                temperature=0.7
+            )
+            response = completion.choices[0].message["content"].strip()
         except Exception as e:
-            try:
-                gpt_response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant for Crescent University."},
-                        {"role": "user", "content": user_input}
-                    ]
-                )
-                response = gpt_response.choices[0].message.content
-            except Exception as e:
-                response = "Sorry, I'm having trouble answering right now. Please try again later."
+            response = "Sorry, I'm currently unable to fetch a response from GPT-4."
+    else:
+        response = top_match
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    # --- Detect tone and adjust if needed ---
+    tone = detect_tone(user_input)
+    response = get_tone_response(response, tone)
 
-# Display messages
-for i, msg in enumerate(st.session_state.messages):
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    # --- Display and store ---
+    st.chat_message("assistant").write(response)
+    store_context_from_query(user_input, st.session_state, response)
+    log_query(user_input, response)

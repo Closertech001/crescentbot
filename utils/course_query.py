@@ -6,7 +6,7 @@ from rapidfuzz import fuzz, process
 with open("data/course_data.json", "r", encoding="utf-8") as f:
     COURSE_DATA = json.load(f)
 
-# Mapping of departments to their colleges
+# Department mappings
 DEPARTMENT_TO_COLLEGE = {
     "computer science": "CICOT",
     "information technology": "CICOT",
@@ -32,11 +32,19 @@ DEPARTMENT_TO_COLLEGE = {
     "medical laboratory science": "COHES",
 }
 
+# Optional department aliases
+DEPARTMENT_ALIASES = {
+    "comp sci": "computer science",
+    "mass comm": "mass communication",
+    "biz admin": "business administration",
+    "med lab": "medical laboratory science",
+}
+
 def normalize_department_name(name):
     name = name.lower().strip()
-    best_match, score, _ = process.extractOne(
-        name, list(DEPARTMENT_TO_COLLEGE.keys()), scorer=fuzz.ratio
-    )
+    if name in DEPARTMENT_ALIASES:
+        return DEPARTMENT_ALIASES[name]
+    best_match, score, _ = process.extractOne(name, list(DEPARTMENT_TO_COLLEGE.keys()), scorer=fuzz.ratio)
     return best_match if score > 70 else None
 
 def extract_course_info(user_input):
@@ -57,12 +65,16 @@ def extract_course_info(user_input):
     )
 
     # Extract department
-    dept_match = re.search(
-        r"\b(?:course[s]?|subject[s]?)\s+(?:for|in|of)\s+([a-zA-Z &]+)", user_input
-    )
+    dept_match = re.search(r"\b(?:course[s]?|subject[s]?)\s+(?:for|in|of)\s+([a-zA-Z &]+)", user_input)
     dept_name = dept_match.group(1).strip() if dept_match else None
+
+    # Try aliases or embedded names
     if not dept_name:
-        # Try to extract department directly
+        for alias, actual in DEPARTMENT_ALIASES.items():
+            if alias in user_input:
+                dept_name = actual
+                break
+    if not dept_name:
         for dept in DEPARTMENT_TO_COLLEGE:
             if dept in user_input:
                 dept_name = dept
@@ -70,7 +82,7 @@ def extract_course_info(user_input):
 
     normalized_dept = normalize_department_name(dept_name or "")
     if not normalized_dept:
-        return "I couldn't identify the department you're referring to. Please try again."
+        return "I couldn't identify the department you're referring to. Please try again using the full department name."
 
     college = DEPARTMENT_TO_COLLEGE[normalized_dept]
     courses = COURSE_DATA.get(college, {}).get(normalized_dept, {}).get("courses", {})
@@ -85,9 +97,12 @@ def extract_course_info(user_input):
         filtered.append(course)
 
     if not filtered:
-        return f"No courses found for {normalized_dept.title()} at {level or 'any'} level {f'in the {semester} semester' if semester else ''}."
+        parts = []
+        if level: parts.append(f"{level}-level")
+        if semester: parts.append(f"{semester} semester")
+        return f"No courses found for **{normalized_dept.title()}** {', '.join(parts)}. Please check your input."
 
-    response = f"Courses for **{normalized_dept.title()}**"
+    response = f"📚 **Courses for {normalized_dept.title()}**"
     if level:
         response += f" - {level}-level"
     if semester:
@@ -95,6 +110,9 @@ def extract_course_info(user_input):
     response += ":\n\n"
 
     for course in filtered:
-        response += f"- `{course['code']}`: {course['title']} ({course['unit']} units)\n"
+        code = course.get("code", "N/A")
+        title = course.get("title", "Untitled")
+        unit = course.get("unit", "N/A")
+        response += f"- `{code}`: {title} ({unit} units)\n"
 
     return response

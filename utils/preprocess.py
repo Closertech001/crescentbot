@@ -40,24 +40,15 @@ SYNONYMS = {
     "needed for": "required for", "who handles": "who manages"
 }
 
+# Basic Nigerian Pidgin replacements
 PIDGIN_MAP = {
-    "wetin": "what",
-    "dey": "is",
-    "una": "you all",
-    "na": "is",
-    "abi": "right",
-    "wey": "that",
-    "fit": "can",
-    "go do": "will do",
-    "wan": "want",
-    "no get": "don't have",
-    "dey go": "are going",
-    "comot": "leave",
-    "carry go": "take away",
-    "waka": "walk"
+    "wetin": "what", "dey": "is", "una": "you all", "na": "is",
+    "abi": "right", "wey": "that", "fit": "can", "go do": "will do",
+    "wan": "want", "no get": "don't have", "dey go": "are going",
+    "comot": "leave", "carry go": "take away", "waka": "walk"
 }
 
-# --- SymSpell Singleton ---
+# SymSpell singleton for spell correction
 SYM_SPELL = None
 
 def get_sym_spell():
@@ -68,12 +59,19 @@ def get_sym_spell():
         SYM_SPELL.load_dictionary(dictionary_path, term_index=0, count_index=1)
     return SYM_SPELL
 
-# --- Cleaning ---
+# Text cleaning
 def normalize_text(text):
     text = text.lower()
-    text = emoji.replace_emoji(text, replace='')  # Remove emojis
-    text = re.sub(r"[^\w\s]", "", text)
+    text = emoji.replace_emoji(text, replace='')  # remove emoji
+    text = re.sub(r"[^\w\s]", "", text)  # remove punctuation
     return text.strip()
+
+# Phrase-level replacement (e.g., "biz admin" → "business administration")
+def replace_phrases(text):
+    for phrase, repl in PHRASE_REPLACEMENTS.items():
+        pattern = re.compile(rf"\b{re.escape(phrase)}\b", re.IGNORECASE)
+        text = pattern.sub(repl, text)
+    return text
 
 def apply_abbreviations(words):
     return [ABBREVIATIONS.get(word, word) for word in words]
@@ -84,15 +82,22 @@ def apply_pidgin(words):
 def apply_synonyms(words):
     return [SYNONYMS.get(word, word) for word in words]
 
+def spell_correct(words):
+    sym_spell = get_sym_spell()
+    corrected = []
+    for word in words:
+        suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
+        corrected_word = suggestions[0].term if suggestions else word
+        corrected.append(corrected_word)
+    return corrected
+
+# Main normalization pipeline
 def normalize_input(text):
     text = normalize_text(text)
+    text = replace_phrases(text)
     words = text.split()
     words = apply_abbreviations(words)
     words = apply_pidgin(words)
-    sym_spell = get_sym_spell()
-    corrected = [
-        sym_spell.lookup(w, Verbosity.CLOSEST, 2)[0].term if sym_spell.lookup(w, Verbosity.CLOSEST, 2) else w
-        for w in words
-    ]
-    final = apply_synonyms(corrected)
-    return " ".join(final)
+    words = spell_correct(words)
+    words = apply_synonyms(words)
+    return " ".join(words)

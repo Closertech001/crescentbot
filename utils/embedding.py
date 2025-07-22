@@ -21,3 +21,17 @@ def load_model_and_embeddings(json_path="data/crescent_qa.json"):
     index.add(embeddings)
 
     return model, data, index, embeddings
+
+def find_most_similar_question(user_input, model, index, qa_data):
+    query_vector = model.encode([user_input], convert_to_numpy=True)
+    D, I = index.search(query_vector, k=1)
+
+    best_index = I[0][0]
+    best_score = D[0][0]
+    best_match = qa_data[best_index]
+
+    # Normalize distance score to similarity (optional)
+    similarity = 1 / (1 + best_score) if best_score != 0 else 1.0
+
+    return best_match, similarity
+

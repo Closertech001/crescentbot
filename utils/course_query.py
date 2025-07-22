@@ -1,132 +1,78 @@
 import json
 import re
-from rapidfuzz import process
+from rapidfuzz import fuzz
+from utils.preprocess import normalize_input
 
-# Normalize informal inputs and slangs
-NORMALIZATION_MAP = {
-    "comp sci": "computer science",
-    "mass comm": "mass communication",
-    "masscom": "mass communication",
-    "nursin": "nursing",
-    "nursing science": "nursing",
-    "physio": "physiology",
-    "microbio": "microbiology",
-    "biochem": "biochemistry",
-    "biz admin": "business administration",
-    "bus admin": "business administration",
-    "account": "accounting",
-    "law school": "law",
-    "pol sci": "political science and international studies",
-    "econs": "economics with operations research",
-    "arch": "architecture",
-    "first sem": "first semester",
-    "second sem": "second semester",
-    "100lvl": "100 level",
-    "200lvl": "200 level",
-    "300lvl": "300 level",
-    "400lvl": "400 level",
-    "wetin": "what",
-    "dey": "is",
-    "wan": "want",
-    "courses dem": "courses",
-    "which courses dem dey do": "what are the courses",
-    "we dey": "that are",
-    "course wey dem dey do": "courses"
-}
-
-# Known departments
-DEPARTMENTS = [
-    "computer science", "anatomy", "biochemistry", "accounting",
-    "business administration", "political science and international studies",
-    "microbiology", "economics with operations research", "mass communication",
-    "law", "nursing", "physiology", "architecture"
-]
-
-# Department to faculty map
+# 🏛️ Mapping from department to faculty/college
 DEPARTMENT_TO_FACULTY_MAP = {
-    "computer science": "CONAS",
-    "anatomy": "COHES",
-    "biochemistry": "CONAS",
-    "accounting": "CASMAS",
-    "business administration": "CASMAS",
-    "political science and international studies": "CASMAS",
-    "microbiology": "CONAS",
-    "economics with operations research": "CASMAS",
-    "mass communication": "CASMAS",
-    "law": "BACOLAW",
-    "nursing": "COHES",
-    "physiology": "COHES",
-    "architecture": "COES"
+    "computer science": "College of Information and Communication Technology (CICOT)",
+    "mass communication": "College of Information and Communication Technology (CICOT)",
+    "political science and international studies": "College of Arts, Social and Management Sciences (CASMAS)",
+    "business administration": "College of Arts, Social and Management Sciences (CASMAS)",
+    "economics with operations research": "College of Arts, Social and Management Sciences (CASMAS)",
+    "anatomy": "College of Health Sciences (COHES)",
+    "physiology": "College of Health Sciences (COHES)",
+    "nursing": "College of Health Sciences (COHES)",
+    "law": "Bola Ajibola College of Law (BACOLAW)",
+    "architecture": "College of Environmental Sciences (COES)",
+    "biochemistry": "College of Natural and Applied Sciences (CONAS)",
+    "microbiology": "College of Natural and Applied Sciences (CONAS)",
+    "chemistry": "College of Natural and Applied Sciences (CONAS)",
+    "physics": "College of Natural and Applied Sciences (CONAS)",
+    "mathematics": "College of Natural and Applied Sciences (CONAS)",
+    "medical laboratory science": "College of Natural and Applied Sciences (CONAS)",
+    "accounting": "College of Arts, Social and Management Sciences (CASMAS)"
 }
 
-# Normalize full input using slang mapping
-def normalize_text(text):
-    text = text.lower()
-    for key, val in NORMALIZATION_MAP.items():
-        text = text.replace(key, val)
-    return text
+# 📚 Department list
+DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
 
-# Fuzzy fallback if department not found in normalization
-def fuzzy_match_department(text):
-    result, score, _ = process.extractOne(text, DEPARTMENTS)
-    return result if score >= 80 else None
+# 🎓 Levels and semesters
+LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
+SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
-# Normalize department name
-def normalize_department(text):
-    norm_text = text.lower()
-    for slang, standard in NORMALIZATION_MAP.items():
-        if slang in norm_text and standard in DEPARTMENTS:
-            return standard
+# 🔍 Fuzzy match department
+def fuzzy_match_department(input_text):
+    best_match = None
+    highest_score = 0
     for dept in DEPARTMENTS:
-        if dept in norm_text:
-            return dept
-    return fuzzy_match_department(text)
+        score = fuzz.partial_ratio(input_text, dept)
+        if score > highest_score and score > 80:
+            best_match = dept
+            highest_score = score
+    return best_match
 
-# Extract query components (level, semester, department, faculty)
-def extract_course_query(text):
-    text = normalize_text(text)
-    level_match = re.search(r"\b(100|200|300|400)\s*level\b", text)
-    semester_match = re.search(r"\b(first|second)\s*semester\b", text)
-    department = normalize_department(text)
-
+# 🧠 Extract query info
+def parse_query(text):
+    text = normalize_input(text)
+    level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
+    semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
+    dept = fuzzy_match_department(text)
+    faculty = DEPARTMENT_TO_FACULTY_MAP.get(dept) if dept else None
     return {
-        "level": level_match.group(1) if level_match else None,
-        "semester": semester_match.group(1).capitalize() if semester_match else None,
-        "department": department.title() if department else None,
-        "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
+        "department": dept,
+        "faculty": faculty,
+        "level": level,
+        "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
     }
 
-# Load course data from JSON
-def load_course_data(path="data/course_data.json"):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-# Get matching course(s) from query and course data
-def get_courses_for_query(query_info, course_data):
-    if not query_info:
-        return None
-
-    dept = query_info.get("department", "").lower()
-    level = query_info.get("level", "").lower() if query_info.get("level") else None
-    semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
+# 📦 Get courses from structured course_data
+def get_courses_for_query(course_data, query_info):
+    dept = query_info.get("department")
+    level = query_info.get("level")
+    semester = query_info.get("semester")
 
     matches = []
     for entry in course_data:
-        try:
-            if entry["department"].lower() != dept:
-                continue
-            if level and entry["level"].lower() != level:
-                continue
-            if semester and semester not in entry["question"].lower():
-                continue
-            matches.append(entry)
-        except KeyError:
-            continue  # skip malformed entry
+        if dept and dept.lower() != entry["department"].lower():
+            continue
+        if level and level != entry.get("level"):
+            continue
+        if semester and semester.lower() not in entry.get("question", "").lower():
+            continue
+        matches.append(entry)
 
-    if not matches:
-        return None
+    if not matches and dept:
+        matches = [entry for entry in course_data if dept.lower() in entry["department"].lower()]
 
-    if len(matches) > 1:
-        return "\n\n".join([f"**{m['question']}**\n{m['answer']}" for m in matches])
-    else:
-        return matches[0]["answer"]
+    return matches

@@ -1,17 +1,25 @@
-# app.py
-
 import streamlit as st
 import os
 import json
 import faiss
-import openai
 import numpy as np
+import openai
 from dotenv import load_dotenv
+from datetime import datetime
 
-from utils.embedding import load_model, load_dataset, get_question_embeddings, build_faiss_index
-from utils.search import semantic_search_faiss
-from utils.greetings import get_greeting
-from utils.memory import update_memory, get_last_context
+from sentence_transformers import SentenceTransformer
+from symspellpy import SymSpell
+from textblob import TextBlob
+
+from utils.embedding import load_dataset, compute_question_embeddings
+from utils.semantic_search import load_chunks, build_index, search
+from utils.course_query import extract_course_query
+from utils.greetings import (
+    is_greeting, greeting_responses,
+    is_small_talk, small_talk_response,
+    extract_course_code, get_course_by_code
+)
+
 
 # Load environment variables
 load_dotenv()

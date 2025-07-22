@@ -4,7 +4,7 @@ import re
 import time
 
 from utils.course_query import get_course_info
-from utils.embedding import get_top_k_answers
+from utils.embedding import get_top_k_answer
 from utils.search import semantic_search
 from utils.memory import MemoryHandler
 from utils.greetings import is_greeting, is_small_talk, respond_to_small_talk, get_greeting_response

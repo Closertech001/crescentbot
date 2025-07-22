@@ -134,3 +134,20 @@ def get_course_by_code(course_code: str, course_data: list) -> str:
                 if part.startswith(course_code):
                     return part
     return None
+
+
+# --- FAREWELL DETECTION ---
+
+def detect_farewell(text: str) -> bool:
+    """
+    Detect if the user input is a farewell.
+    """
+    farewell_patterns = [
+        r"\bbye\b",
+        r"\bgoodbye\b",
+        r"\bsee you\b",
+        r"\blater\b",
+        r"\bciao\b",
+        r"\btake care\b"
+    ]
+    return any(re.search(pat, text.lower()) for pat in farewell_patterns)

@@ -1,25 +1,24 @@
-# utils/embedding.py
-
 import json
-import numpy as np
+import os
+import pandas as pd
+import streamlit as st
 from sentence_transformers import SentenceTransformer
+import numpy as np
 
-# Load the model once
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# ✅ Use Streamlit cache to avoid re-downloading every run
+@st.cache_resource(show_spinner="🔍 Loading embedding model...")
+def load_model(model_name="all-MiniLM-L6-v2"):
+    return SentenceTransformer(model_name)
+
+# ✅ Load the model once globally when this module is imported
+model = load_model()
 
 # Load QA data and compute embeddings
-def load_qa_data(filepath="data/crescent_qa.json"):
-    with open(filepath, "r", encoding="utf-8") as f:
-        qa_pairs = json.load(f)
+@st.cache_data(show_spinner="🔎 Computing QA embeddings...")
+def load_qa_embeddings(qa_json_path):
+    with open(qa_json_path, "r", encoding="utf-8") as f:
+        qa_data = json.load(f)
 
-    questions = [item["question"] for item in qa_pairs]
-    embeddings = model.encode(questions, convert_to_tensor=False, normalize_embeddings=True)
-    return qa_pairs, np.array(embeddings)
-
-# Get top K matches using cosine similarity
-def get_top_k_matches(query, qa_pairs, embeddings, k=3):
-    query_embedding = model.encode([query], convert_to_tensor=False, normalize_embeddings=True)[0]
-    similarities = np.dot(embeddings, query_embedding)
-    top_indices = similarities.argsort()[-k:][::-1]
-    top_matches = [qa_pairs[i] for i in top_indices]
-    return top_matches
+    questions = [item["question"] for item in qa_data]
+    embeddings = model.encode(questions, show_progress_bar=True)
+    return qa_data, np.array(embeddings)

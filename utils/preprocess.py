@@ -61,17 +61,17 @@ def preprocess_text(text, debug=False):
     text = normalize_text(text)
     words = text.split()
 
-    # Apply abbreviation mapping
+    # Step 1: Expand abbreviations
     expanded = apply_abbreviations(words)
 
-    # Spell correction
+    # Step 2: Spell correction with SymSpell
     sym_spell = get_sym_spell()
     corrected = []
     for word in expanded:
         suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
         corrected.append(suggestions[0].term if suggestions else word)
 
-    # Apply synonyms after correction
+    # Step 3: Apply synonyms
     final_words = apply_synonyms(corrected)
 
     if debug:

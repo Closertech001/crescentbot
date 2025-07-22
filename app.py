@@ -1,161 +1,210 @@
-# app.py - Crescent University Chatbot with Full Features
-
 import streamlit as st
-import json
-import faiss
 import os
+import json
 import time
+import re
+import faiss
+import openai
 import numpy as np
-from datetime import datetime
+import torch
 from sentence_transformers import SentenceTransformer
 from textblob import TextBlob
+from dotenv import load_dotenv
+from datetime import datetime
+from symspellpy.symspellpy import SymSpell, Verbosity
 
-# --- Inject CSS for chat styling ---
-def inject_css():
-    with open("assets/style.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# Force CPU usage for compatibility
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
-# --- Utils: Embedding ---
-def load_model(name="all-MiniLM-L6-v2"):
-    return SentenceTransformer(name)
+# --- Load environment variables ---
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def load_dataset(path="data/crescent_qa.json"):
+# --- Load QA dataset ---
+def load_dataset(path):
     with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    questions = [entry["question"] for entry in data]
-    return data, questions
+        return json.load(f)
 
-def get_question_embeddings(questions, model):
-    return model.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
+# --- Typo correction ---
+def correct_typos(text):
+    if not hasattr(correct_typos, "symspell"):
+        symspell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+        dict_path = os.path.join(os.path.dirname(__file__), "frequency_dictionary_en_82_765.txt")
+        if os.path.exists(dict_path):
+            symspell.load_dictionary(dict_path, term_index=0, count_index=1)
+        correct_typos.symspell = symspell
+    suggestions = correct_typos.symspell.lookup_compound(text, max_edit_distance=2)
+    return suggestions[0].term if suggestions else text
 
-def build_faiss_index(embeddings):
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dim)
-    index.add(embeddings)
-    return index
-
-# --- Utils: Semantic Search ---
-def search_semantic(query, model, index, questions, data, top_k=1):
-    q_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
-    scores, indices = index.search(q_embedding, top_k)
-    result = []
-    for i in indices[0]:
-        result.append(data[i])
-    return result[0] if result else {"answer": "Sorry, I couldn't find that."}
-
-# --- Utils: Preprocessing ---
-def normalize_text(text):
-    return text.strip().lower()
-
-def correct_spelling(text):
-    blob = TextBlob(text)
-    return str(blob.correct())
-
-# --- Utils: Course Query Extraction ---
-def extract_course_query(query):
-    query = query.lower()
-    keywords = ["100", "200", "300", "400", "first", "second", "semester", "level"]
-    if any(k in query for k in keywords) and "course" in query:
-        return query
-    return None
-
-def search_courses(query, course_file="data/course_data.json"):
-    with open(course_file, "r", encoding="utf-8") as f:
-        course_data = json.load(f)
-    query = normalize_text(query)
-    results = []
-    for item in course_data:
-        course_name = item.get("course_name", "").lower()
-        course_code = item.get("course_code", "").lower()
-        if course_name in query or course_code in query or str(item.get("level")) in query:
-            results.append(item)
-    return results
-
-# --- Utils: Tone Detection ---
+# --- Tone detection ---
 def detect_tone(user_input):
-    input_lower = user_input.lower()
-    if "😂" in user_input or "joke" in input_lower:
-        return "humorous"
-    elif any(w in input_lower for w in ["please", "kindly", "would you"]):
-        return "formal"
-    elif any(w in input_lower for w in ["yo", "sup", "hey bro", "what's up"]):
-        return "casual"
-    return "neutral"
+    polarity = TextBlob(user_input).sentiment.polarity
+    if polarity > 0.5:
+        return "enthusiastic"
+    elif polarity > 0:
+        return "friendly"
+    elif polarity == 0:
+        return "neutral"
+    else:
+        return "serious"
 
-def respond_with_tone(response, tone):
-    if tone == "formal":
-        return f"Certainly. {response}"
-    elif tone == "casual":
-        return f"Cool! 😎 {response}"
-    elif tone == "humorous":
-        return f"Alright, here's the scoop... 😂 {response}"
+def respond_in_tone(response, tone):
+    if tone == "enthusiastic":
+        return response + " 😄"
+    elif tone == "friendly":
+        return "Sure! " + response
+    elif tone == "serious":
+        return "Okay. " + response + "..."
     else:
         return response
 
-# --- Utils: Greetings ---
-def detect_greeting(text):
-    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-    return any(greet in text.lower() for greet in greetings)
+# --- Semantic Search ---
+def compute_embeddings(data, model):
+    questions = [entry["question"] for entry in data]
+    embeddings = model.encode(questions, convert_to_tensor=False)
+    return np.array(embeddings).astype("float32")
 
-def get_greeting_response():
-    return "👋 Hello! How can I assist you with Crescent University today?"
+def build_faiss_index(embeddings):
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(embeddings)
+    return index
 
-# --- Chat UI Display ---
-def display_chat(message, sender="bot"):
-    css_class = "bot-message" if sender == "bot" else "user-message"
-    st.markdown(f'<div class="chat-message {css_class}">{message}</div>', unsafe_allow_html=True)
+def search_semantic(query, model, index, data, top_k=1):
+    query_embedding = model.encode([query])[0].astype("float32")
+    D, I = index.search(np.array([query_embedding]), top_k)
+    if I[0][0] < len(data):
+        return data[I[0][0]], D[0][0]
+    return None, None
 
-# --- App Execution ---
+# --- Load embedding model ---
+def load_model(name="all-MiniLM-L6-v2"):
+    return SentenceTransformer(name)
+
+# --- Load course code ---
+def extract_course_query(user_input):
+    pattern = r"\b([A-Z]{2,4}\s?\d{3})\b"
+    match = re.search(pattern, user_input.upper())
+    return match.group(1).replace(" ", "") if match else None
+
+# --- Rewrite to natural ---
+def rewrite_input(text):
+    replacements = {
+        "pls": "please",
+        "ur": "your",
+        "info": "information",
+        "dept": "department",
+    }
+    return " ".join(replacements.get(word, word) for word in text.split())
+
+# --- Memory store ---
+session_memory = []
+
+# --- UI Styling ---
+def render_chat(role, text):
+    css_class = "user" if role == "user" else "bot"
+    st.markdown(
+        f'<div class="chat-bubble {css_class}">{text}</div>',
+        unsafe_allow_html=True
+    )
+
+def show_typing(text, tone):
+    placeholder = st.empty()
+    final_text = ""
+    for char in text:
+        final_text += char
+        placeholder.markdown(
+            f'<div class="chat-bubble bot">{final_text}|</div>',
+            unsafe_allow_html=True
+        )
+        time.sleep(0.02)
+    placeholder.markdown(
+        f'<div class="chat-bubble bot">{respond_in_tone(text, tone)}</div>',
+        unsafe_allow_html=True
+    )
+
+# --- GPT fallback ---
+def fallback_to_gpt(query):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a university assistant."},
+                {"role": "user", "content": query},
+            ],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content.strip()
+    except:
+        return "Sorry, I'm currently unable to fetch a response from GPT-4."
+
+# --- Main ---
 def main():
-    st.set_page_config("CrescentBot 🎓", page_icon="🤖", layout="centered")
-    inject_css()
+    st.set_page_config("CrescentBot", layout="wide")
+    st.markdown(
+        """
+        <style>
+        .chat-bubble {
+            max-width: 80%;
+            padding: 0.8em 1em;
+            margin: 0.5em;
+            border-radius: 1em;
+            line-height: 1.4;
+            font-size: 1rem;
+        }
+        .user {
+            background-color: #DCF8C6;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .bot {
+            background-color: #F1F0F0;
+            align-self: flex-start;
+            margin-right: auto;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-    st.title("🤖 CrescentBot — University Assistant")
-    st.markdown("Ask me anything about Crescent University!")
+    st.title("🎓 Crescent University Assistant")
 
-    # Initialize session state
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
+    # Load datasets
+    qa_data = load_dataset("data/crescent_qa.json")
+    course_data = load_dataset("data/course_data.json")
+
+    # Load model & build index
     model = load_model()
-    data, questions = load_dataset()
-    embeddings = get_question_embeddings(questions, model)
+    embeddings = compute_embeddings(qa_data, model)
     index = build_faiss_index(embeddings)
 
-    # Chat interface
-    user_input = st.chat_input("Ask a question...")
+    # Chat input
+    user_input = st.chat_input("Ask me anything about Crescent University...")
 
     if user_input:
-        tone = detect_tone(user_input)
-        norm_query = normalize_text(correct_spelling(user_input))
+        corrected = correct_typos(rewrite_input(user_input))
+        tone = detect_tone(corrected)
+        session_memory.append(corrected)
 
-        st.session_state.messages.append({"sender": "user", "text": user_input})
-        display_chat(user_input, sender="user")
+        render_chat("user", user_input)
 
-        with st.spinner("Typing..."):
-            time.sleep(0.8)  # simulate typing delay
-            if detect_greeting(norm_query):
-                bot_reply = get_greeting_response()
-            elif extract_course_query(norm_query):
-                results = search_courses(norm_query)
-                if results:
-                    course_lines = "\n".join(
-                        f"📘 **{c['course_code']}**: {c['course_name']}" for c in results
-                    )
-                    bot_reply = f"Here are the matching courses:\n\n{course_lines}"
-                else:
-                    bot_reply = "I couldn't find any matching courses."
+        course_code = extract_course_query(corrected)
+        if course_code:
+            match = next((c for c in course_data if c["code"] == course_code), None)
+            if match:
+                answer = f"📘 *Here’s the info for* `{course_code}`:\n\n- **Title**: {match['title']}\n- **Level**: {match['level']}\n- **Semester**: {match['semester']}\n- **Department**: {match['department']}"
+                show_typing(answer, tone)
             else:
-                result = search_semantic(norm_query, model, index, questions, data)
-                bot_reply = result["answer"]
-
-            styled_reply = respond_with_tone(bot_reply, tone)
-            st.session_state.messages.append({"sender": "bot", "text": styled_reply})
-            display_chat(styled_reply, sender="bot")
-
-    # Display message history
-    for msg in st.session_state.messages:
-        display_chat(msg["text"], sender=msg["sender"])
+                show_typing("I couldn't find that course in the database.", tone)
+        else:
+            best_match, score = search_semantic(corrected, model, index, qa_data)
+            if best_match and score < 1.0:
+                show_typing(best_match["answer"], tone)
+            else:
+                fallback = fallback_to_gpt(corrected)
+                show_typing(fallback, tone)
 
 if __name__ == "__main__":
     main()

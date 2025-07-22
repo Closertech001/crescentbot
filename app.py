@@ -1,8 +1,6 @@
-# app.py - CrescentBot Full App with Inline Utilities
-
 import streamlit as st
-import os
 import json
+import os
 import faiss
 import numpy as np
 import openai
@@ -10,140 +8,106 @@ from sentence_transformers import SentenceTransformer
 from textblob import TextBlob
 from dotenv import load_dotenv
 import re
-import time
-from datetime import datetime
 
-# Load environment variables
+# Load .env
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# --- Greeting logic ---
-def get_greeting():
-    hour = datetime.now().hour
-    if 5 <= hour < 12:
-        return "🌞 Good morning!"
-    elif 12 <= hour < 17:
-        return "🌤 Good afternoon!"
-    elif 17 <= hour < 21:
-        return "🌆 Good evening!"
-    else:
-        return "🌙 Hello!"
+# ---------- UTILS INLINE ----------
 
-# --- Memory logic ---
-def update_memory(memory, user_input, bot_response):
-    memory.append({"user": user_input, "bot": bot_response})
-    if len(memory) > 10:
-        memory.pop(0)
-    return memory
+@st.cache_resource
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
-def get_last_context(memory):
-    if memory:
-        return memory[-1]["user"]
-    return ""
+@st.cache_data
+def load_dataset():
+    with open("crescent_qa.json", "r", encoding="utf-8") as f:
+        qa_data = json.load(f)
+    questions = [item["question"] for item in qa_data]
+    return qa_data, questions
 
-# --- Spell correction ---
-def correct_spelling(text):
-    blob = TextBlob(text)
-    return str(blob.correct())
+@st.cache_resource
+def get_question_embeddings(model, questions):
+    return np.array(model.encode(questions, convert_to_numpy=True))
 
-# --- Dataset loading ---
-def load_dataset(filepath="data/crescent_qa.json"):
-    if not os.path.exists(filepath):
-        st.error(f"❌ Dataset not found at `{filepath}`.")
-        st.stop()
-    with open(filepath, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    questions = [item["question"] for item in data]
-    return data, questions
+@st.cache_resource
+def build_faiss_index(embeddings):
+    dim = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dim)
+    index.add(embeddings)
+    return index
 
-def load_course_data(filepath="data/course_data.json"):
-    if not os.path.exists(filepath):
-        st.error(f"❌ Course dataset not found at `{filepath}`.")
-        st.stop()
-    with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-# --- Semantic search ---
 def semantic_search_faiss(query, model, index, questions, top_k=1):
-    query_embedding = model.encode([query])[0]
-    D, I = index.search(np.array([query_embedding]), top_k)
-    results = [(questions[i], D[0][j]) for j, i in enumerate(I[0])]
+    query_embedding = model.encode([query], convert_to_numpy=True)
+    distances, indices = index.search(query_embedding, top_k)
+    results = [(questions[i], distances[0][j]) for j, i in enumerate(indices[0])]
     return results
 
-# --- GPT fallback ---
 def fallback_gpt_response(user_query, context=None):
-    try:
-        messages = [
-            {"role": "system", "content": "You are CrescentBot, a helpful university assistant."}
-        ]
-        if context:
-            messages.append({"role": "user", "content": f"Previously, the user said: {context}"})
-        messages.append({"role": "user", "content": user_query})
+    messages = [{"role": "system", "content": "You are CrescentBot, an academic assistant for Crescent University."}]
+    if context:
+        messages.append({"role": "system", "content": f"Previous context: {context}"})
+    messages.append({"role": "user", "content": user_query})
 
+    try:
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
-            temperature=0.5
+            temperature=0.4,
         )
         return response.choices[0].message.content.strip()
-    except Exception:
-        return "Sorry, I'm currently unable to fetch a response from GPT."
+    except Exception as e:
+        return "⚠️ Sorry, I'm currently unable to fetch a response. Please try again later."
 
-# --- Initialize model and embeddings ---
-@st.cache_resource(show_spinner="🔍 Initializing model and embeddings...")
+def correct_spelling(text):
+    return str(TextBlob(text).correct())
+
+def is_plain_greeting(text):
+    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
+    return text.lower().strip() in greetings
+
+# ---------- INIT ----------
+
+@st.cache_resource
 def initialize():
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    qa_data, questions = load_dataset("data/crescent_qa.json")
-    question_embeddings = model.encode(questions, convert_to_tensor=True)
-    index = faiss.IndexFlatL2(question_embeddings.shape[1])
-    index.add(np.array(question_embeddings))
+    model = load_model()
+    qa_data, questions = load_dataset()
+    question_embeddings = get_question_embeddings(model, questions)
+    index = build_faiss_index(question_embeddings)
     return model, index, qa_data, questions
 
-# --- UI ---
-st.set_page_config(page_title="CrescentBot 🎓", page_icon="🤖", layout="centered")
+# ---------- UI ----------
 
-st.markdown("## 🤖 CrescentBot - Your Campus Assistant")
-st.markdown("Ask me anything about Crescent University!")
-st.markdown("---")
+st.set_page_config(page_title="CrescentBot 🎓", layout="wide")
+st.markdown("<h2 style='text-align: center;'>🤖 CrescentBot – Crescent University Assistant</h2>", unsafe_allow_html=True)
 
-# --- Session state ---
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-if "memory" not in st.session_state:
-    st.session_state.memory = []
-
-# --- Load everything ---
-model, index, qa_data, questions = initialize()
-course_data = load_course_data("data/course_data.json")  # Optional if needed later
-
-# --- User Input ---
-user_query = st.text_input("You:", placeholder="What are the admission requirements?", key="input")
+user_query = st.chat_input("Ask CrescentBot anything...")
 
 if user_query:
     with st.spinner("Thinking..."):
-        greeting_response = get_greeting() if any(g in user_query.lower() for g in ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]) else None
-
+        model, index, qa_data, questions = initialize()
         corrected_query = correct_spelling(user_query)
-        results = semantic_search_faiss(corrected_query, model, index, questions, top_k=1)
 
-        top_match, score = results[0]
-        matched_entry = next((item for item in qa_data if item["question"] == top_match), None)
-
-        if matched_entry and score < 1.0:
-            bot_response = matched_entry["answer"]
+        if is_plain_greeting(corrected_query):
+            bot_response = "👋 Hello! How can I assist you with Crescent University today?"
         else:
-            context = get_last_context(st.session_state.memory)
-            bot_response = fallback_gpt_response(user_query, context)
+            results = semantic_search_faiss(corrected_query, model, index, questions, top_k=1)
+            top_match, score = results[0]
+            matched_entry = next((item for item in qa_data if item["question"] == top_match), None)
 
-        if greeting_response:
-            bot_response = f"{greeting_response} {bot_response}"
+            if matched_entry and score < 1.0:
+                bot_response = matched_entry["answer"]
+            else:
+                bot_response = fallback_gpt_response(user_query)
 
-        st.session_state.memory = update_memory(st.session_state.memory, user_query, bot_response)
+        # Save and display chat
         st.session_state.chat_history.append(("You", user_query))
         st.session_state.chat_history.append(("CrescentBot", bot_response))
 
-# --- Display Chat ---
+# Display chat history
 for sender, message in st.session_state.chat_history:
     with st.chat_message("user" if sender == "You" else "assistant"):
         st.markdown(message)

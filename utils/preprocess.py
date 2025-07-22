@@ -4,6 +4,11 @@ import streamlit as st
 from symspellpy import SymSpell, Verbosity
 import pkg_resources
 
+PHRASE_REPLACEMENTS = {
+    "biz admin": "business administration", "mass comm": "mass communication", "cresnt uni": "crescent university",
+    "CSC": "department of Computer Science", "Mass comm": "department of Mass Communication", "law": "department of law", "Acc": "department of Accounting"
+}
+
 # Abbreviations for shorthand normalization
 ABBREVIATIONS = {
     "u": "you", "r": "are", "ur": "your", "cn": "can", "cud": "could",

@@ -1,123 +1,128 @@
 import streamlit as st
-import random
-import json
-import re
-from utils.embedding import get_top_k_answers
-from utils.course_query import parse_query, get_courses_for_query
-from utils.greetings import is_greeting, get_greeting_response
-from utils.preprocess import normalize_input
-from utils.memory import Memory
-from openai import OpenAI
 import time
+import random
+import re
 
-st.set_page_config(page_title="Crescent University Chatbot")
-st.markdown("<style>div[data-testid=\"stSidebar\"]{background-color:#f0f2f6;}</style>", unsafe_allow_html=True)
+from utils.preprocess import preprocess_input
+from utils.course_query import get_course_info
+from utils.embedding import get_top_k_answers
+from utils.search import semantic_search
+from utils.memory import store_context_from_query, enrich_query_with_context
+from utils.greetings import is_greeting, greeting_responses
 
+from openai import OpenAI
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
-    QA_DATA = json.load(f)
 
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    COURSE_DATA = json.load(f)
+# --- UI CONFIG ---
+st.set_page_config(page_title="Crescent University Bot", layout="centered")
+st.markdown('<h1 style="text-align:center;">🎓 Crescent University Chatbot</h1>', unsafe_allow_html=True)
+st.markdown('<style>' + open("assets/style.css").read() + '</style>', unsafe_allow_html=True)
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
-if "memory" not in st.session_state:
-    st.session_state.memory = Memory()
+# --- SESSION STATE ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-def bot_typing():
+# --- ANIMATION ---
+def typing_animation():
     with st.empty():
         for i in range(3):
-            st.markdown("**Bot is typing" + "." * (i + 1) + "**")
+            dots = "." * (i + 1)
+            st.markdown(f"**Bot is typing{dots}**")
             time.sleep(0.4)
 
-def explain_course_level(user_input):
-    match = re.search(r"\\b(100|200|300|400|500)\\s*level\\b", user_input.lower())
-    if match:
-        level = match.group(1)
-        year_map = {
-            "100": "100 level means Year 1 (Freshman or First Year).",
-            "200": "200 level means Year 2 (Sophomore or Second Year).",
-            "300": "300 level means Year 3 (Third Year).",
-            "400": "400 level means Year 4 (Final Year for most 4-year programs).",
-            "500": "500 level means Year 5 (Final Year for programs like Law, Architecture)."
-        }
-        return year_map.get(level)
-    return None
 
-def generate_dynamic_intro():
-    choices = [
-        "Here’s what I found:",
-        "Take a look at this:",
-        "This might help:",
-        "Here’s the answer you’re looking for:",
-        "Check this out:",
-    ]
-    return random.choice(choices)
-
-st.title("🎓 Crescent University Chatbot")
-
-user_input = st.chat_input("Ask me anything about Crescent University")
-
-if user_input:
-    normalized_input = normalize_input(user_input)
-    st.session_state.messages.append({"role": "user", "content": user_input})
-
-    # Handle greeting
-    if is_greeting(normalized_input):
-        response = get_greeting_response()
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        st.rerun()
-
-    # Handle level explanation
-    level_explanation = explain_course_level(normalized_input)
-    if level_explanation:
-        st.session_state.messages.append({"role": "assistant", "content": level_explanation})
-        st.rerun()
-
-    bot_typing()
-
-    # Try course query first
-    query_info = parse_query(normalized_input)
-    matched_courses = get_courses_for_query(query_info, COURSE_DATA)
-
-    if matched_courses:
-        st.session_state.memory.update(query_info)
-        intro = generate_dynamic_intro()
-        course_responses = [f"- **{m['question']}**\n{m['answer']}" for m in matched_courses]
-        response = intro + "\n" + "\n\n".join(course_responses)
+# --- UTILITIES ---
+def display_message(sender, message):
+    if sender == "user":
+        st.markdown(f'<div class="user-bubble">{message}</div>', unsafe_allow_html=True)
     else:
-        # Use last memory to improve fallback
-        enriched_input = normalized_input
-        mem = st.session_state.memory.get_memory()
-        if mem.get("departments"):
-            enriched_input += " for department " + ", ".join(mem["departments"])
-        if mem.get("level"):
-            enriched_input += f" {mem['level']} level"
-        if mem.get("semester"):
-            enriched_input += f" {mem['semester']} semester"
+        st.markdown(f'<div class="bot-bubble">{message}</div>', unsafe_allow_html=True)
 
-        results = get_top_k_answers(enriched_input, QA_DATA, k=3)
-        if results:
-            intro = generate_dynamic_intro()
-            response = intro + "\n" + "\n\n".join([f"**Q:** {r['question']}\n**A:** {r['answer']}" for r in results])
-        else:
-            # Fallback to GPT
-            gpt_response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant for Crescent University. Answer questions clearly and accurately."},
-                    {"role": "user", "content": user_input}
-                ]
-            )
-            response = gpt_response.choices[0].message.content
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
+def dynamic_intro():
+    return random.choice([
+        "Here's what I found for you 👇",
+        "Take a look at this 🧠",
+        "This might help 📘",
+        "Hope this answers your question ✅",
+        "Check this out 👀"
+    ])
 
-# Display messages with animation
-for i, msg in enumerate(st.session_state.messages):
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
 
+# --- MAIN CHAT HANDLER ---
+def handle_chat(user_input):
+    original_input = user_input
+    user_input = preprocess_input(user_input)
+
+    display_message("user", original_input)
+
+    # 1. Greeting
+    if is_greeting(user_input):
+        bot_reply = greeting_responses(user_input)
+        typing_animation()
+        display_message("bot", bot_reply)
+        return
+
+    # 2. Course info (department/level)
+    query_info = get_course_info(user_input)
+    query_info = enrich_query_with_context(query_info)
+
+    if query_info:
+        store_context_from_query(query_info)
+        typing_animation()
+        display_message("bot", dynamic_intro())
+
+        for course in query_info.get("courses", []):
+            display_message("bot", f"**{course['code']}** - {course['title']} ({course['unit']} unit{'s' if course['unit'] > 1 else ''})")
+        return
+
+    # 3. Semantic search
+    top_match = get_top_k_answers(user_input, k=1)
+    if top_match:
+        typing_animation()
+        display_message("bot", dynamic_intro())
+        display_message("bot", top_match[0])
+        return
+
+    # 4. GPT Fallback
+    typing_animation()
+    gpt_reply = fallback_to_gpt(original_input)
+    display_message("bot", gpt_reply)
+
+
+# --- FALLBACK TO GPT-4 ---
+def fallback_to_gpt(prompt):
+    system = (
+        "You are a helpful AI assistant for Crescent University Abeokuta. "
+        "If a user asks about departments, courses, or admission, answer based on general university structure in Nigeria. "
+        "If a user says 'final year', assume 400 or 500 level depending on program type. "
+        "Don't hallucinate if you don't know the answer. Keep responses concise and friendly."
+    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return "Sorry, I couldn't process that right now. Please try again later."
+
+
+# --- SIDEBAR ---
+with st.sidebar:
+    st.title("🔧 Options")
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.chat_history = []
+        st.rerun()
+
+
+# --- CHAT INPUT ---
+user_query = st.chat_input("Ask me anything about Crescent University...")
+if user_query:
+    handle_chat(user_query)

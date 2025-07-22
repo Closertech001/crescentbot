@@ -1,46 +1,37 @@
+# utils/embedding.py
+
 import json
 import numpy as np
 from sentence_transformers import SentenceTransformer
+import streamlit as st
 
-def load_model(model_name: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
+@st.cache_resource
+def load_model(model_name="all-MiniLM-L6-v2"):
     """
-    Load and return a SentenceTransformer model.
-    
-    Args:
-        model_name (str): Name of the pretrained model to load.
-
-    Returns:
-        SentenceTransformer: Loaded sentence embedding model.
+    Load and cache the SentenceTransformer model for CPU usage.
+    Optimized for low memory environments like Streamlit Cloud.
     """
-    return SentenceTransformer(model_name)
+    return SentenceTransformer(model_name, device="cpu")
 
-def load_qa_data(qa_path: str = "data/crescent_qa.json") -> list:
+@st.cache_data
+def load_qa_data(qa_path="data/crescent_qa.json"):
     """
-    Load Q&A pairs from a JSON file.
-
-    Args:
-        qa_path (str): Path to the Q&A JSON file.
-
-    Returns:
-        list: List of dictionaries with 'question' and 'answer' keys.
+    Load and cache the Q&A dataset from a JSON file.
     """
     with open(qa_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data
 
-def get_question_embeddings(questions: list, model: SentenceTransformer) -> np.ndarray:
+@st.cache_data
+def compute_question_embeddings(questions, model):
     """
-    Generate normalized embeddings for a list of questions.
-
-    Args:
-        questions (list): List of question strings.
-        model (SentenceTransformer): Preloaded embedding model.
-
-    Returns:
-        np.ndarray: Normalized question embeddings (2D array).
+    Compute and normalize embeddings for a list of questions.
+    Returns a numpy array of shape (len(questions), embedding_dim).
     """
-    return model.encode(
+    embeddings = model.encode(
         questions,
         convert_to_numpy=True,
-        normalize_embeddings=True
+        normalize_embeddings=True,
+        show_progress_bar=False
     )
+    return embeddings

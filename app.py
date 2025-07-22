@@ -1,100 +1,125 @@
 import streamlit as st
+import openai
 import json
 import numpy as np
-import openai
 import faiss
 import os
+import sqlite3
+import time
 import re
-from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
-from utils.embedding import load_model, load_qa_data, get_question_embeddings, build_faiss_index
+from utils.embedding import load_qa_data, get_question_embeddings, build_faiss_index
 from utils.course_query import extract_course_info, get_course_by_code
-from utils.memory import update_memory, get_last_context
+from textblob import TextBlob
+from dotenv import load_dotenv
 
-# Load environment variables
+# --- Load environment variables ---
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Set page config
-st.set_page_config(page_title="CrescentBot 🤖", page_icon="🎓", layout="centered")
+# --- Load model and index ---
+@st.cache_resource
+def load_resources():
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    data = load_qa_data()
+    questions = [item["question"] for item in data]
+    answers = [item["answer"] for item in data]
+    embeddings = get_question_embeddings(questions, model)
+    index = build_faiss_index(np.array(embeddings))
+    return model, data, index, answers
 
-st.title("🎓 Crescent University Assistant")
+model, data, index, answers = load_resources()
 
-# Session state initialization
-if "memory" not in st.session_state:
-    st.session_state.memory = {}
-
-if "model" not in st.session_state:
-    st.session_state.model = load_model("all-MiniLM-L6-v2")
-
-if "qa_data" not in st.session_state:
-    st.session_state.qa_data = load_qa_data()
-
-if "questions" not in st.session_state:
-    st.session_state.questions = [item["question"] for item in st.session_state.qa_data]
-
-if "embeddings" not in st.session_state:
-    st.session_state.embeddings = get_question_embeddings(st.session_state.questions, st.session_state.model)
-
-if "faiss_index" not in st.session_state:
-    st.session_state.faiss_index = build_faiss_index(np.array(st.session_state.embeddings))
-
-# Semantic search
-def search_similar_question(query, model, index, questions, top_k=1):
-    query_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
-    scores, indices = index.search(query_embedding, top_k)
-    best_match_idx = indices[0][0]
-    best_score = scores[0][0]
-    return questions[best_match_idx], best_score
-
-# GPT fallback
-def fallback_gpt_response(query):
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are an academic assistant at Crescent University."},
-                {"role": "user", "content": query}
-            ],
-            temperature=0.2
+# --- SQLite Memory ---
+def get_memory():
+    conn = sqlite3.connect("memory.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS memory (
+            session_id TEXT PRIMARY KEY,
+            department TEXT,
+            level TEXT,
+            semester TEXT
         )
-        return response.choices[0].message.content.strip()
-    except Exception:
-        return "❌ Sorry, I'm currently unable to fetch a response from GPT."
+    """)
+    conn.commit()
+    return conn
 
-# Handle query
-def handle_query(user_input):
-    user_input = user_input.strip()
-    if not user_input:
-        return "Please enter your question."
+def update_memory(conn, session_id, department=None, level=None, semester=None):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM memory WHERE session_id=?", (session_id,))
+    row = cursor.fetchone()
+    if row:
+        cursor.execute("""
+            UPDATE memory SET department=?, level=?, semester=? WHERE session_id=?
+        """, (department, level, semester, session_id))
+    else:
+        cursor.execute("""
+            INSERT INTO memory (session_id, department, level, semester)
+            VALUES (?, ?, ?, ?)
+        """, (session_id, department, level, semester))
+    conn.commit()
 
-    # Try course code match first
-    course_code_response = get_course_by_code(user_input, course_data)
-    if course_code_response:
-        return course_code_response
+def retrieve_memory(conn, session_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT department, level, semester FROM memory WHERE session_id=?", (session_id,))
+    row = cursor.fetchone()
+    return {"department": row[0], "level": row[1], "semester": row[2]} if row else {}
 
-    # Try structured course info query
-    structured_response = extract_course_info(user_input, course_data, st.session_state.memory)
-    if isinstance(structured_response, str):
-        if "Courses for" in structured_response or "No course data" in structured_response:
-            return structured_response
+# --- FAISS Semantic Search ---
+def search(query, index, model, data, top_k=1):
+    query_embedding = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    D, I = index.search(query_embedding, top_k)
+    return data[I[0][0]], D[0][0]  # Return top match and score
 
-    # Try semantic search
-    best_question, similarity = search_similar_question(user_input, st.session_state.model, st.session_state.faiss_index, st.session_state.questions)
-    if similarity > 0.75:
-        for item in st.session_state.qa_data:
-            if item["question"] == best_question:
-                return item["answer"]
+# --- Streamlit UI ---
+st.set_page_config(page_title="CrescentBot 🎓", layout="centered")
+st.title("🤖 Crescent University Assistant")
 
-    # Fallback to GPT
-    return fallback_gpt_response(user_input)
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# Load course data
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    course_data = json.load(f)
+session_id = "user_session"
+conn = get_memory()
+memory = retrieve_memory(conn, session_id)
 
-# Input UI
-user_query = st.text_input("💬 Ask CrescentBot a question:")
-if st.button("Ask") or user_query:
-    response = handle_query(user_query)
-    st.markdown(f"**CrescentBot:** {response}")
+prompt = st.chat_input("Ask me anything about Crescent University...")
+
+if prompt:
+    st.session_state.history.append(("user", prompt))
+    
+    # Typo correction
+    corrected = str(TextBlob(prompt).correct())
+    if corrected.lower() != prompt.lower():
+        prompt = corrected
+
+    # Course code response
+    course_code_result = get_course_by_code(prompt, json.load(open("data/course_data.json")))
+    if course_code_result and "couldn't find" not in course_code_result:
+        response = f"📘 {course_code_result}"
+    else:
+        # Check if it's a course info request
+        course_response = extract_course_info(prompt, json.load(open("data/course_data.json")), memory)
+        if isinstance(course_response, str):
+            response = f"📚 {course_response}"
+        else:
+            # Semantic fallback
+            match, score = search(prompt, index, model, answers)
+            if score < 0.6:
+                response = "🤔 Sorry, I couldn't find an exact answer, but I'm learning!"
+            else:
+                response = f"💡 {match['answer']}"
+
+    # Save updated memory
+    update_memory(conn, session_id, memory.get("department"), memory.get("level"), memory.get("semester"))
+
+    st.session_state.history.append(("bot", response))
+
+# --- Display chat ---
+for role, msg in st.session_state.history:
+    if role == "user":
+        with st.chat_message("user"):
+            st.markdown(f"**You:** {msg}")
+    else:
+        with st.chat_message("assistant"):
+            st.markdown(msg)

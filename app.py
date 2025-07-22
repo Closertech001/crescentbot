@@ -2,7 +2,7 @@ import streamlit as st
 from utils.course_query import parse_query, get_courses_for_query
 from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.search import search_similar
-from utils.greetings import is_greeting, greeting_responses, small_talk_response
+from utils.greetings import is_greeting, greeting_responses, small_talk_response, detect_farewell
 from utils.preprocess import normalize_input
 import random
 import openai
@@ -47,8 +47,8 @@ def handle_input(user_input):
     normalized = normalize_input(user_input)
 
     # Greeting/Farewell
-    if detect_greeting(normalized):
-        return get_random_greeting()
+    if is_greeting(normalized):
+        return greeting_responses(normalized)
     if detect_farewell(normalized):
         return "Goodbye! Feel free to return anytime. 👋"
 

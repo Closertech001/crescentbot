@@ -1,45 +1,62 @@
-# utils/embedding.py
-
 import json
 import pandas as pd
-import torch
 from sentence_transformers import SentenceTransformer
+import torch
+import os
 
-# Global cache
+# Cache global state
 _model = None
-_df = None
+_dataset = None
 _embeddings = None
+
 
 def load_model(model_name="all-MiniLM-L6-v2"):
     """
-    Load the SentenceTransformer model.
+    Load and return the sentence transformer model.
     """
-    return SentenceTransformer(model_name)
+    global _model
+    if _model is None:
+        _model = SentenceTransformer(model_name)
+    return _model
 
-def load_qa_data(json_path="data/crescent_qa.json"):
-    """
-    Load the QA dataset as a pandas DataFrame.
-    """
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return pd.DataFrame(data)
 
-def compute_embeddings(df, model):
+def load_dataset(path="data/crescent_qa.json"):
     """
-    Compute sentence embeddings from the 'question' column of the dataset.
+    Load the question-answer dataset from JSON file.
     """
-    questions = df["question"].str.lower().tolist()
-    return model.encode(questions, convert_to_tensor=True)
+    global _dataset
+    if _dataset is None:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _dataset = pd.DataFrame(data)
+    return _dataset
+
+
+def compute_embeddings(model, dataset):
+    """
+    Compute and return embeddings for the questions.
+    """
+    global _embeddings
+    if _embeddings is None:
+        questions = dataset["question"].str.lower().tolist()
+        _embeddings = model.encode(questions, convert_to_tensor=True)
+    return _embeddings
+
 
 def load_model_and_embeddings():
     """
-    Load model, dataset, and precompute embeddings (only once).
+    Load model, dataset, and compute embeddings. Returns all three.
     """
-    global _model, _df, _embeddings
+    model = load_model()
+    dataset = load_dataset()
+    embeddings = compute_embeddings(model, dataset)
+    return model, dataset, embeddings
 
-    if _model is None or _df is None or _embeddings is None:
-        _model = load_model()
-        _df = load_qa_data()
-        _embeddings = compute_embeddings(_df, _model)
 
-    return _model, _df, _embeddings
+def get_top_k_answer(query, top_k=3, threshold=0.45):
+    """
+    Wrapper to return best-matched answer and related questions.
+    """
+    model, dataset, embeddings = load_model_and_embeddings()
+    from utils.search import find_response  # imported here to avoid circular import
+    return find_response(query, model, dataset, embeddings, top_k, threshold)

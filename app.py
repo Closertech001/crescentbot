@@ -1,120 +1,105 @@
 import streamlit as st
-from utils.course_query import parse_query, get_courses_for_query
-from utils.embedding import load_model, load_dataset, compute_question_embeddings
-from utils.search import search_similar
-from utils.greetings import detect_greeting, get_random_greeting, detect_farewell
-from utils.preprocess import normalize_input
+import json
 import random
-import openai
 import time
+from utils.embedding import load_embeddings, search_similar
+from utils.course_query import parse_query, get_courses_for_query
+from utils.preprocess import normalize_input
+from utils.greetings import is_greeting, get_greeting_response
 
-# 🌐 Set page config
-st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓", layout="centered")
-st.markdown('<style>' + open("assets/style.css").read() + '</style>', unsafe_allow_html=True)
+# 🔄 Load data
+with open("data/course_data.json", "r", encoding="utf-8") as f:
+    course_data = json.load(f)
 
-# 🔐 Load OpenAI key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+    qa_data = json.load(f)
 
-# 📦 Load model and data
-@st.cache_resource
-def setup():
-    model = load_model()
-    df = load_dataset()
-    embeddings = compute_question_embeddings(df['question'].tolist(), model)
-    return model, df, embeddings
+embeddings, questions = load_embeddings(qa_data)
 
-model, qa_df, qa_embeddings = setup()
+# 🎨 Page config
+st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓")
+st.markdown('<style>' + open('assets/style.css').read() + '</style>', unsafe_allow_html=True)
 
-# 🧠 Session state initialization
+# 💬 Chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-if "last_department" not in st.session_state:
-    st.session_state.last_department = None
-if "last_level" not in st.session_state:
-    st.session_state.last_level = None
-if "last_topic" not in st.session_state:
-    st.session_state.last_topic = None
 
-# 💬 Typing effect
-def bot_typing_effect():
+# 🧠 Small talk responses
+RESPONSES = [
+    "Here’s what I found for you:",
+    "Hope this helps:",
+    "Got it! Here you go:",
+    "This should answer your question:",
+    "Alright, take a look at this:"
+]
+
+# ⏳ Typing animation
+def bot_typing():
     with st.empty():
         for dots in ["", ".", "..", "..."]:
             st.markdown(f"**Bot is typing{dots}**")
             time.sleep(0.3)
 
-# 🤖 Chat handler
-def handle_input(user_input):
-    normalized = normalize_input(user_input)
+# 🧾 Main interface
+st.title("🤖 Crescent University Chatbot")
 
-    # Greeting/Farewell
-    if detect_greeting(normalized):
-        return get_random_greeting()
-    if detect_farewell(normalized):
-        return "Goodbye! Feel free to return anytime. 👋"
-
-    # Extract query info
-    query_info = parse_query(normalized)
-
-    # 👁️ Use memory for missing info
-    if not query_info.get("department") and st.session_state.last_department:
-        query_info["department"] = st.session_state.last_department
-    if not query_info.get("level") and st.session_state.last_level:
-        query_info["level"] = st.session_state.last_level
-
-    # 💾 Update memory
-    if query_info.get("department"):
-        st.session_state.last_department = query_info["department"]
-    if query_info.get("level"):
-        st.session_state.last_level = query_info["level"]
-
-    # 🧠 Course-specific answers
-    course_results = get_courses_for_query(query_info, qa_df.to_dict(orient="records"))
-    if course_results:
-        response = "📚 **Here’s what I found:**\n\n"
-        for r in course_results:
-            response += f"- **{r['question']}**\n    {r['answer']}\n\n"
-        return response.strip()
-
-    # 🔍 Semantic search (top-k for GPT-RAG)
-    results = search_similar(normalized, qa_df, qa_embeddings, model, top_k=3, threshold=0.4)
-
-    if results:
-        # Build RAG-style prompt
-        context = "\n\n".join([f"Q: {r['question']}\nA: {r['answer']}" for r in results])
-        prompt = f"""You are a helpful assistant for Crescent University. Use the context below to answer the user’s question. If the answer is not found, say you’re not sure.
-
-Context:
-{context}
-
-User Question: {user_input}
-Answer:"""
-
-        bot_typing_effect()
-        try:
-            completion = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant for Crescent University."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            return completion.choices[0].message.content.strip()
-        except:
-            return "⚠️ I’m having trouble fetching that. Please try again later."
-
-    # ❌ No useful matches and GPT fallback failed
-    return "😕 I couldn’t find a good answer for that. Try rephrasing or asking something else."
-
-# 🧑‍💻 Main UI
-st.title("🎓 Crescent University Chatbot")
-user_input = st.text_input("Ask me anything about the university...", key="user_input")
+user_input = st.text_input("Ask me anything about Crescent University...", key="user_input")
 
 if user_input:
-    response = handle_input(user_input)
-    st.session_state.chat_history.append(("You", user_input))
-    st.session_state.chat_history.append(("Bot", response))
-    st.session_state.user_input = ""
+    st.session_state.chat_history.append(("user", user_input))
+    normalized = normalize_input(user_input)
 
-# 📝 Display chat history
+    # 👋 Greeting
+    if is_greeting(normalized):
+        response = get_greeting_response()
+    else:
+        # 📚 Course code handling
+        match = None
+        course_code_pattern = r"\b[A-Z]{2,4}\s?\d{3}\b"
+        code_match = re.search(course_code_pattern, user_input, re.IGNORECASE)
+
+        if code_match:
+            course_code = code_match.group().replace(" ", "").upper()
+            for entry in course_data:
+                if entry.get("course_code", "").replace(" ", "").upper() == course_code:
+                    title = entry.get("course_title", "Unknown title")
+                    unit = entry.get("course_unit", "N/A")
+                    response = f"""📘 *Here’s the info for* `{course_code}`:\n\n{title} ({unit} unit{'s' if unit != 1 else ''})"""
+                    match = True
+                    break
+
+        # 🔎 Deep query
+        if not match:
+            query_info = parse_query(normalized)
+            if query_info["department"]:
+                matched_courses = get_courses_for_query(course_data, query_info)
+                if matched_courses:
+                    response = f"📚 Courses for **{query_info['department'].title()}**"
+                    if query_info["level"]:
+                        response += f", Level {query_info['level']}"
+                    if query_info["semester"]:
+                        response += f", {query_info['semester']} Semester"
+                    response += ":\n\n"
+                    for course in matched_courses:
+                        response += f"- `{course.get('course_code', 'N/A')}`: {course.get('course_title', 'N/A')} ({course.get('course_unit', 'N/A')} units)\n"
+                else:
+                    response = "I couldn't find courses matching that info. Please try specifying the department or level more clearly."
+            else:
+                # 🤖 Semantic Q&A fallback
+                top_match = search_similar(normalized, embeddings, questions, qa_data)
+                if top_match:
+                    response = f"{random.choice(RESPONSES)}\n\n{top_match['answer']}"
+                else:
+                    response = "Sorry, I couldn’t find an answer for that."
+
+    # 🤖 Show bot typing
+    bot_typing()
+    st.session_state.chat_history.append(("bot", response))
+    st.experimental_rerun()
+
+# 📜 Display chat
 for sender, msg in st.session_state.chat_history:
-    st.markdown(f"**{sender}:** {msg}")
+    if sender == "user":
+        st.markdown(f"**You:** {msg}")
+    else:
+        st.markdown(f"**Bot:** {msg}")

@@ -76,13 +76,13 @@ def normalize_text(text):
     return text.strip()
 
 def apply_abbreviations(words):
-    return [ABBREVIATION_MAP.get(word, word) for word in words]
+    return [ABBREVIATIONS.get(word, word) for word in words]
 
 def apply_pidgin(words):
     return [PIDGIN_MAP.get(word, word) for word in words]
 
 def apply_synonyms(words):
-    return [SYNONYM_MAP.get(word, word) for word in words]
+    return [SYNONYMS.get(word, word) for word in words]
 
 def normalize_input(text):
     text = normalize_text(text)

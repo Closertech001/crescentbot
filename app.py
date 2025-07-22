@@ -67,7 +67,7 @@ def handle_input(user_input):
     if query_info.get("level"):
         st.session_state.last_level = query_info["level"]
 
-    # 🧠 Check if it’s a course-related query
+    # 🧠 Course-specific answers
     course_results = get_courses_for_query(query_info, qa_df.to_dict(orient="records"))
     if course_results:
         response = "📚 **Here’s what I found:**\n\n"
@@ -75,25 +75,35 @@ def handle_input(user_input):
             response += f"- **{r['question']}**\n    {r['answer']}\n\n"
         return response.strip()
 
-    # 🔍 Semantic search
-    top_result = search_similar(normalized, qa_df, qa_embeddings, model)
-    if top_result and top_result['score'] > 0.75:
-        st.session_state.last_topic = top_result["question"]
-        return f"💡 {random.choice(['Here you go:', 'I found this for you:', 'This might help:'])}\n\n{top_result['answer']}"
+    # 🔍 Semantic search (top-k for GPT-RAG)
+    results = search_similar(normalized, qa_df, qa_embeddings, model, top_k=3, threshold=0.4)
 
-    # 🤖 Fallback to OpenAI GPT
-    try:
+    if results:
+        # Build RAG-style prompt
+        context = "\n\n".join([f"Q: {r['question']}\nA: {r['answer']}" for r in results])
+        prompt = f"""You are a helpful assistant for Crescent University. Use the context below to answer the user’s question. If the answer is not found, say you’re not sure.
+
+Context:
+{context}
+
+User Question: {user_input}
+Answer:"""
+
         bot_typing_effect()
-        completion = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant for Crescent University."},
-                {"role": "user", "content": user_input}
-            ]
-        )
-        return completion.choices[0].message.content.strip()
-    except Exception as e:
-        return "⚠️ I’m having trouble fetching that. Please try again later."
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant for Crescent University."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return completion.choices[0].message.content.strip()
+        except:
+            return "⚠️ I’m having trouble fetching that. Please try again later."
+
+    # ❌ No useful matches and GPT fallback failed
+    return "😕 I couldn’t find a good answer for that. Try rephrasing or asking something else."
 
 # 🧑‍💻 Main UI
 st.title("🎓 Crescent University Chatbot")

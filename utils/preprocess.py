@@ -1,9 +1,15 @@
 # utils/preprocess.py
 
+import os
 import re
-import emoji
-from symspellpy import SymSpell, Verbosity
-import pkg_resources
+import json
+from symspellpy.symspellpy import SymSpell, Verbosity
+
+# Setup SymSpell
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+dictionary_path = os.path.join("data", "frequency_dictionary_en_82_765.txt")
+if os.path.exists(dictionary_path):
+    sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
 
 # --- Phrase replacements ---
 PHRASE_REPLACEMENTS = {
@@ -31,7 +37,7 @@ PHRASE_REPLACEMENTS = {
 }
 
 # --- Abbreviations for shorthand normalization ---
-ABBREVIATIONS = {
+abbreviation_map = {
     "u": "you", "r": "are", "ur": "your", "cn": "can", "cud": "could",
     "shud": "should", "wud": "would", "abt": "about", "bcz": "because",
     "plz": "please", "pls": "please", "tmrw": "tomorrow", "wat": "what",
@@ -44,7 +50,7 @@ ABBREVIATIONS = {
 }
 
 # --- Synonyms for consistent matching ---
-SYNONYMS = {
+synonym_map = {
     "lecturers": "academic staff", "professors": "academic staff", "teachers": "academic staff",
     "instructors": "academic staff", "tutors": "academic staff", "staff members": "staff",
     "head": "dean", "hod": "head of department", "dept": "department", "school": "university",
@@ -68,64 +74,42 @@ PIDGIN_MAP = {
     "comot": "leave", "carry go": "take away", "waka": "walk"
 }
 
-# --- SymSpell Setup ---
-SYM_SPELL = None
-def get_sym_spell():
-    global SYM_SPELL
-    if SYM_SPELL is None:
-        SYM_SPELL = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
-        dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
-        SYM_SPELL.load_dictionary(dictionary_path, term_index=0, count_index=1)
-    return SYM_SPELL
+def normalize_text(text: str) -> str:
+    # Expand abbreviations
+    for abbr, full in abbreviation_map.items():
+        pattern = re.compile(rf"\b{re.escape(abbr)}\b", re.IGNORECASE)
+        text = pattern.sub(full, text)
 
-# --- Core cleaning pipeline ---
-def normalize_text(text):
-    text = text.lower()
-    text = emoji.replace_emoji(text, replace='')
-    text = re.sub(r"[^\w\s]", "", text)
-    return text.strip()
+    # Replace synonyms
+    for word, synonym in synonym_map.items():
+        pattern = re.compile(rf"\b{re.escape(word)}\b", re.IGNORECASE)
+        text = pattern.sub(synonym, text)
 
-def replace_phrases(text):
-    for phrase, repl in PHRASE_REPLACEMENTS.items():
-        text = re.sub(rf"\b{re.escape(phrase)}\b", repl, text, flags=re.IGNORECASE)
     return text
 
-def apply_abbreviations(words):
-    return [ABBREVIATIONS.get(w, w) for w in words]
-
-def apply_pidgin(words):
-    return [PIDGIN_MAP.get(w, w) for w in words]
-
-def apply_synonyms(words):
-    return [SYNONYMS.get(w, w) for w in words]
-
-def spell_correct(words):
-    sym_spell = get_sym_spell()
-    corrected = []
+def spell_correct(text: str) -> str:
+    words = text.split()
+    corrected_words = []
     for word in words:
         suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
-        corrected_word = suggestions[0].term if suggestions else word
-        corrected.append(corrected_word)
-    return corrected
+        corrected_words.append(suggestions[0].term if suggestions else word)
+    return " ".join(corrected_words)
 
-def convert_final_level(words):
-    new_words = []
-    for w in words:
-        if w == "final":
-            new_words.append("400")
-            new_words.append("500")
-        else:
-            new_words.append(w)
-    return new_words
+def detect_level_from_text(text: str) -> str:
+    if "final year" in text:
+        return "400"  # Or "500" depending on department
+    match = re.search(r"\b([1-5]00)\b", text)
+    return match.group(1) if match else ""
 
-# --- Final Pipeline ---
-def normalize_input(text):
-    text = normalize_text(text)
-    text = replace_phrases(text)
-    words = text.split()
-    words = apply_abbreviations(words)
-    words = apply_pidgin(words)
-    words = spell_correct(words)
-    words = apply_synonyms(words)
-    words = convert_final_level(words)
-    return " ".join(words)
+def preprocess_input(user_input: str) -> dict:
+    original = user_input.lower().strip()
+    normalized = normalize_text(original)
+    corrected = spell_correct(normalized)
+
+    query_info = {"original": original, "normalized": corrected}
+
+    level = detect_level_from_text(corrected)
+    if level:
+        query_info["level"] = level
+
+    return query_info

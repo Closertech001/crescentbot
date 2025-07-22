@@ -1,5 +1,5 @@
-import re
 import json
+import re
 from rapidfuzz import fuzz
 from utils.preprocess import normalize_input
 

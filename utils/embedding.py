@@ -1,62 +1,29 @@
+# utils/embedding.py
+
 import json
-import pandas as pd
-from sentence_transformers import SentenceTransformer
-import torch
-import os
+import numpy as np
+from sentence_transformers import SentenceTransformer, util
 
-# Cache global state
-_model = None
-_dataset = None
-_embeddings = None
+# Load sentence transformer model
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
+def load_qa_embeddings(qa_path="data/crescent_qa.json"):
+    """Load questions and compute their embeddings."""
+    with open(qa_path, "r", encoding="utf-8") as f:
+        qa_data = json.load(f)
 
-def load_model(model_name="all-MiniLM-L6-v2"):
-    """
-    Load and return the sentence transformer model.
-    """
-    global _model
-    if _model is None:
-        _model = SentenceTransformer(model_name)
-    return _model
+    questions = [item["question"] for item in qa_data]
+    embeddings = model.encode(questions, convert_to_tensor=True)
+    return qa_data, embeddings
 
+def find_most_similar_question(user_input, qa_data, embeddings, top_k=3):
+    """Return top-k most similar questions and their scores."""
+    query_embedding = model.encode(user_input, convert_to_tensor=True)
+    hits = util.semantic_search(query_embedding, embeddings, top_k=top_k)[0]
 
-def load_dataset(path="data/crescent_qa.json"):
-    """
-    Load the question-answer dataset from JSON file.
-    """
-    global _dataset
-    if _dataset is None:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        _dataset = pd.DataFrame(data)
-    return _dataset
-
-
-def compute_embeddings(model, dataset):
-    """
-    Compute and return embeddings for the questions.
-    """
-    global _embeddings
-    if _embeddings is None:
-        questions = dataset["question"].str.lower().tolist()
-        _embeddings = model.encode(questions, convert_to_tensor=True)
-    return _embeddings
-
-
-def load_model_and_embeddings():
-    """
-    Load model, dataset, and compute embeddings. Returns all three.
-    """
-    model = load_model()
-    dataset = load_dataset()
-    embeddings = compute_embeddings(model, dataset)
-    return model, dataset, embeddings
-
-
-def get_top_k_answer(query, top_k=3, threshold=0.45):
-    """
-    Wrapper to return best-matched answer and related questions.
-    """
-    model, dataset, embeddings = load_model_and_embeddings()
-    from utils.search import find_response  # imported here to avoid circular import
-    return find_response(query, model, dataset, embeddings, top_k, threshold)
+    results = []
+    for hit in hits:
+        index = hit["corpus_id"]
+        score = hit["score"]
+        results.append((qa_data[index], score))
+    return results

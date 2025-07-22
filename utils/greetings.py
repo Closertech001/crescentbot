@@ -147,9 +147,29 @@ LEVEL_MEANINGS = {
     "600": "600 level na for advanced courses like Medicine 🩺"
 }
 
+FINAL_YEAR_PHRASES = [
+    r"final year",
+    r"last year",
+    r"graduating year",
+    r"i.*am.*(in|doing).*final",
+    r"i.*dey.*(do|for).*final",
+    r"\bi dey graduate\b",
+    r"\bi go soon finish\b",
+    r"\bi.*(graduate|finish).*soon"
+]
+
 def get_level_meaning(text: str) -> str:
+    text = text.lower()
+    # Check for specific numeric level
     match = re.search(r"\b(100|200|300|400|500|600)\s*level\b", text)
     if match:
         level = match.group(1)
         return LEVEL_MEANINGS.get(level, "")
+
+    # Detect indirect final year references
+    for pattern in FINAL_YEAR_PHRASES:
+        if re.search(pattern, text):
+            # Could return 400 or 500 depending on course — using generic phrasing
+            return "Final year fit mean 400 or 500 level — na the last lap be that! 🎓"
+
     return ""

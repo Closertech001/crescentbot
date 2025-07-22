@@ -1,14 +1,13 @@
 # utils/course_query.py
 
 import json
-import os
 from rapidfuzz import process, fuzz
 
 # Load course data
 with open("data/course_data.json", "r", encoding="utf-8") as f:
     course_data = json.load(f)
 
-# Get all departments
+# List of all departments in the data
 all_departments = list(course_data.keys())
 
 def match_department(input_dept):

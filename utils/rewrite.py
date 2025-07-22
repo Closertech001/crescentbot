@@ -16,4 +16,4 @@ def rewrite_with_tone(user_input, response):
     elif tone == "emphatic":
         return "Absolutely! Here's everything you need:\n\n" + response
     else:
-        return response
+        return "Here's what I found for you:\n\n" + response

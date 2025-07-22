@@ -1,113 +1,116 @@
 import streamlit as st
 import random
-import time
-import json
 import re
+import time
 
 from utils.course_query import get_course_info
-from utils.embedding import load_embeddings
+from utils.embedding import get_top_k_answers
 from utils.search import semantic_search
 from utils.memory import MemoryHandler
-from utils.greetings import is_greeting, is_small_talk, respond_to_small_talk
+from utils.greetings import is_greeting, is_small_talk, respond_to_small_talk, get_greeting_response
 from utils.preprocess import normalize_input
-from utils.rewrite import rewrite_question
+from openai import OpenAI
 
-import openai
+# --- Load OpenAI API key ---
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# 🔐 Load OpenAI API key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# --- Initialize memory handler ---
+memory = MemoryHandler()
 
-# 📦 Load course data and embeddings
-with open("data/course_data.json", "r") as f:
-    course_data = json.load(f)
+# --- Streamlit UI setup ---
+st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
+st.markdown('<h1 style="text-align: center;">🎓 Crescent University Chatbot</h1>', unsafe_allow_html=True)
 
-qa_data, embeddings, model = load_embeddings("data/crescent_qa.json")
+with st.sidebar:
+    st.image("assets/cu_logo.png", width=200)
+    if st.button("🧹 Clear Chat"):
+        st.session_state.messages = []
+        memory.clear()
 
-# 🧠 Initialize session memory
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-if "memory" not in st.session_state:
-    st.session_state.memory = MemoryHandler()
+# --- Initialize chat history ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# 🎨 Custom CSS
-with open("assets/style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-st.title("🎓 Crescent University Chatbot")
-
-# 💬 Chat message function
-def add_message(role, content):
-    with st.chat_message(role):
-        st.markdown(content)
-    st.session_state.chat_history.append({"role": role, "content": content})
-
-# 🤖 Bot typing animation
+# --- Chatbot typing animation ---
 def bot_typing():
-    with st.chat_message("assistant"):
-        dots = st.empty()
-        for i in range(3):
-            dots.markdown("Bot is typing" + "." * (i + 1))
-            time.sleep(0.4)
-        dots.empty()
+    with st.spinner("Bot is typing..."):
+        time.sleep(random.uniform(0.7, 1.3))
 
-# 🔁 GPT fallback
-def gpt_fallback(question):
-    messages = [{"role": "system", "content": "You are a helpful Crescent University assistant."}]
-    for msg in st.session_state.chat_history[-5:]:
-        messages.append(msg)
-    messages.append({"role": "user", "content": question})
+# --- Display chat messages ---
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=messages,
-        temperature=0.7,
-        max_tokens=500
-    )
-    return response.choices[0].message.content.strip()
-
-# 🎯 Answer logic
-def get_answer(user_input):
-    norm_input = normalize_input(user_input)
-    mem = st.session_state.memory
-
-    # Greeting
-    if is_greeting(norm_input):
-        return random.choice([
-            "Hello! How can I assist you today?",
-            "Hi there 👋, what would you like to know?",
-            "Hey! Feel free to ask me about Crescent University."
-        ])
-
-    # Small talk
-    if is_small_talk(norm_input):
-        return respond_to_small_talk(norm_input)
-
-    # Direct course query
-    course_matches = get_course_info(norm_input, course_data)
-    if course_matches:
-        mem.update_context(norm_input)
-        response = "Here are the matching courses:\n\n"
-        for match in course_matches:
-            response += f"- **{match['course_code']}**: {match['course_title']} ({match['credit_unit']} unit{'s' if match['credit_unit'] != '1' else ''})\n"
-        return response
-
-    # Semantic search
-    results = semantic_search(norm_input, qa_data, embeddings, model, top_k=1)
-    if results:
-        top_result = results[0]
-        if top_result["score"] > 0.7:
-            mem.update_context(norm_input)
-            tone = random.choice(["Here’s what I found:", "This might help:", "Check this out:"])
-            return f"{tone}\n\n**Q:** {top_result['question']}\n**A:** {top_result['answer']}"
-
-    # GPT fallback
-    rewritten = rewrite_question(norm_input, mem.last_context())
-    return gpt_fallback(rewritten)
-
-# 🚀 Chat input
+# --- Handle user input ---
 user_input = st.chat_input("Ask me anything about Crescent University...")
+
 if user_input:
-    add_message("user", user_input)
-    bot_typing()
-    answer = get_answer(user_input)
-    add_message("assistant", answer)
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    # --- Normalize input ---
+    normalized_input = normalize_input(user_input)
+
+    # --- Greeting ---
+    if is_greeting(normalized_input):
+        response = get_greeting_response()
+        with st.chat_message("assistant"):
+            bot_typing()
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.stop()
+
+    # --- Small Talk ---
+    if is_small_talk(normalized_input):
+        response = respond_to_small_talk(normalized_input)
+        with st.chat_message("assistant"):
+            bot_typing()
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.stop()
+
+    # --- Course / Department Info ---
+    course_response = get_course_info(normalized_input, memory)
+    if course_response:
+        with st.chat_message("assistant"):
+            bot_typing()
+            st.markdown(course_response)
+        st.session_state.messages.append({"role": "assistant", "content": course_response})
+        st.stop()
+
+    # --- Semantic Search ---
+    result = semantic_search(normalized_input, top_k=3)
+    if result:
+        dynamic_openings = [
+            "Here's something I found for you:",
+            "This might help:",
+            "Take a look at this:",
+            "Hope this answers your question:",
+            "Here's what I found:"
+        ]
+        response = f"**{random.choice(dynamic_openings)}**\n\n{result}"
+        with st.chat_message("assistant"):
+            bot_typing()
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.stop()
+
+    # --- Fallback: Use GPT-4 ---
+    try:
+        with st.chat_message("assistant"):
+            bot_typing()
+            fallback_prompt = f"You are a helpful assistant for Crescent University. Answer this question clearly and concisely:\n\n{user_input}"
+            completion = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "system", "content": fallback_prompt}],
+                max_tokens=500
+            )
+            gpt_response = completion.choices[0].message.content.strip()
+            st.markdown(gpt_response)
+        st.session_state.messages.append({"role": "assistant", "content": gpt_response})
+    except Exception as e:
+        error_msg = "I'm sorry, I couldn't process that right now. Please try again later."
+        with st.chat_message("assistant"):
+            st.error(error_msg)
+        st.session_state.messages.append({"role": "assistant", "content": error_msg})

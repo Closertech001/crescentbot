@@ -39,49 +39,31 @@ SYNONYMS = {
     "needed for": "required for", "who handles": "who manages"
 }
 
-@st.cache_resource
 def get_sym_spell():
     sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
     dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
     sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
     return sym_spell
 
-def normalize_text(text):
-    text = re.sub(r'[^\w\s\-]', '', text)          # keep hyphen
-    text = re.sub(r'(.)\1{2,}', r'\1', text)       # reduce repeated chars
-    return text.lower()
-
 def apply_abbreviations(words):
-    return [ABBREVIATIONS.get(w.lower(), w) for w in words]
+    return [ABBREVIATIONS.get(word, word) for word in words]
 
 def apply_synonyms(words):
-    return [SYNONYMS.get(w.lower(), w) for w in words]
+    return [SYNONYMS.get(word, word) for word in words]
 
-def preprocess_text(text, debug=False):
+def normalize_text(text):
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", "", text)
+    return text
+
+def normalize_input(text):
     text = normalize_text(text)
     words = text.split()
-
-    # Step 1: Expand abbreviations
-    expanded = apply_abbreviations(words)
-
-    # Step 2: Spell correction with SymSpell
+    words = apply_abbreviations(words)
     sym_spell = get_sym_spell()
-    corrected = []
-    for word in expanded:
-        suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
-        corrected.append(suggestions[0].term if suggestions else word)
-
-    # Step 3: Apply synonyms
-    final_words = apply_synonyms(corrected)
-
-    if debug:
-        print("Original:", text)
-        print("Expanded:", expanded)
-        print("Corrected:", corrected)
-        print("With Synonyms:", final_words)
-
-    return ' '.join(final_words)
-
-def extract_prefix(code):
-    match = re.match(r"([A-Z\-]+)", code)
-    return match.group(1) if match else None
+    corrected = [
+        sym_spell.lookup(w, Verbosity.CLOSEST, 2)[0].term if sym_spell.lookup(w, Verbosity.CLOSEST, 2) else w
+        for w in words
+    ]
+    final = apply_synonyms(corrected)
+    return " ".join(final)

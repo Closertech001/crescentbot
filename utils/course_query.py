@@ -24,53 +24,48 @@ DEPARTMENT_TO_FACULTY_MAP = {
     "medical laboratory science": "College of Natural and Applied Sciences (CONAS)",
 }
 
-# 📚 Static department list
 DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
 
-# 🎓 Recognized level and semester keywords
 LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
 SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
-# 🔍 Fuzzy department matcher
-def fuzzy_match_department(input_text):
-    best_match = None
-    highest_score = 0
+# 🔍 Fuzzy matcher for multiple departments
+def fuzzy_match_departments(text):
+    """
+    Match multiple departments from input using fuzzy matching.
+    Returns a list of department names.
+    """
+    matches = []
     for dept in DEPARTMENTS:
-        score = fuzz.partial_ratio(input_text.lower(), dept.lower())
-        if score > highest_score and score > 80:
-            best_match = dept
-            highest_score = score
-    return best_match
+        score = fuzz.partial_ratio(text.lower(), dept.lower())
+        if score > 80:
+            matches.append(dept)
+    return list(set(matches))  # remove duplicates
 
 # 🧠 Query parser
 def parse_query(text):
     text = normalize_input(text)
-
     level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
     semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
-    dept = fuzzy_match_department(text)
-    faculty = DEPARTMENT_TO_FACULTY_MAP.get(dept) if dept else None
+    departments = fuzzy_match_departments(text)
+    faculties = [DEPARTMENT_TO_FACULTY_MAP.get(d) for d in departments]
 
     return {
-        "department": dept,
-        "faculty": faculty,
+        "departments": departments,
+        "faculties": faculties,
         "level": level,
-        "semester": (
-            "First" if semester in ["first", "1st"]
-            else "Second" if semester in ["second", "2nd"]
-            else None
-        ),
+        "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
     }
 
 # 📦 Course fetcher
 def get_courses_for_query(query_info, course_data):
-    dept = query_info.get("department")
+    departments = query_info.get("departments", [])
     level = query_info.get("level")
     semester = query_info.get("semester")
 
     matches = []
     for entry in course_data:
-        if dept and dept.lower() != entry["department"].lower():
+        if departments and entry["department"].lower() not in [d.lower() for d in departments]:
             continue
         if level and level != entry.get("level"):
             continue
@@ -78,8 +73,11 @@ def get_courses_for_query(query_info, course_data):
             continue
         matches.append(entry)
 
-    # 🔁 Fallback: return department matches even if level/semester mismatch
-    if not matches and dept:
-        matches = [entry for entry in course_data if dept.lower() in entry["department"].lower()]
+    # fallback: if level/semester filtering fails but department matches
+    if not matches and departments:
+        matches = [
+            entry for entry in course_data
+            if entry["department"].lower() in [d.lower() for d in departments]
+        ]
 
     return matches

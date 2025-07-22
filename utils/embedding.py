@@ -1,5 +1,4 @@
-# utils/embedding.py
-
+# ✅ embedding.py
 import json
 import pandas as pd
 from sentence_transformers import SentenceTransformer
@@ -22,5 +21,4 @@ def load_dataset(path="data/crescent_qa.json"):
 
 def compute_question_embeddings(questions, model):
     """Compute embeddings for a list of questions using the provided model."""
-    questions = [q.strip().lower() for q in questions]
-    return model.encode(questions, convert_to_tensor=True)
+    return model.encode([q.strip().lower() for q in questions], convert_to_tensor=True)

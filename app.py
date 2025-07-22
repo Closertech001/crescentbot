@@ -25,7 +25,7 @@ def load_dataset(filepath):
         return json.load(f)
 
 # Combine both datasets
-data = load_dataset("data/crescent.json") + load_dataset("data/course_data.json")
+data = load_dataset("data/crescent_qa.json") + load_dataset("data/course_data.json")
 
 # --- Preprocessing ---
 questions = [entry["question"] for entry in data]

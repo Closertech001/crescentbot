@@ -1,29 +1,35 @@
 # utils/embedding.py
 
 import json
+import os
+from sentence_transformers import SentenceTransformer
 import numpy as np
-from sentence_transformers import SentenceTransformer, util
 
-# Load sentence transformer model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# Load QA dataset and compute embeddings for semantic search
+MODEL_NAME = "all-MiniLM-L6-v2"
+MODEL = SentenceTransformer(MODEL_NAME)
 
-def load_qa_embeddings(qa_path="data/crescent_qa.json"):
-    """Load questions and compute their embeddings."""
-    with open(qa_path, "r", encoding="utf-8") as f:
-        qa_data = json.load(f)
+EMBEDDINGS_FILE = "data/qa_embeddings.json"
+QA_FILE = "data/crescent_qa.json"
 
-    questions = [item["question"] for item in qa_data]
-    embeddings = model.encode(questions, convert_to_tensor=True)
-    return qa_data, embeddings
 
-def find_most_similar_question(user_input, qa_data, embeddings, top_k=3):
-    """Return top-k most similar questions and their scores."""
-    query_embedding = model.encode(user_input, convert_to_tensor=True)
-    hits = util.semantic_search(query_embedding, embeddings, top_k=top_k)[0]
+def load_qa_data():
+    with open(QA_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    results = []
-    for hit in hits:
-        index = hit["corpus_id"]
-        score = hit["score"]
-        results.append((qa_data[index], score))
-    return results
+
+def compute_embeddings(questions):
+    return MODEL.encode(questions, convert_to_numpy=True, normalize_embeddings=True).tolist()
+
+
+def get_stored_embeddings():
+    if os.path.exists(EMBEDDINGS_FILE):
+        with open(EMBEDDINGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    else:
+        qa_data = load_qa_data()
+        questions = [item["question"] for item in qa_data]
+        embeddings = compute_embeddings(questions)
+        with open(EMBEDDINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(embeddings, f)
+        return embeddings

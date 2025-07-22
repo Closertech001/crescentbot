@@ -1,99 +1,105 @@
 import streamlit as st
-import random
 import json
-from utils.embedding import embed_query, search_similar_questions
-from utils.preprocess import normalize_input
-from utils.greetings import detect_greeting, get_random_greeting
-from utils.course_query import parse_query, get_courses_for_query
-from openai import OpenAI
+import random
 import time
+from utils.embedding import load_embeddings, search_similar
+from utils.course_query import parse_query, get_courses_for_query
+from utils.preprocess import normalize_input
+from utils.greetings import is_greeting, get_greeting_response
 
-# 🔐 Load OpenAI API Key
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-# 🎨 Page configuration
-st.set_page_config(page_title="Crescent University Chatbot", page_icon="🤖")
-st.markdown("<style>" + open("assets/style.css").read() + "</style>", unsafe_allow_html=True)
-
-# 📁 Load course and QA data
-with open("data/course_data.json") as f:
+# 🔄 Load data
+with open("data/course_data.json", "r", encoding="utf-8") as f:
     course_data = json.load(f)
 
-with open("data/crescent_qa.json") as f:
-    crescent_qa = json.load(f)
+with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+    qa_data = json.load(f)
 
-# 🤖 Dynamic bot replies
-BOT_REPLIES = [
-    "Here’s what I found for you:",
-    "This might help:",
-    "I’ve got something for you!",
-    "Check this out:",
-    "Here you go:",
-    "Hope this answers your question:",
-    "Look what I found:",
-]
+embeddings, questions = load_embeddings(qa_data)
 
-# 💬 Initialize session state
+# 🎨 Page config
+st.set_page_config(page_title="Crescent University Chatbot", page_icon="🎓")
+st.markdown('<style>' + open('assets/style.css').read() + '</style>', unsafe_allow_html=True)
+
+# 💬 Chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-if "last_department" not in st.session_state:
-    st.session_state.last_department = None
+# 🧠 Small talk responses
+RESPONSES = [
+    "Here’s what I found for you:",
+    "Hope this helps:",
+    "Got it! Here you go:",
+    "This should answer your question:",
+    "Alright, take a look at this:"
+]
 
-# ⏳ Typing effect
-def show_typing():
+# ⏳ Typing animation
+def bot_typing():
     with st.empty():
-        for dots in [".", "..", "..."]:
-            st.markdown(f"🤖 Bot is typing{dots}")
+        for dots in ["", ".", "..", "..."]:
+            st.markdown(f"**Bot is typing{dots}**")
             time.sleep(0.3)
 
-# 🧠 Answer generation
-def generate_response(user_input):
-    normalized = normalize_input(user_input)
-    
-    # Greet detection
-    if detect_greeting(normalized):
-        return get_random_greeting()
+# 🧾 Main interface
+st.title("🤖 Crescent University Chatbot")
 
-    # Try course-related question first
-    query_info = parse_query(normalized)
-    course_matches = get_courses_for_query(course_data, query_info)
+user_input = st.text_input("Ask me anything about Crescent University...", key="user_input")
 
-    if course_matches:
-        st.session_state.last_department = query_info.get("department")
-        responses = [f"**Q:** {m['question']}\n**A:** {m['answer']}" for m in course_matches]
-        return f"**{random.choice(BOT_REPLIES)}**\n\n" + "\n\n---\n\n".join(responses)
-
-    # If no course match, try general QA
-    embedded_query = embed_query(normalized)
-    result = search_similar_questions(embedded_query, crescent_qa, top_k=1)
-
-    if result:
-        return f"**{random.choice(BOT_REPLIES)}**\n\n**Q:** {result['question']}\n**A:** {result['answer']}"
-
-    return "🤔 I couldn’t find an answer for that. Try rephrasing your question."
-
-# 💬 Input area
-st.title("🎓 Crescent University Chatbot")
-user_input = st.text_input("Ask me anything about Crescent University:", key="user_input", label_visibility="collapsed")
-
-# 🗨️ Show messages
-for msg in st.session_state.chat_history:
-    st.markdown(f"🧑‍🎓 **You:** {msg['user']}")
-    st.markdown(f"🤖 **Bot:** {msg['bot']}")
-    st.markdown("---")
-
-# 📤 Send & respond
 if user_input:
-    st.session_state.chat_history.append({"user": user_input, "bot": "..."})
-    show_typing()
-    response = generate_response(user_input)
-    st.session_state.chat_history[-1]["bot"] = response
+    st.session_state.chat_history.append(("user", user_input))
+    normalized = normalize_input(user_input)
+
+    # 👋 Greeting
+    if is_greeting(normalized):
+        response = get_greeting_response()
+    else:
+        # 📚 Course code handling
+        match = None
+        course_code_pattern = r"\b[A-Z]{2,4}\s?\d{3}\b"
+        code_match = re.search(course_code_pattern, user_input, re.IGNORECASE)
+
+        if code_match:
+            course_code = code_match.group().replace(" ", "").upper()
+            for entry in course_data:
+                if entry.get("course_code", "").replace(" ", "").upper() == course_code:
+                    title = entry.get("course_title", "Unknown title")
+                    unit = entry.get("course_unit", "N/A")
+                    response = f"""📘 *Here’s the info for* `{course_code}`:\n\n{title} ({unit} unit{'s' if unit != 1 else ''})"""
+                    match = True
+                    break
+
+        # 🔎 Deep query
+        if not match:
+            query_info = parse_query(normalized)
+            if query_info["department"]:
+                matched_courses = get_courses_for_query(course_data, query_info)
+                if matched_courses:
+                    response = f"📚 Courses for **{query_info['department'].title()}**"
+                    if query_info["level"]:
+                        response += f", Level {query_info['level']}"
+                    if query_info["semester"]:
+                        response += f", {query_info['semester']} Semester"
+                    response += ":\n\n"
+                    for course in matched_courses:
+                        response += f"- `{course.get('course_code', 'N/A')}`: {course.get('course_title', 'N/A')} ({course.get('course_unit', 'N/A')} units)\n"
+                else:
+                    response = "I couldn't find courses matching that info. Please try specifying the department or level more clearly."
+            else:
+                # 🤖 Semantic Q&A fallback
+                top_match = search_similar(normalized, embeddings, questions, qa_data)
+                if top_match:
+                    response = f"{random.choice(RESPONSES)}\n\n{top_match['answer']}"
+                else:
+                    response = "Sorry, I couldn’t find an answer for that."
+
+    # 🤖 Show bot typing
+    bot_typing()
+    st.session_state.chat_history.append(("bot", response))
     st.experimental_rerun()
 
-# 🧹 Sidebar
-with st.sidebar:
-    if st.button("🧼 Clear Chat"):
-        st.session_state.chat_history = []
-        st.session_state.user_input = ""
-        st.rerun()
+# 📜 Display chat
+for sender, msg in st.session_state.chat_history:
+    if sender == "user":
+        st.markdown(f"**You:** {msg}")
+    else:
+        st.markdown(f"**Bot:** {msg}")

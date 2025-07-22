@@ -1,9 +1,9 @@
-import json
 import re
+import json
 from rapidfuzz import fuzz
 from utils.preprocess import normalize_input
 
-# 🏛️ Department → Faculty/College map
+# 🏛️ Department → Faculty map
 DEPARTMENT_TO_FACULTY_MAP = {
     "computer science": "College of Information and Communication Technology (CICOT)",
     "mass communication": "College of Information and Communication Technology (CICOT)",
@@ -25,11 +25,10 @@ DEPARTMENT_TO_FACULTY_MAP = {
 }
 
 DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
-
-LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
+LEVEL_KEYWORDS = ["100", "200", "300", "400", "500", "year 1", "year 2", "year 3", "year 4", "year 5", "final year"]
 SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
-# 🔍 Fuzzy matcher for multiple departments
+# 🔍 Fuzzy match multiple departments in a query
 def fuzzy_match_departments(text):
     matches = []
     for dept in DEPARTMENTS:
@@ -38,11 +37,38 @@ def fuzzy_match_departments(text):
             matches.append(dept)
     return list(set(matches))
 
-# 🧠 Query parser
+# 📘 Level normalization
+def extract_level(text):
+    if "final year" in text:
+        return "400"  # or "500" depending on department
+    if "year 1" in text:
+        return "100"
+    elif "year 2" in text:
+        return "200"
+    elif "year 3" in text:
+        return "300"
+    elif "year 4" in text:
+        return "400"
+    elif "year 5" in text:
+        return "500"
+    for lvl in ["100", "200", "300", "400", "500"]:
+        if lvl in text:
+            return lvl
+    return None
+
+# 📘 Semester normalization
+def extract_semester(text):
+    if "first" in text or "1st" in text:
+        return "First"
+    elif "second" in text or "2nd" in text:
+        return "Second"
+    return None
+
+# 🧠 Parse query into department, level, semester, faculty
 def parse_query(text):
     text = normalize_input(text)
-    level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
-    semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
+    level = extract_level(text)
+    semester = extract_semester(text)
     departments = fuzzy_match_departments(text)
     faculties = [DEPARTMENT_TO_FACULTY_MAP.get(d) for d in departments]
 
@@ -50,10 +76,10 @@ def parse_query(text):
         "departments": departments,
         "faculties": faculties,
         "level": level,
-        "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
+        "semester": semester
     }
 
-# 📦 Course fetcher
+# 📦 Match course info based on query
 def get_courses_for_query(query_info, course_data):
     departments = query_info.get("departments", [])
     level = query_info.get("level")
@@ -69,7 +95,7 @@ def get_courses_for_query(query_info, course_data):
             continue
         matches.append(entry)
 
-    # fallback: if level/semester filtering fails but department matches
+    # fallback if nothing matched by level/semester
     if not matches and departments:
         matches = [
             entry for entry in course_data
@@ -78,7 +104,7 @@ def get_courses_for_query(query_info, course_data):
 
     return matches
 
-# ✅ Add this function for compatibility with app.py
+# ✅ Final function to use in app.py
 def get_course_info(user_query, course_data):
     query_info = parse_query(user_query)
     return get_courses_for_query(query_info, course_data)

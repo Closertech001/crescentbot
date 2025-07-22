@@ -63,17 +63,21 @@ PIDGIN_MAP = {
     "comot": "leave", "carry go": "take away", "waka": "walk"
 }
 
+# --- Repeated character reducer (e.g., "heyyyyy" -> "hey") ---
+def reduce_repeated_chars(text: str) -> str:
+    return re.sub(r'(.)\1{2,}', r'\1', text)
+
 # --- Main normalization function ---
 def normalize_input(text: str) -> str:
-    text = text.lower()
+    # Step 1: Basic cleanup
+    text = reduce_repeated_chars(text.lower().strip())
 
-    # Apply phrase replacements
+    # Step 2: Phrase-level replacements
     for phrase, replacement in PHRASE_REPLACEMENTS.items():
-        pattern = re.compile(r"\b" + re.escape(phrase) + r"\b")
-        text = pattern.sub(replacement, text)
+        text = re.sub(rf"\b{re.escape(phrase)}\b", replacement, text)
 
-    # Tokenize and replace abbreviations, synonyms, pidgin
-    tokens = text.split()
+    # Step 3: Tokenize and replace
+    tokens = re.findall(r"\b\w+\b", text)
     normalized = []
 
     for token in tokens:

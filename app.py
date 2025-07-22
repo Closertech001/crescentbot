@@ -1,117 +1,110 @@
-# app.py
-
 import streamlit as st
+import openai
 import random
 import time
-from utils.embedding import load_qa_dataset, embed_and_search
+
 from utils.course_query import get_course_info
-from utils.greetings import is_greeting, greeting_responses, small_talk_response, detect_farewell
-from utils.preprocess import normalize_input
+from utils.embedding import load_qa_dataset
+from utils.greetings import is_greeting, respond_to_greeting
+from utils.log_utils import log_interaction
 from utils.memory import MemoryHandler
-from utils.rewrite import rewrite_question
-from utils.search import search_similar_question
-from openai import OpenAI
+from utils.preprocess import normalize_input
+from utils.rewrite import improve_question
+from utils.search import find_response
+from utils.tone import detect_tone
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="Crescent University Chatbot 🤖", page_icon="🎓")
+# Load styling
+with open("assets/style.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# --- LOAD OPENAI ---
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Load OpenAI API key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# --- LOAD DATA ---
-qa_data, question_embeddings = load_qa_dataset()
-
-# --- SESSION STATE ---
+# Initialize session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "memory" not in st.session_state:
+    st.session_state.memory = MemoryHandler()
 
-memory = MemoryHandler()
+# Load model and embeddings
+model, df, embeddings = load_qa_dataset()
 
-# --- STYLING ---
-st.markdown(
-    """
-    <style>
-    .message-bubble {
-        padding: 0.6em 1em;
-        border-radius: 1.2em;
-        margin-bottom: 0.5em;
-        display: inline-block;
-        max-width: 85%;
-    }
-    .user {background-color: #DCF8C6; align-self: flex-end;}
-    .bot {background-color: #F1F0F0;}
-    .typing {
-        font-style: italic;
-        opacity: 0.6;
-        margin-left: 0.5em;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+# Chat title
+st.title("🎓 Crescent University Chatbot")
+st.markdown("Ask me anything about departments, courses, or admission.")
 
-st.title("🤖 Crescent University Chatbot")
+# Input box
+user_input = st.chat_input("Type your question...")
 
-# --- DISPLAY CHAT HISTORY ---
-for speaker, msg in st.session_state.chat_history:
-    bubble_class = "user" if speaker == "You" else "bot"
-    st.markdown(f'<div class="message-bubble {bubble_class}"><b>{speaker}:</b> {msg}</div>', unsafe_allow_html=True)
+# Typing animation
+def show_typing_indicator():
+    message = st.empty()
+    for dots in ["", ".", "..", "..."]:
+        message.markdown(f"🤖 Bot is typing{dots}")
+        time.sleep(0.3)
+    message.empty()
 
-# --- TYPING ANIMATION ---
-def bot_typing_animation():
-    with st.empty():
-        for dots in ["", ".", "..", "..."]:
-            st.markdown(f'<div class="typing">Bot is typing{dots}</div>', unsafe_allow_html=True)
-            time.sleep(0.4)
+# Message rendering
+def render_message(speaker, msg):
+    bubble_class = "chat-message-user" if speaker == "You" else "chat-message-assistant"
+    st.markdown(f'<div class="{bubble_class}"><b>{speaker}:</b><br>{msg}</div>', unsafe_allow_html=True)
 
-# --- HANDLE USER INPUT ---
-def handle_input(user_input):
-    normalized = normalize_input(user_input)
-
-    if is_greeting(normalized):
-        return greeting_responses(normalized)
-
-    if detect_farewell(normalized):
-        return "Bye bye! Hope say you go come back soon. 👋"
-
-    small_talk = small_talk_response(normalized)
-    if small_talk:
-        return small_talk
-
-    # Course info check
-    course_result = get_course_info(normalized, memory)
-    if course_result:
-        return course_result
-
-    # Semantic search
-    match = search_similar_question(normalized, qa_data, question_embeddings)
-    if match:
-        return random.choice([
-            "Here's wetin I find for you 👇",
-            "Hope this help you 😊",
-            "Check this out 👇",
-            "This fit help you: 🔍"
-        ]) + "\n\n" + match["answer"]
-
-    # GPT fallback
-    rewritten = rewrite_question(normalized, memory)
-    messages = [
-        {"role": "system", "content": "You be helpful assistant for Crescent University Nigeria. Answer questions based on the university context."},
-        {"role": "user", "content": rewritten}
-    ]
-
-    completion = client.chat.completions.create(
-        model="gpt-4",
-        messages=messages
-    )
-    return completion.choices[0].message.content.strip()
-
-# --- USER INPUT ---
-user_input = st.text_input("Ask me anything about the university...")
-
+# Main interaction
 if user_input:
-    response = handle_input(user_input)
+    normalized = normalize_input(user_input)
+    tone = detect_tone(normalized)
     st.session_state.chat_history.append(("You", user_input))
-    bot_typing_animation()
-    st.session_state.chat_history.append(("Bot", response))
-    st.experimental_rerun()  # Clear input and rerun
+    render_message("You", user_input)
+
+    # Bot typing indicator
+    show_typing_indicator()
+
+    # Greeting or small talk
+    if is_greeting(normalized):
+        response = respond_to_greeting()
+        render_message("Bot", response)
+        st.session_state.chat_history.append(("Bot", response))
+        log_interaction(user_input, response, tone)
+    else:
+        # Try to match course info
+        course_answer = get_course_info(normalized, st.session_state.memory)
+        if course_answer:
+            render_message("Bot", course_answer)
+            st.session_state.chat_history.append(("Bot", course_answer))
+            log_interaction(user_input, course_answer, tone)
+        else:
+            # Improve and search
+            refined_query = improve_question(normalized, st.session_state.memory)
+            answer, related = find_response(refined_query, model, df, embeddings)
+
+            # Dynamic intro phrases
+            tone_prefixes = {
+                "polite": ["Certainly!", "Of course!", "Glad to help!"],
+                "confused": ["Let me clarify that for you.", "Here's what I found."],
+                "angry": ["I'm here to assist despite the frustration.", "Let's fix this."],
+                "emphatic": ["Here's a strong answer for you!", "Absolutely, here you go:"],
+                "urgent": ["Quick answer:", "Right away!"],
+                "neutral": ["Here's what I found:", "Let me help with that:"]
+            }
+            prefix = random.choice(tone_prefixes.get(tone, tone_prefixes["neutral"]))
+            full_response = f"{prefix} {answer}"
+            render_message("Bot", full_response)
+            st.session_state.chat_history.append(("Bot", full_response))
+            log_interaction(user_input, full_response, tone)
+
+            # Related questions
+            if related:
+                st.markdown("#### Related Questions")
+                for q in related:
+                    st.markdown(f'<div class="related-question">{q}</div>', unsafe_allow_html=True)
+
+# Show chat history
+st.divider()
+for speaker, msg in st.session_state.chat_history:
+    render_message(speaker, msg)
+
+# Clear chat
+if st.button("🔄 Clear Chat"):
+    st.session_state.chat_history = []
+    st.session_state.memory.reset()
+    st.experimental_rerun()

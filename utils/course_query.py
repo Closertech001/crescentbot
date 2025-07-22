@@ -3,29 +3,35 @@ import re
 from rapidfuzz import fuzz
 from utils.preprocess import normalize_input
 
-DEPARTMENTS = {
+# 🏛️ Mapping from department to faculty/college
+DEPARTMENT_TO_FACULTY_MAP = {
     "computer science": "College of Information and Communication Technology (CICOT)",
     "mass communication": "College of Information and Communication Technology (CICOT)",
-    "political science": "College of Social and Management Sciences (COSMAS)",
-    "nursing": "College of Health Sciences (COHES)",
-    "law": "College of Law",
-    "architecture": "College of Environmental Sciences (COES)",
+    "political science and international studies": "College of Arts, Social and Management Sciences (CASMAS)",
+    "business administration": "College of Arts, Social and Management Sciences (CASMAS)",
+    "economics with operations research": "College of Arts, Social and Management Sciences (CASMAS)",
     "anatomy": "College of Health Sciences (COHES)",
     "physiology": "College of Health Sciences (COHES)",
-    "economics with operations research": "College of Social and Management Sciences (COSMAS)",
-    "international relations": "College of Social and Management Sciences (COSMAS)",
-    "business administration": "College of Social and Management Sciences (COSMAS)",
+    "nursing": "College of Health Sciences (COHES)",
+    "law": "Bola Ajibola College of Law (BACOLAW)",
+    "architecture": "College of Environmental Sciences (COES)",
     "biochemistry": "College of Natural and Applied Sciences (CONAS)",
     "microbiology": "College of Natural and Applied Sciences (CONAS)",
     "chemistry": "College of Natural and Applied Sciences (CONAS)",
     "physics": "College of Natural and Applied Sciences (CONAS)",
     "mathematics": "College of Natural and Applied Sciences (CONAS)",
     "medical laboratory science": "College of Natural and Applied Sciences (CONAS)",
+    "accounting": "College of Arts, Social and Management Sciences (CASMAS)"
 }
 
+# 📚 Department list
+DEPARTMENTS = list(DEPARTMENT_TO_FACULTY_MAP.keys())
+
+# 🎓 Levels and semesters
 LEVEL_KEYWORDS = ["100", "200", "300", "400", "500"]
 SEMESTER_KEYWORDS = ["first", "second", "1st", "2nd"]
 
+# 🔍 Fuzzy match department
 def fuzzy_match_department(input_text):
     best_match = None
     highest_score = 0
@@ -36,14 +42,21 @@ def fuzzy_match_department(input_text):
             highest_score = score
     return best_match
 
+# 🧠 Extract query info
 def parse_query(text):
     text = normalize_input(text)
     level = next((lvl for lvl in LEVEL_KEYWORDS if lvl in text), None)
     semester = next((s for s in SEMESTER_KEYWORDS if s in text), None)
     dept = fuzzy_match_department(text)
-    faculty = DEPARTMENTS.get(dept) if dept else None
-    return {"department": dept, "faculty": faculty, "level": level, "semester": semester}
+    faculty = DEPARTMENT_TO_FACULTY_MAP.get(dept) if dept else None
+    return {
+        "department": dept,
+        "faculty": faculty,
+        "level": level,
+        "semester": "First" if semester in ["first", "1st"] else "Second" if semester in ["second", "2nd"] else None
+    }
 
+# 📦 Get courses from structured course_data
 def get_courses_for_query(course_data, query_info):
     dept = query_info.get("department")
     level = query_info.get("level")

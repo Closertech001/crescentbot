@@ -65,7 +65,6 @@ class CourseQueryHandler:
         dept_match = re.search(r"\b(?:course[s]?|subject[s]?)\s+(?:for|in|of)\s+([a-zA-Z &]+)", user_input)
         dept_name = dept_match.group(1).strip() if dept_match else None
 
-        # Fallback matching
         if not dept_name:
             for alias, actual in self.dept_aliases.items():
                 if alias in user_input:

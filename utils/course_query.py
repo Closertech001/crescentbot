@@ -1,118 +1,90 @@
+# utils/course_query.py
+
 import json
 import re
-from rapidfuzz import fuzz, process
+from utils.memory import MemoryHandler
 
-class CourseQueryHandler:
-    def __init__(self, course_data_path):
-        with open(course_data_path, "r", encoding="utf-8") as f:
-            self.course_data = json.load(f)
+# Load structured course data
+with open("data/course_data.json", "r", encoding="utf-8") as f:
+    course_data = json.load(f)
 
-        self.dept_to_college = {
-            "computer science": "CICOT",
-            "information technology": "CICOT",
-            "mass communication": "CASMAS",
-            "political science": "CASMAS",
-            "criminology and security studies": "CASMAS",
-            "accounting": "CASMAS",
-            "banking and finance": "CASMAS",
-            "economics": "CASMAS",
-            "business administration": "CASMAS",
-            "architecture": "COES",
-            "estate management": "COES",
-            "law": "BACOLAW",
-            "microbiology": "CONAS",
-            "biochemistry": "CONAS",
-            "chemistry": "CONAS",
-            "computer science (conas)": "CONAS",
-            "mathematics": "CONAS",
-            "physics": "CONAS",
-            "nursing": "COHES",
-            "anatomy": "COHES",
-            "physiology": "COHES",
-            "medical laboratory science": "COHES",
-        }
 
-        self.dept_aliases = {
-            "comp sci": "computer science",
-            "mass comm": "mass communication",
-            "biz admin": "business administration",
-            "med lab": "medical laboratory science",
-        }
+def extract_course_info(user_input: str, memory: MemoryHandler = None) -> str | None:
+    user_input = user_input.lower()
 
-    def normalize_department(self, name):
-        name = name.lower().strip()
-        if name in self.dept_aliases:
-            return self.dept_aliases[name]
-        best_match, score, _ = process.extractOne(name, list(self.dept_to_college.keys()), scorer=fuzz.ratio)
-        return best_match if score > 70 else None
+    # Try to extract course code pattern (e.g., CSC 101, csc101)
+    course_code_match = re.search(r'\b([a-z]{3})[\s\-]?(\d{3})\b', user_input)
+    if course_code_match:
+        code = course_code_match.group(1).upper() + " " + course_code_match.group(2)
+        for dept, levels in course_data.items():
+            for level, semesters in levels.items():
+                for semester, courses in semesters.items():
+                    for course in courses:
+                        if course["code"].replace("-", " ").upper() == code:
+                            if memory:
+                                memory.update(department=dept, level=level)
+                            return format_course_response(course, dept, level, semester)
 
-    def extract_info(self, user_input):
-        user_input = user_input.lower()
+    # Try to infer by department + level (e.g., "computer science 300 level")
+    department, level = extract_department_and_level(user_input)
+    if department or level:
+        if memory:
+            memory.update(department or memory.last_department, level or memory.last_level)
 
-        # Extract level
-        level_match = re.search(r"\b(100|200|300|400|500)\s*(?:level)?\b", user_input)
-        level = level_match.group(1) if level_match else None
+        dept = department or memory.last_department
+        lvl = level or memory.last_level
 
-        # Extract semester
-        semester_match = re.search(r"\b(first|1st|second|2nd)\s+semester\b", user_input)
-        semester = (
-            "first" if semester_match and "1" in semester_match.group(1)
-            else "second" if semester_match
-            else None
-        )
+        if dept and lvl:
+            return list_all_courses(dept, lvl)
 
-        # Extract department name
-        dept_match = re.search(r"\b(?:course[s]?|subject[s]?)\s+(?:for|in|of)\s+([a-zA-Z &]+)", user_input)
-        dept_name = dept_match.group(1).strip() if dept_match else None
+    return None  # Let fallback handle it
 
-        if not dept_name:
-            for alias, actual in self.dept_aliases.items():
-                if alias in user_input:
-                    dept_name = actual
-                    break
-            for dept in self.dept_to_college:
-                if dept in user_input:
-                    dept_name = dept
-                    break
 
-        normalized_dept = self.normalize_department(dept_name or "")
-        if not normalized_dept:
-            return "❌ I couldn't identify the department. Please try again using the full or common name."
+def format_course_response(course, dept, level, semester):
+    return f"""
+**📘 {course['code']} – {course['title']}**
+- Department: `{dept.title()}`
+- Level: `{level}`
+- Semester: `{semester.title()}`
+- Units: `{course['unit']}`
+"""
 
-        college = self.dept_to_college[normalized_dept]
-        courses = self.course_data.get(college, {}).get(normalized_dept, {}).get("courses", {})
 
-        # Filter courses
-        filtered = []
-        for course in courses:
-            if level and str(course.get("level")) != str(level):
-                continue
-            if semester and course.get("semester", "").lower() != semester:
-                continue
-            filtered.append(course)
+def list_all_courses(department, level):
+    try:
+        semesters = course_data[department][level]
+        lines = [f"📚 **{department.title()} – {level} Level Courses:**"]
+        for semester, courses in semesters.items():
+            lines.append(f"\n🟡 *{semester.title()} Semester*")
+            for c in courses:
+                lines.append(f"- `{c['code']}`: {c['title']} ({c['unit']} units)")
+        return "\n".join(lines)
+    except KeyError:
+        return f"⚠️ Sorry, I couldn't find course details for `{department.title()} - {level} level`."
 
-        if not filtered:
-            available_levels = sorted({c["level"] for c in courses})
-            available_semesters = sorted({c.get("semester", "").lower() for c in courses})
-            return (
-                f"No courses found for **{normalized_dept.title()}** "
-                f"{f'{level}-level' if level else ''} {f'{semester} semester' if semester else ''}.\n\n"
-                f"✅ Available levels: {', '.join(map(str, available_levels))}\n"
-                f"✅ Available semesters: {', '.join(available_semesters)}"
-            )
 
-        # Build response
-        response = f"📚 **Courses for {normalized_dept.title()}**"
-        if level:
-            response += f" - {level}-level"
-        if semester:
-            response += f" ({semester.title()} Semester)"
-        response += ":\n\n"
+def extract_department_and_level(text):
+    # Simplified department keywords (expand if needed)
+    department_keywords = {
+        "computer science": "computer science",
+        "anatomy": "anatomy",
+        "biochemistry": "biochemistry",
+        "accounting": "accounting",
+        "business admin": "business administration",
+        "microbiology": "microbiology",
+        "mass comm": "mass communication",
+        "economics": "economics and operational research",
+        "law": "law",
+        "nursing": "nursing",
+    }
 
-        for course in filtered:
-            code = course.get("code", "N/A")
-            title = course.get("title", "Untitled")
-            unit = course.get("unit", "N/A")
-            response += f"- `{code}`: {title} ({unit} units)\n"
+    level_match = re.search(r"(\d{3})\s*(level)?", text)
+    level = level_match.group(1) if level_match else None
 
-        return response
+    department = None
+    for keyword, canonical in department_keywords.items():
+        if keyword in text:
+            department = canonical
+            break
+
+    return department, level

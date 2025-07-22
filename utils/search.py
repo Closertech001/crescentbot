@@ -1,5 +1,3 @@
-# utils/search.py
-
 import torch
 from sentence_transformers.util import cos_sim
 from utils.embedding import load_model_and_embeddings

@@ -1,5 +1,3 @@
-# utils/embedding.py
-
 import json
 import faiss
 import numpy as np
@@ -22,16 +20,27 @@ def load_model_and_embeddings(json_path="data/crescent_qa.json"):
 
     return model, data, index, embeddings
 
-def find_most_similar_question(user_input, model, index, qa_data):
-    query_vector = model.encode([user_input], convert_to_numpy=True)
-    D, I = index.search(query_vector, k=1)
+def find_most_similar_question(user_query, model, index, qa_data, top_k=1):
+    """
+    Perform FAISS-based vector search to find the most similar question.
 
-    best_index = I[0][0]
-    best_score = D[0][0]
-    best_match = qa_data[best_index]
+    Args:
+        user_query (str): User input.
+        model: SentenceTransformer model.
+        index: FAISS index.
+        qa_data: List of QA pairs.
+        top_k (int): Number of top results to return.
 
-    # Normalize distance score to similarity (optional)
-    similarity = 1 / (1 + best_score) if best_score != 0 else 1.0
+    Returns:
+        (dict, float): Best matched QA pair and similarity score.
+    """
+    query_vec = model.encode([user_query], convert_to_numpy=True)
+    distances, indices = index.search(query_vec, top_k)
 
-    return best_match, similarity
+    if indices[0][0] == -1:
+        return None, 0.0  # No match found
 
+    matched_qa = qa_data[indices[0][0]]
+    similarity_score = 1 / (1 + distances[0][0])  # Convert L2 distance to similarity
+
+    return matched_qa, similarity_score

@@ -1,65 +1,53 @@
-CUSTOM_CSS = """
-<style>
-/* Page background */
-body {
-    background-color: #f7f9fc;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+assets/style.css
 
-/* Chat container */
-div[data-testid="stMarkdownContainer"] {
-    font-size: 16px;
-    line-height: 1.5;
+html, body, .stApp {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f9fcff;
 }
-
-/* User chat bubble */
-.stChatMessage[data-testid="stChatMessage"][data-role="user"] div[data-testid="stMarkdownContainer"] {
-    background-color: #4a90e2;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 20px 20px 0 20px;
-    max-width: 75%;
+h1, h2, h3, h4 {
+    font-family: 'Merriweather', serif;
+    color: #004080;
+}
+.chat-message-user {
+    background-color: #d6eaff;
+    padding: 12px;
+    border-radius: 15px;
+    margin-bottom: 10px;
     margin-left: auto;
-    margin-bottom: 8px;
-    white-space: pre-wrap;
-}
-
-/* Assistant chat bubble */
-.stChatMessage[data-testid="stChatMessage"][data-role="assistant"] div[data-testid="stMarkdownContainer"] {
-    background-color: #e2e8f0;
-    color: #1a202c;
-    padding: 12px 16px;
-    border-radius: 20px 20px 20px 0;
     max-width: 75%;
+    font-weight: 550;
+    color: #000;
+}
+.chat-message-assistant {
+    background-color: #f5f5f5;
+    padding: 12px;
+    border-radius: 15px;
+    margin-bottom: 10px;
     margin-right: auto;
-    margin-bottom: 8px;
-    white-space: pre-wrap;
+    max-width: 75%;
+    font-weight: 600;
+    color: #000;
 }
-
-/* Chat input box */
-div[role="textbox"] {
-    font-size: 16px !important;
-    padding: 12px !important;
+.related-question {
+    background-color: #e6f2ff;
+    padding: 8px 12px;
+    margin: 6px 6px 6px 0;
+    display: inline-block;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
 }
-
-/* Scrollbar for chat history */
-div[data-testid="stScrollableContainer"]::-webkit-scrollbar {
-    width: 8px;
+.department-label {
+    font-size: 0.8rem;
+    color: #004080;
+    font-style: italic;
 }
-
-div[data-testid="stScrollableContainer"]::-webkit-scrollbar-thumb {
-    background-color: #a0aec0;
-    border-radius: 20px;
+.sidebar .sidebar-content {
+    background-color: #e0f0ff;
 }
-
-/* Add subtle shadow to bubbles */
-.stChatMessage div[data-testid="stMarkdownContainer"] {
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.stButton>button {
+    border-radius: 10px;
+    background-color: #004080;
+    color: white;
+    font-weight: bold;
 }
-
-/* Emoji style tweaks */
-.emojione {
-    font-size: 1.2em !important;
-}
-</style>
-"""

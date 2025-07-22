@@ -1,99 +1,122 @@
 import streamlit as st
-import json
 import random
 import time
+import json
+import os
 import re
-import torch
-from sentence_transformers import SentenceTransformer
+from openai import OpenAI
 from utils.course_query import extract_course_info, get_course_by_code
-from utils.preprocess import normalize_input
-from utils.embedding import get_question_embeddings, load_model
-from utils.search import semantic_search
-from utils.greetings import (
-    detect_greeting, detect_farewell, is_small_talk,
-    get_random_greeting, rewrite_with_tone
-)
-from utils.memory import update_memory, get_contextual_input
+from utils.embedding import load_model, get_question_embeddings
+from utils.search import get_top_k_matches as semantic_search
+from utils.memory import update_memory, get_last_context
+from utils.preprocess import normalize_text
+from utils.rewrite import rewrite_with_tone
 
-# ----- Streamlit Config -----
-st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
+# Load data and model once
+@st.cache_resource
+def load():
+    with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+        qa_data = json.load(f)
+    questions = [q["question"] for q in qa_data]
+    model = load_model("all-MiniLM-L6-v2")
+    embeddings = get_question_embeddings(questions, model)
+    return qa_data, model, embeddings
 
-# ----- Typing Animation -----
-def typing_animation(text, delay=0.03):
-    message_placeholder = st.empty()
-    displayed = ""
-    for char in text:
-        displayed += char
-        message_placeholder.markdown(displayed)
-        time.sleep(delay)
+qa_data, model, question_embeddings = load()
 
-# ----- Session Memory -----
-if "memory" not in st.session_state:
-    st.session_state.memory = {"department": None, "level": None, "semester": None}
+# OpenAI setup
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# ----- Load Data -----
-@st.cache_data
-def load_course_data():
-    with open("data/course_data.json", "r") as f:
-        return json.load(f)
+# UI Config
+st.set_page_config(page_title="Crescent UniBot 🤖", layout="wide")
+st.markdown("<h3 style='text-align:center;'>🤖 Crescent University Chatbot</h3>", unsafe_allow_html=True)
 
-@st.cache_data
-def load_qa_data():
-    with open("data/crescent_qa.json", "r") as f:
-        return json.load(f)
+# Typing animation
+def typing_animation():
+    with st.empty():
+        for dots in ["", ".", "..", "..."]:
+            st.markdown(f"**Bot is typing{dots}**")
+            time.sleep(0.3)
 
-qa_data = load_qa_data()
-questions = [item["question"] for item in qa_data]
-answers = [item["answer"] for item in qa_data]
-model = load_model()
-question_embeddings = get_question_embeddings(questions)
+# Inline Greeting + Farewell Detection
+def detect_greeting(text):
+    greetings = ["hi", "hello", "hey", "good morning", "good evening", "good afternoon"]
+    return any(greet in text.lower() for greet in greetings)
 
-course_data = load_course_data()
+def detect_farewell(text):
+    farewells = ["bye", "goodbye", "see you", "farewell", "later"]
+    return any(farewell in text.lower() for farewell in farewells)
 
-# ----- Main Logic -----
-def handle_input(raw_input):
-    user_input = normalize_input(raw_input)
-    memory = st.session_state.memory
+def get_random_greeting():
+    return random.choice([
+        "Hello there! 👋",
+        "Hi! How can I help you today?",
+        "Hey! I'm here to assist you.",
+        "Welcome! Ask me anything about Crescent University.",
+        "Hiya! 😊 What do you want to know?"
+    ])
 
-    # Greeting & small talk
+def get_random_farewell():
+    return random.choice([
+        "Goodbye! 👋",
+        "See you later!",
+        "Take care!",
+        "Bye for now!",
+        "Wishing you all the best!"
+    ])
+
+# Handle Input
+def handle_input(user_input):
+    user_input_norm = normalize_text(user_input)
+    update_memory(user_input_norm)
+
+    # Greeting or farewell
     if detect_greeting(user_input):
         return get_random_greeting()
     if detect_farewell(user_input):
-        return "Bye for now! 😊 Let me know if you need anything else."
-    if is_small_talk(user_input):
-        return random.choice([
-            "All good here! Ready to assist.",
-            "Great! Ask me anything about Crescent University.",
-            "Feeling sharp! How can I help?"
-        ])
+        return get_random_farewell()
 
-    # Course code e.g. "What is MTH 101?"
-    course_info = get_course_by_code(user_input, course_data)
-    if course_info:
-        return rewrite_with_tone(user_input, course_info)
+    # Course code lookup
+    course_code_match = get_course_by_code(user_input_norm)
+    if course_code_match:
+        return course_code_match
 
-    # Direct course extraction e.g. “Courses for 200 level Computer Science”
-    course_response = extract_course_info(user_input, course_data, memory)
+    # Department/course-related info
+    course_response = extract_course_info(user_input_norm)
     if course_response:
-        return rewrite_with_tone(user_input, course_response)
+        return course_response
 
-    # Fallback to GPT-style QA from crescent_qa.json
-    updated_input = get_contextual_input(user_input, memory)
-    top_questions, top_idx = semantic_search(updated_input, questions, question_embeddings, model)
-    if top_idx:
-        update_memory(user_input, memory)
-        return rewrite_with_tone(user_input, answers[top_idx[0]])
+    # Semantic search fallback
+    matched = semantic_search(user_input_norm, qa_data, question_embeddings, model)
+    if matched:
+        return rewrite_with_tone(user_input, matched)
 
-    return "Sorry, I couldn’t find anything helpful. Could you rephrase or be more specific?"
+    # GPT-4 fallback
+    try:
+        gpt_response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for Crescent University."},
+                {"role": "user", "content": user_input}
+            ],
+            temperature=0.7
+        )
+        return rewrite_with_tone(user_input, gpt_response.choices[0].message.content)
+    except Exception as e:
+        return "Sorry, I encountered an error while processing your request."
 
-# ----- UI -----
-st.markdown("<h2 style='text-align: center;'>🎓 Crescent University Chatbot</h2>", unsafe_allow_html=True)
-st.markdown("<hr>", unsafe_allow_html=True)
+# Chat loop
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-user_input = st.text_input("Ask your question here...", key="user_input_box")
+user_input = st.chat_input("Ask me about Crescent University...")
 
 if user_input:
-    with st.spinner("Bot is typing..."):
-        response = handle_input(user_input)
-        typing_animation(response)
-    st.session_state.user_input_box = ""
+    st.session_state.chat_history.append(("user", user_input))
+    typing_animation()
+    response = handle_input(user_input)
+    st.session_state.chat_history.append(("bot", response))
+
+for role, message in st.session_state.chat_history:
+    with st.chat_message(role):
+        st.markdown(message)

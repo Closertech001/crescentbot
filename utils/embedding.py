@@ -1,20 +1,24 @@
 # utils/embedding.py
 
 import json
+import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
+import streamlit as st
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+@st.cache_data(show_spinner="Loading model and embedding index...")
+def load_model_and_embeddings(json_path="data/crescent_qa.json"):
+    model = SentenceTransformer("all-MiniLM-L6-v2")
 
-def load_qa_embeddings(filepath):
-    with open(filepath, 'r', encoding='utf-8') as f:
-        qa_data = json.load(f)
-    questions = [item["question"] for item in qa_data]
-    embeddings = model.encode(questions, convert_to_tensor=True)
-    return qa_data, embeddings
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-def find_most_similar_question(query, qa_data, embeddings):
-    query_embedding = model.encode(query, convert_to_tensor=True)
-    scores = util.pytorch_cos_sim(query_embedding, embeddings)[0]
-    best_match_idx = int(np.argmax(scores))
-    return qa_data[best_match_idx], float(scores[best_match_idx])
+    questions = [item["question"].strip().lower() for item in data]
+    embeddings = model.encode(questions, convert_to_numpy=True)
+
+    # Create FAISS index
+    dim = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dim)
+    index.add(embeddings)
+
+    return model, data, index, embeddings

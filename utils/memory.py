@@ -1,16 +1,36 @@
 # utils/memory.py
 
-# Memory tracking for context
 class Memory:
+    """
+    Tracks conversational memory like department and level.
+    """
     def __init__(self):
-        self.last_department = None
-        self.last_level = None
+        self.context = {
+            "department": None,
+            "level": None,
+            "semester": None
+        }
 
-    def update(self, department=None, level=None):
-        if department:
-            self.last_department = department
-        if level:
-            self.last_level = level
+    def update(self, **kwargs):
+        """
+        Update memory context. Accepts any of: department, level, semester.
+        """
+        for key in kwargs:
+            if key in self.context:
+                self.context[key] = kwargs[key]
 
     def get(self):
-        return self.last_department, self.last_level
+        """
+        Returns current memory values as a dict.
+        """
+        return self.context.copy()
+
+    def reset(self):
+        """
+        Resets the memory to default state.
+        """
+        for key in self.context:
+            self.context[key] = None
+
+    def __str__(self):
+        return f"Memory({self.context})"

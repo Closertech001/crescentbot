@@ -11,7 +11,7 @@ GREETING_PATTERNS = [
     r"\bgreetings\b", r"how far", r"how you dey"
 ]
 
-_greeting_responses_by_sentiment = {
+_GREETING_RESPONSES_BY_SENTIMENT = {
     "positive": [
         "Hey there! 😊 You're sounding great today. How can I assist you?",
         "Hi! 👋 I'm glad you're feeling good. What would you like to know?",
@@ -43,9 +43,10 @@ def detect_sentiment(user_input: str) -> str:
         return "negative"
     return "neutral"
 
-def greeting_responses(user_input: str = "") -> str:
+def greeting_response(user_input: str = "") -> str:
     tone = detect_sentiment(user_input) if user_input else "neutral"
-    return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
+    return random.choice(_GREETING_RESPONSES_BY_SENTIMENT.get(tone, _GREETING_RESPONSES_BY_SENTIMENT["neutral"]))
+
 
 # --- SMALL TALK DETECTION ---
 
@@ -70,7 +71,7 @@ SMALL_TALK_PATTERNS = {
         "I try my best! 😄 Especially when it comes to university questions.",
         "Not bad for a chatbot, right? 😉"
     ],
-    r"you('?| )re (funny|cool|smart)": [
+    r"(you('?| )re|you are) (funny|cool|smart)": [
         "Aww, thanks! 😊 You’re not so bad yourself.",
         "Appreciate it! Let’s keep the good vibes going 🔥"
     ],
@@ -89,22 +90,26 @@ def small_talk_response(user_input: str) -> str:
     for pattern, responses in SMALL_TALK_PATTERNS.items():
         if re.search(pattern, text):
             return random.choice(responses)
+    # Default fallback for small talk
     return "I'm here for all your Crescent University questions! 🎓"
+
 
 # --- COURSE CODE HELPERS ---
 
-def extract_course_code(text: str) -> str:
+def extract_course_code(text: str) -> str | None:
     match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())
     if match:
         return f"{match.group(1)} {match.group(2)}"
     return None
 
-def get_course_by_code(course_code: str, course_data: list) -> str:
+def get_course_by_code(course_code: str, course_data: list) -> str | None:
     course_code = course_code.upper().strip()
     for entry in course_data:
-        if course_code in entry.get("answer", ""):
-            parts = [part.strip() for part in entry["answer"].split(" | ")]
+        answer = entry.get("answer", "")
+        # Check if course code is at the start or inside answer text
+        if course_code in answer.upper():
+            parts = [part.strip() for part in answer.split(" | ")]
             for part in parts:
-                if part.startswith(course_code):
+                if part.upper().startswith(course_code):
                     return part
     return None

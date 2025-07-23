@@ -1,85 +1,44 @@
 import re
 import random
 
-# 🎉 Greeting keywords
-GREETING_KEYWORDS = [
-    "hi", "hello", "hey", "greetings", "good morning",
-    "good afternoon", "good evening", "what's up", "howdy"
-]
-
-GREETING_RESPONSES = [
-    "Hello! 👋 What would you like to know about Crescent University?",
-    "Hi there! 😊 Feel free to ask me anything.",
-    "Greetings! How can I assist you today?",
-    "Hey! I’m here to help with any Crescent-related question.",
-    "Welcome! Ask me anything about your department, courses, or requirements."
-]
-
-# 💬 Small talk triggers and responses
-SMALL_TALK = {
-    "how are you": [
-        "I'm great, thanks for asking! 😊",
-        "Doing well and ready to help! What can I do for you?"
-    ],
-    "who are you": [
-        "I’m the Crescent University Chatbot, here to help you with academic info!",
-        "I'm a virtual assistant created to help Crescent students with any question."
-    ],
-    "who made you": [
-        "I was built by a student as a project using AI tools! 🤖",
-        "I’m powered by AI, built as part of a university chatbot project."
-    ],
-    "thank you": [
-        "You're welcome! 😊",
-        "Anytime! Let me know if you need anything else.",
-        "Glad I could help!"
-    ],
-    "thanks": [
-        "You're welcome!",
-        "Happy to help! 👍"
-    ],
-    "ok": [
-        "Alright! Let me know if there’s anything else.",
-        "Sure, I’m here when you need me."
-    ],
-    "bye": [
-        "Goodbye! 👋",
-        "See you later!",
-        "Take care!"
-    ]
-}
-
 def is_greeting(text):
-    text = text.lower()
-    return any(word in text for word in GREETING_KEYWORDS)
+    greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "greetings", "what's up"]
+    return any(greet in text.lower() for greet in greetings)
 
 def greeting_responses(text=None):
-    return random.choice(GREETING_RESPONSES)
+    responses = [
+        "Hello! 👋 What would you like to know about Crescent University?",
+        "Hi there! 😊 Feel free to ask me about courses, departments or anything else.",
+        "Hey! I'm here to help with your Crescent University questions.",
+        "Good to see you! Ready to answer your university questions."
+    ]
+    return random.choice(responses)
 
 def is_small_talk(text):
-    text = text.lower()
-    return any(trigger in text for trigger in SMALL_TALK)
+    patterns = [
+        r"how (are|r) (you|u)",
+        r"what'?s up",
+        r"how'?s it going",
+        r"who (are|r) you",
+        r"are you (a bot|real)",
+        r"thank(s| you)",
+        r"(i love|like) you",
+        r"good (job|work)"
+    ]
+    return any(re.search(p, text.lower()) for p in patterns)
 
 def small_talk_response(text):
-    text = text.lower()
-    for trigger, responses in SMALL_TALK.items():
-        if trigger in text:
-            return random.choice(responses)
-    return "I'm not sure how to respond to that yet 😅"
+    responses = {
+        "how are you": "I'm doing great, thanks! How can I assist you today?",
+        "what's up": "Not much, just here to help you!",
+        "who are you": "I'm your Crescent University assistant bot!",
+        "are you real": "I'm a real bot 🤖 trained to answer your questions.",
+        "thank you": "You're welcome! 😊",
+        "i love you": "Aww, I love helping you too! ❤️"
+    }
 
-# 🔍 Extract course code like "CSC 101" or "MTH101"
-COURSE_CODE_PATTERN = re.compile(r"\b([A-Z]{2,4})[-\s]?(\d{3})\b", re.IGNORECASE)
+    for pattern, reply in responses.items():
+        if pattern in text.lower():
+            return reply
 
-def extract_course_code(text):
-    match = COURSE_CODE_PATTERN.search(text)
-    if match:
-        return f"{match.group(1).upper()} {match.group(2)}"
-    return None
-
-# 📘 Lookup course in course_data
-def get_course_by_code(code, course_data):
-    code = code.replace("-", " ").upper()
-    for entry in course_data:
-        if code in entry.get("question", "").upper():
-            return entry["answer"]
-    return None
+    return "I'm here to help! Just ask me anything about Crescent University."

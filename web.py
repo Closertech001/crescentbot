@@ -4,7 +4,7 @@ import uuid
 import openai
 from dotenv import load_dotenv
 
-from utils.embedding import load_model, load_data, compute_question_embeddings
+from utils.embedding import load_model, load_dataset, compute_question_embeddings
 from utils.preprocess import preprocess_text
 from utils.search import find_response
 from utils.memory import init_memory

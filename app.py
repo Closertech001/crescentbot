@@ -7,10 +7,12 @@ from sentence_transformers import SentenceTransformer
 from utils.embedding import load_dataset, compute_question_embeddings
 from utils.course_query import extract_course_query, get_courses_for_query, load_course_data, DEPARTMENTS, DEPARTMENT_TO_FACULTY_MAP
 from utils.greetings import (
-    is_greeting, greeting_responses,
-    extract_course_code, get_course_by_code,
-    is_small_talk, small_talk_response
+    is_greeting,
+    get_greeting_response,
+    is_small_talk,
+    get_small_talk_response
 )
+
 from rapidfuzz import process
 
 

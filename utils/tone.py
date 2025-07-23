@@ -1,33 +1,20 @@
-# utils/tone.py
-
 import random
 
-# 🎉 Dynamic intro phrases for answers
-INTRO_PHRASES = [
-    "Here’s what I found for you 😊:",
-    "Alright, take a look at this 📘:",
-    "This might help 🎓:",
-    "Let’s break it down 🔍:",
-    "I’ve got something for you 💡:",
-    "Here's the info you asked for 📖:",
-    "Check this out 👇:",
-    "Hope this helps 📚:"
-]
+def dynamic_prefix():
+    options = [
+        "Here's what I found for you 😊:",
+        "Let’s break it down 🔍:",
+        "Check this out 📘:",
+        "I got you! 👇",
+        "✨ Here's something helpful:",
+    ]
+    return random.choice(options)
 
-# 😕 Fallback responses when nothing is found
-NO_MATCH_PHRASES = [
-    "😕 I couldn’t find an answer to that. Try rephrasing it?",
-    "🤔 I’m not sure about that one. Can you ask differently?",
-    "🙈 I didn’t catch that. Could you clarify?",
-    "Sorry, I don't have that information right now. Try asking in another way.",
-    "Hmm… I couldn’t match that to anything in my knowledge base.",
-    "That’s a bit unclear. Could you be more specific?"
-]
-
-# ✨ Randomized intro
-def get_intro_phrase() -> str:
-    return random.choice(INTRO_PHRASES)
-
-# 😢 Randomized fallback
-def get_no_match_phrase() -> str:
-    return random.choice(NO_MATCH_PHRASES)
+def dynamic_not_found():
+    options = [
+        "😕 I couldn’t find an answer to that. Try rephrasing it?",
+        "🤔 That one stumped me. Can you ask another way?",
+        "I’m not sure I have that info yet. Ask something else?",
+        "Sorry, I couldn’t match that to anything I know.",
+    ]
+    return random.choice(options)

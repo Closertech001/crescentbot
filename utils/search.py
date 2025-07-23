@@ -1,21 +1,24 @@
 # utils/search.py
 
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+import openai
 
-def find_similar_question(query, model, embeddings, qa_data, threshold=0.75, top_k=1):
-    query_embedding = model.encode([query], convert_to_numpy=True)
-    similarities = cosine_similarity(query_embedding, embeddings)[0]
+def fallback_to_gpt_if_needed(user_input, similarity_score, matched_answer, threshold=0.75):
+    if similarity_score >= threshold:
+        return matched_answer
 
-    top_indices = similarities.argsort()[::-1][:top_k]
-    results = []
+    prompt = (
+        f"The user asked: \"{user_input}\"\n"
+        "This question could not be answered from the database.\n"
+        "Please provide a helpful and friendly answer related to Crescent University."
+    )
 
-    for idx in top_indices:
-        if similarities[idx] >= threshold:
-            results.append({
-                "question": qa_data[idx]["question"],
-                "answer": qa_data[idx]["answer"],
-                "score": float(similarities[idx])
-            })
-
-    return results
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=200
+        )
+        return response.choices[0].message.content.strip()
+    except Exception:
+        return "Sorry, I couldn't retrieve a full answer right now. Please try again."

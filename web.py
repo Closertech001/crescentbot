@@ -31,7 +31,7 @@ if "last_department" not in st.session_state:
 @st.cache_resource
 def load_bot_resources():
     model = load_model()
-    data = load_data()
+    data = load_dataset()  # ✅ FIXED: previously called nonexistent `load_data()`
     return model, data
 
 model, dataset = load_bot_resources()

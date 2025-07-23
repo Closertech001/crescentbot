@@ -1,10 +1,5 @@
 # utils/search.py
 
-import openai
-import os
-
-# utils/search.py
-
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 

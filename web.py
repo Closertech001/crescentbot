@@ -116,6 +116,7 @@ if user_input:
     else:
         response, department, score, related = find_response(cleaned_input, dataset, question_embeddings)
 
+
     st.session_state.chat_history.append({"role": "assistant", "content": response})
     st.session_state.related_questions = related
     st.session_state.last_department = department

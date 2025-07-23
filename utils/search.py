@@ -1,8 +1,8 @@
 from sentence_transformers.util import cos_sim
 import torch
 
-def semantic_search(user_question, model, embeddings, df, threshold=0.6):
-    user_embedding = model.encode(user_question.strip().lower(), convert_to_tensor=True)
+def semantic_search(query, model, embeddings, df, threshold=0.6):
+    user_embedding = model.encode(query.strip().lower(), convert_to_tensor=True)
     cosine_scores = cos_sim(user_embedding, embeddings)[0]
     best_score = torch.max(cosine_scores).item()
     best_idx = torch.argmax(cosine_scores).item()

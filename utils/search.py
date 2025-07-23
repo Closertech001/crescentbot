@@ -1,24 +1,27 @@
 # utils/search.py
 
-import openai
+from sentence_transformers.util import cos_sim
+import torch
 
-def fallback_to_gpt_if_needed(user_input, similarity_score, matched_answer, threshold=0.75):
-    if similarity_score >= threshold:
-        return matched_answer
-
-    prompt = (
-        f"The user asked: \"{user_input}\"\n"
-        "This question could not be answered from the database.\n"
-        "Please provide a helpful and friendly answer related to Crescent University."
-    )
-
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=200
-        )
-        return response.choices[0].message.content.strip()
-    except Exception:
-        return "Sorry, I couldn't retrieve a full answer right now. Please try again."
+def semantic_search(query, model, embeddings, df, threshold=0.6):
+    """
+    Perform semantic similarity search between user query and dataset questions.
+    
+    Parameters:
+    - query (str): User input
+    - model (SentenceTransformer): Loaded embedding model
+    - embeddings (Tensor): Precomputed embeddings for all questions
+    - df (DataFrame): QA dataframe with a 'question' and 'answer' column
+    - threshold (float): Minimum cosine similarity to accept a match
+    
+    Returns:
+    - str or None: Matched answer or None if below threshold
+    """
+    user_embedding = model.encode(query.strip().lower(), convert_to_tensor=True)
+    cosine_scores = cos_sim(user_embedding, embeddings)[0]
+    best_score = torch.max(cosine_scores).item()
+    best_idx = torch.argmax(cosine_scores).item()
+    
+    if best_score >= threshold:
+        return df.iloc[best_idx]["answer"]
+    return None

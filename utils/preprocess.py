@@ -1,8 +1,10 @@
 import re
-from textblob import TextBlob
+from symspellpy import SymSpell, Verbosity
+import pkg_resources
+import streamlit as st
 
-# Abbreviations for shorthand normalization
-abbreviation_map = {
+# 🔁 Abbreviation and shorthand map
+ABBREVIATIONS = {
     "u": "you", "r": "are", "ur": "your", "cn": "can", "cud": "could",
     "shud": "should", "wud": "would", "abt": "about", "bcz": "because",
     "plz": "please", "pls": "please", "tmrw": "tomorrow", "wat": "what",
@@ -14,12 +16,12 @@ abbreviation_map = {
     "app": "application", "req": "requirement", "nd": "national diploma",
     "a-level": "advanced level", "alevel": "advanced level", "2nd": "second",
     "1st": "first", "nxt": "next", "prev": "previous", "exp": "experience",
-    "CSC": "department of Computer Science", "Mass comm": "department of Mass Communication",
-    "law": "department of law", "Acc": "department of Accounting"
+    "CSC": "department of computer science", "Mass comm": "department of mass communication",
+    "law": "department of law", "Acc": "department of accounting"
 }
 
-# Synonyms to help semantic matching
-synonym_map = {
+# 🔄 Synonyms for semantic matching
+SYNONYMS = {
     "lecturers": "academic staff", "professors": "academic staff",
     "teachers": "academic staff", "instructors": "academic staff",
     "tutors": "academic staff", "staff members": "staff",
@@ -37,17 +39,55 @@ synonym_map = {
     "needed for": "required for", "who handles": "who manages"
 }
 
-def normalize_input(text):
-    text = text.lower()
+# 🔠 Clean raw input
+def normalize_text(text):
+    text = re.sub(r'[^\w\s\-]', '', text)          # keep hyphens
+    text = re.sub(r'(.)\1{2,}', r'\1', text)       # reduce repeated letters
+    return text.lower()
 
-    # Expand abbreviations
-    for abbr, full in abbreviation_map.items():
-        text = text.replace(abbr, full)
+# 🧠 Expand abbreviations
+def apply_abbreviations(words):
+    return [ABBREVIATIONS.get(w.lower(), w) for w in words]
 
-    # Replace synonyms
-    for word, synonym in synonym_map.items():
-        text = re.sub(rf"\b{word}\b", synonym, text)
+# 🔁 Replace synonyms
+def apply_synonyms(words):
+    return [SYNONYMS.get(w.lower(), w) for w in words]
 
-    # Fix simple typos
-    corrected = TextBlob(text).correct()
-    return str(corrected)
+# 📖 Initialize SymSpell once
+@st.cache_resource
+def get_sym_spell():
+    sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+    dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
+    sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
+    return sym_spell
+
+# ✨ Full pipeline
+def preprocess_text(text, debug=False):
+    text = normalize_text(text)
+    words = text.split()
+
+    # Abbreviation mapping
+    expanded = apply_abbreviations(words)
+
+    # Spell correction
+    sym_spell = get_sym_spell()
+    corrected = []
+    for word in expanded:
+        suggestions = sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
+        corrected.append(suggestions[0].term if suggestions else word)
+
+    # Synonyms
+    final_words = apply_synonyms(corrected)
+
+    if debug:
+        print("Original:", text)
+        print("Expanded:", expanded)
+        print("Corrected:", corrected)
+        print("With Synonyms:", final_words)
+
+    return ' '.join(final_words)
+
+# 🔍 Extract course prefix from code
+def extract_prefix(code):
+    match = re.match(r"([A-Z\-]+)", code)
+    return match.group(1) if match else None

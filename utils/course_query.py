@@ -2,130 +2,97 @@ import json
 import re
 from rapidfuzz import process
 
-# 🔁 Informal input normalization map
-NORMALIZATION_MAP = {
-    "comp sci": "computer science",
-    "mass comm": "mass communication",
-    "masscom": "mass communication",
-    "nursin": "nursing",
-    "nursing science": "nursing",
-    "physio": "physiology",
-    "microbio": "microbiology",
-    "biochem": "biochemistry",
-    "biz admin": "business administration",
-    "bus admin": "business administration",
-    "account": "accounting",
-    "law school": "law",
-    "pol sci": "political science and international studies",
-    "econs": "economics with operations research",
-    "arch": "architecture",
-    "first sem": "first semester",
-    "second sem": "second semester",
-    "100lvl": "100 level",
-    "200lvl": "200 level",
-    "300lvl": "300 level",
-    "400lvl": "400 level",
-    "wetin": "what",
-    "dey": "is",
-    "wan": "want",
-    "courses dem": "courses",
-    "which courses dem dey do": "what are the courses",
-    "we dey": "that are",
-    "course wey dem dey do": "courses"
+# Department → Faculty map
+department_to_faculty = {
+    "law": "Bola Ajibola College of Law",
+    "mass communication": "College of Arts, Social and Management Sciences",
+    "economics": "College of Arts, Social and Management Sciences",
+    "accounting": "College of Arts, Social and Management Sciences",
+    "architecture": "College of Environmental Sciences",
+    "computer science": "College of Information and Communication Technology",
+    "nursing": "College of Health Sciences",
+    "microbiology": "College of Natural and Applied Sciences",
+    "chemistry": "College of Natural and Applied Sciences",
+    "physics": "College of Natural and Applied Sciences",
+    "anatomy": "College of Health Sciences",
+    # Add others as needed
 }
 
-# ✅ Known departments
-DEPARTMENTS = [
-    "computer science", "anatomy", "biochemistry", "accounting",
-    "business administration", "political science and international studies",
-    "microbiology", "economics with operations research", "mass communication",
-    "law", "nursing", "physiology", "architecture"
-]
+def fuzzy_match_department(user_input):
+    choices = list(department_to_faculty.keys())
+    match, score = process.extractOne(user_input.lower(), choices)
+    return match if score >= 70 else None
 
-# 🏛️ Department to Faculty mapping
-DEPARTMENT_TO_FACULTY_MAP = {
-    "computer science": "CONAS",
-    "anatomy": "COHES",
-    "biochemistry": "CONAS",
-    "accounting": "CASMAS",
-    "business administration": "CASMAS",
-    "political science and international studies": "CASMAS",
-    "microbiology": "CONAS",
-    "economics with operations research": "CASMAS",
-    "mass communication": "CASMAS",
-    "law": "BACOLAW",
-    "nursing": "COHES",
-    "physiology": "COHES",
-    "architecture": "COES"
-}
-
-def normalize_text(text: str) -> str:
-    """Normalize slang and informal words in input text."""
-    text = text.lower()
-    for slang, standard in NORMALIZATION_MAP.items():
-        text = text.replace(slang, standard)
-    return text
-
-def fuzzy_match_department(text: str) -> str | None:
-    """Use fuzzy matching to find closest department if no direct match."""
-    result, score, _ = process.extractOne(text, DEPARTMENTS)
-    return result if score >= 80 else None
-
-def normalize_department(text: str) -> str | None:
-    """Normalize input and detect department."""
-    norm_text = normalize_text(text)
-    for dept in DEPARTMENTS:
-        if dept in norm_text:
-            return dept
-    return fuzzy_match_department(norm_text)
-
-def extract_course_query(text: str) -> dict:
-    """Extract department, level, semester from input text."""
-    text = normalize_text(text)
-    level_match = re.search(r"\b(100|200|300|400)\s*level\b", text)
-    semester_match = re.search(r"\b(first|second)\s*semester\b", text)
-    department = normalize_department(text)
-
-    return {
-        "level": level_match.group(1) if level_match else None,
-        "semester": semester_match.group(1).capitalize() if semester_match else None,
-        "department": department.title() if department else None,
-        "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
+def extract_course_query(text):
+    query = {
+        "department": None,
+        "level": None,
+        "semester": None,
+        "course_code": None
     }
 
-def load_course_data(path="data/course_data.json") -> list:
-    """Load course data from JSON file."""
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    # Course code
+    code_match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())
+    if code_match:
+        query["course_code"] = code_match.group(1) + " " + code_match.group(2)
 
-def get_courses_for_query(query_info: dict, course_data: list) -> str | None:
-    """Return all relevant course answers matching query."""
-    if not query_info:
+    # Level (e.g. 100, 200)
+    level_match = re.search(r"\b(100|200|300|400|500|600)\s?(level)?\b", text)
+    if level_match:
+        query["level"] = level_match.group(1)
+
+    # Semester
+    if "first semester" in text or "1st semester" in text:
+        query["semester"] = "first"
+    elif "second semester" in text or "2nd semester" in text:
+        query["semester"] = "second"
+
+    # Department fuzzy match
+    for dept in department_to_faculty:
+        if dept in text.lower():
+            query["department"] = dept
+            break
+    if not query["department"]:
+        query["department"] = fuzzy_match_department(text)
+
+    return query
+
+def get_courses_for_query(query, course_data):
+    dept = query.get("department")
+    level = query.get("level")
+    semester = query.get("semester")
+    code = query.get("course_code")
+
+    if not any([dept, level, semester, code]):
         return None
 
-    dept = query_info.get("department", "").lower()
-    level = query_info.get("level", "").lower() if query_info.get("level") else None
-    semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
+    result = []
 
-    results = []
+    for course in course_data:
+        match = True
+        if dept and dept.lower() not in course["department"].lower():
+            match = False
+        if level and str(course.get("level")) != str(level):
+            match = False
+        if semester and semester.lower() != course.get("semester", "").lower():
+            match = False
+        if code and code.upper() != course.get("code", "").upper():
+            match = False
 
-    for entry in course_data:
-        try:
-            if entry.get("department", "").lower() != dept:
-                continue
-            if level and entry.get("level", "").lower() != level:
-                continue
-            # For semester, check if it's in the entry either as a field or in question text
-            entry_semester = entry.get("semester", "").lower()
-            question_text = entry.get("question", "").lower()
-            if semester and semester not in entry_semester and semester not in question_text:
-                continue
-            results.append(entry.get("answer", "").strip())
-        except Exception:
-            continue
+        if match:
+            result.append(f'{course["code"]} - {course["title"]} ({course["unit"]} unit{"s" if course["unit"] != 1 else ""})')
 
-    if results:
-        # Return joined string with numbering for clarity
-        return "\n\n".join(f"{idx+1}. {ans}" for idx, ans in enumerate(results))
-    else:
-        return None
+    if result:
+        header = ""
+        if code:
+            header = f"Here’s the detail for `{code}`:"
+        elif dept:
+            header = f"Courses for {dept.title()}"
+            if level:
+                header += f" {level} level"
+            if semester:
+                header += f" ({semester} semester)"
+            header += ":"
+        return f"{header}\n\n" + "\n".join(result)
+
+    return None

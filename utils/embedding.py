@@ -1,37 +1,31 @@
+# utils/embedding.py
+
 import json
-import pandas as pd
-from sentence_transformers import SentenceTransformer
-import numpy as np
 import os
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
-def load_dataset(path):
-    """Load JSON dataset and convert to DataFrame."""
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"[ERROR] QA dataset not found at: {path}")
-    
+# Load sentence transformer model
+def load_model(model_name="all-MiniLM-L6-v2"):
+    return SentenceTransformer(model_name)
+
+# Load questions and answers from JSON
+def load_qa_dataset(path="data/crescent_qa.json"):
     with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+        return json.load(f)
 
-    # Validate structure
-    if not isinstance(data, list) or not all("question" in item and "answer" in item for item in data):
-        raise ValueError("[ERROR] Invalid format: QA dataset must be a list of {question, answer} dictionaries.")
+# Compute and return embeddings for all questions
+def load_embeddings(model=None, path="data/embeddings.npy", qa_path="data/crescent_qa.json"):
+    if os.path.exists(path):
+        return np.load(path), load_qa_dataset(qa_path)
 
-    print(f"[INFO] Loaded {len(data)} QA pairs from {path}")
-    return pd.DataFrame(data)
+    if model is None:
+        model = load_model()
 
-def compute_question_embeddings(questions, model):
-    """Compute embeddings for a list of questions using the given SentenceTransformer model."""
-    if not questions:
-        raise ValueError("[ERROR] No questions provided to compute embeddings.")
-    
-    print(f"[INFO] Computing embeddings for {len(questions)} questions...")
-    embeddings = model.encode(questions, convert_to_tensor=True)
-    return embeddings
+    qa_data = load_qa_dataset(qa_path)
+    questions = [item["question"] for item in qa_data]
+    embeddings = model.encode(questions, convert_to_numpy=True)
 
-def load_qa_embeddings(qa_path="data/crescent_qa.json", model_name="all-MiniLM-L6-v2"):
-    """Load QA data and compute embeddings."""
-    model = SentenceTransformer(model_name)
-    df = load_dataset(qa_path)
-    questions = df["question"].tolist()
-    embeddings = compute_question_embeddings(questions, model)
-    return df.to_dict(orient="records"), embeddings
+    # Save embeddings
+    np.save(path, embeddings)
+    return embeddings, qa_data

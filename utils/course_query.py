@@ -2,98 +2,124 @@ import json
 import re
 from rapidfuzz import process
 
-# Load course data from the correct path
-with open("data/course_data.json", "r", encoding="utf-8") as f:
-    course_data = json.load(f)
-
-# Mapping department to faculty
-DEPARTMENT_TO_FACULTY = {
-    "mass communication": "CASMAS",
-    "economics": "CASMAS",
-    "political science": "CASMAS",
-    "accounting": "CASMAS",
-    "banking and finance": "CASMAS",
-    "business administration": "CASMAS",
-    "architecture": "COES",
-    "estate management": "COES",
-    "computer science": "CICOT",
-    "information technology": "CICOT",
-    "biology": "CONAS",
-    "chemistry": "CONAS",
-    "microbiology": "CONAS",
-    "mathematics": "CONAS",
-    "physics": "CONAS",
-    "biochemistry": "COHES",
-    "nursing": "COHES",
-    "anatomy": "COHES",
-    "physiology": "COHES",
-    "law": "BACOLAW"
+# 🔁 Informal input normalization map
+NORMALIZATION_MAP = {
+    "comp sci": "computer science",
+    "mass comm": "mass communication",
+    "masscom": "mass communication",
+    "nursin": "nursing",
+    "nursing science": "nursing",
+    "physio": "physiology",
+    "microbio": "microbiology",
+    "biochem": "biochemistry",
+    "biz admin": "business administration",
+    "bus admin": "business administration",
+    "account": "accounting",
+    "law school": "law",
+    "pol sci": "political science and international studies",
+    "econs": "economics with operations research",
+    "arch": "architecture",
+    "first sem": "first semester",
+    "second sem": "second semester",
+    "100lvl": "100 level",
+    "200lvl": "200 level",
+    "300lvl": "300 level",
+    "400lvl": "400 level",
+    "wetin": "what",
+    "dey": "is",
+    "wan": "want",
+    "courses dem": "courses",
+    "which courses dem dey do": "what are the courses",
+    "we dey": "that are",
+    "course wey dem dey do": "courses"
 }
 
-def extract_course_query(user_input):
-    """Extract department, level, and optional semester from user input."""
-    department = None
-    level = None
-    semester = None
+# ✅ Known departments
+DEPARTMENTS = [
+    "computer science", "anatomy", "biochemistry", "accounting",
+    "business administration", "political science and international studies",
+    "microbiology", "economics with operations research", "mass communication",
+    "law", "nursing", "physiology", "architecture"
+]
 
-    # Attempt to find level (e.g., 100, 200, etc.)
-    level_match = re.search(r"\b(100|200|300|400|500)\s?level\b", user_input)
-    if level_match:
-        level = level_match.group(1)
+# 🏛️ Department to Faculty mapping
+DEPARTMENT_TO_FACULTY_MAP = {
+    "computer science": "CONAS",
+    "anatomy": "COHES",
+    "biochemistry": "CONAS",
+    "accounting": "CASMAS",
+    "business administration": "CASMAS",
+    "political science and international studies": "CASMAS",
+    "microbiology": "CONAS",
+    "economics with operations research": "CASMAS",
+    "mass communication": "CASMAS",
+    "law": "BACOLAW",
+    "nursing": "COHES",
+    "physiology": "COHES",
+    "architecture": "COES"
+}
 
-    # Attempt to find semester
-    semester_match = re.search(r"\b(first|1st|second|2nd)\s+semester\b", user_input)
-    if semester_match:
-        sem_raw = semester_match.group(1)
-        semester = "first" if "1" in sem_raw or "first" in sem_raw else "second"
+# 🔤 Normalize input using slang map
+def normalize_text(text):
+    text = text.lower()
+    for slang, std in NORMALIZATION_MAP.items():
+        text = text.replace(slang, std)
+    return text
 
-    # Fuzzy match department
-    department_names = list(DEPARTMENT_TO_FACULTY.keys())
-    match = process.extractOne(user_input, department_names, score_cutoff=60)
-    if match:
-        department = match[0]
+# 🧠 Fuzzy fallback if department not matched directly
+def fuzzy_match_department(text):
+    result, score, _ = process.extractOne(text, DEPARTMENTS)
+    return result if score >= 80 else None
 
-    return department, level, semester
+# 🎯 Normalize department from input
+def normalize_department(text):
+    norm_text = text.lower()
+    for slang, standard in NORMALIZATION_MAP.items():
+        if slang in norm_text and standard in DEPARTMENTS:
+            return standard
+    for dept in DEPARTMENTS:
+        if dept in norm_text:
+            return dept
+    return fuzzy_match_department(text)
 
-def get_courses_for_query(department, level=None, semester=None):
-    """Return matching courses from structured course data."""
-    faculty = DEPARTMENT_TO_FACULTY.get(department.lower())
-    if not faculty:
-        return f"Sorry, I couldn't identify the faculty for {department}. Please check the department name."
+# 📤 Extract structured query parts
+def extract_course_query(text):
+    text = normalize_text(text)
+    level_match = re.search(r"\b(100|200|300|400)\s*level\b", text)
+    semester_match = re.search(r"\b(first|second)\s*semester\b", text)
+    department = normalize_department(text)
 
-    try:
-        courses = COURSE_DATA[faculty][department.lower()]
-    except KeyError:
-        return f"Sorry, I couldn't find courses for {department}."
+    return {
+        "level": level_match.group(1) if level_match else None,
+        "semester": semester_match.group(1).capitalize() if semester_match else None,
+        "department": department.title() if department else None,
+        "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
+    }
 
-    # Filter by level
-    if level:
-        courses = courses.get(level, {})
-        if not courses:
-            return f"No courses found for {department} at {level}-level."
-    else:
-        # If no level specified, return all levels
-        all_courses = []
-        for lvl, lv_courses in courses.items():
-            all_courses.append(f"\n📘 {lvl}-level courses:")
-            for sem in lv_courses:
-                all_courses.append(f"  ➤ {sem.capitalize()} Semester:")
-                for course in lv_courses[sem]:
-                    all_courses.append(f"    • {course['code']} - {course['title']} ({course['unit']} units)")
-        return "\n".join(all_courses)
+# 📂 Load course data from JSON
+def load_course_data(path="data/course_data.json"):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    # Filter by semester
-    if semester:
-        courses = courses.get(semester, [])
-        if not courses:
-            return f"No {semester} semester courses found for {department} at {level}-level."
+# ✅ Return a single matching course answer
+def get_courses_for_query(query_info, course_data):
+    if not query_info:
+        return None
 
-        return "\n".join([f"• {c['code']} - {c['title']} ({c['unit']} units)" for c in courses])
+    dept = query_info.get("department", "").lower()
+    level = query_info.get("level", "").lower() if query_info.get("level") else None
+    semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
 
-    # If only level is provided
-    result = []
-    for sem, sem_courses in courses.items():
-        result.append(f"\n📗 {sem.capitalize()} Semester:")
-        for course in sem_courses:
-            result.append(f"• {course['code']} - {course['title']} ({course['unit']} units)")
-    return "\n".join(result)
+    for entry in course_data:
+        try:
+            if entry["department"].lower() != dept:
+                continue
+            if level and entry["level"].lower() != level:
+                continue
+            if semester and semester not in entry["question"].lower():
+                continue
+            return entry["answer"]  # ✅ Return only the first relevant match
+        except KeyError:
+            continue
+
+    return None

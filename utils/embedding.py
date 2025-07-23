@@ -6,7 +6,8 @@ def load_model(model_name="all-MiniLM-L6-v2"):
     """Load a sentence transformer model for embeddings."""
     return SentenceTransformer(model_name)
 
-def load_qa_data(path="data/crescent_qa.json"):
+with open("data/crescent_qa.json", "r", encoding="utf-8") as f:
+    qa_data = json.load(f)
     """Load Q&A dataset from JSON."""
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)

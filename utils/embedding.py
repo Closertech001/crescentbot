@@ -27,3 +27,11 @@ def compute_question_embeddings(questions, model):
     print(f"[INFO] Computing embeddings for {len(questions)} questions...")
     embeddings = model.encode(questions, convert_to_tensor=True)
     return embeddings
+
+def load_qa_embeddings(qa_path="data/crescent_qa.json", model_name="all-MiniLM-L6-v2"):
+    """Load QA data and compute embeddings."""
+    model = SentenceTransformer(model_name)
+    df = load_dataset(qa_path)
+    questions = df["question"].tolist()
+    embeddings = compute_question_embeddings(questions, model)
+    return df.to_dict(orient="records"), embeddings

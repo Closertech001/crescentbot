@@ -1,25 +1,25 @@
 # utils/rewrite.py
 
-from utils.tone import detect_tone
+def rewrite_query_with_memory(query, last_department, last_level, last_semester):
+    """
+    Rewrites the user's query by filling in missing context from memory.
 
-def rewrite_with_tone(user_input, response):
-    tone = detect_tone(user_input)
+    Args:
+        query (str): Original user query
+        last_department (str or None)
+        last_level (str or None)
+        last_semester (str or None)
 
-    if tone == "polite":
-        return "Sure! 😊 " + response
-    elif tone == "urgent":
-        return "Got it — here's the information you need right away:\n\n" + response
-    elif tone == "confused":
-        return "No worries, let me explain clearly:\n\n" + response
-    elif tone == "angry":
-        return "I'm here to help — let's sort this out calmly:\n\n" + response
-    elif tone == "emphatic":
-        return "Absolutely! Here's everything you need:\n\n" + response
-    else:
-        return "Here's what I found for you:\n\n" + response
+    Returns:
+        str: Context-enriched query
+    """
+    if last_department and "department" not in query.lower():
+        query += f" in the {last_department} department"
 
-def rewrite_followup(user_input, memory):
-    dept, level, topic = memory.get()
-    if topic:
-        return f"Regarding {topic['question']}, you asked: {user_input}"
-    return user_input
+    if last_level and "level" not in query.lower():
+        query += f" at {last_level} level"
+
+    if last_semester and "semester" not in query.lower():
+        query += f" for the {last_semester} semester"
+
+    return query.strip()

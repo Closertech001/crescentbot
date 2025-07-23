@@ -1,7 +1,6 @@
 # utils/memory.py
 
-# Simple in-memory tracker for conversation context
-user_memory = {
+memory_store = {
     "last_department": None,
     "last_level": None,
     "last_semester": None,
@@ -9,16 +8,15 @@ user_memory = {
 
 def update_memory(department=None, level=None, semester=None):
     if department:
-        user_memory["last_department"] = department
+        memory_store["last_department"] = department
     if level:
-        user_memory["last_level"] = level
+        memory_store["last_level"] = level
     if semester:
-        user_memory["last_semester"] = semester
+        memory_store["last_semester"] = semester
 
 def get_last_department_level():
-    return user_memory["last_department"], user_memory["last_level"], user_memory["last_semester"]
-
-def clear_memory():
-    user_memory["last_department"] = None
-    user_memory["last_level"] = None
-    user_memory["last_semester"] = None
+    return (
+        memory_store.get("last_department"),
+        memory_store.get("last_level"),
+        memory_store.get("last_semester"),
+    )

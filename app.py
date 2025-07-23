@@ -1,25 +1,22 @@
 import streamlit as st
 import json
 import torch
-import numpy as np
 from sentence_transformers import SentenceTransformer
 from utils.embedding import load_dataset, compute_question_embeddings
 from utils.course_query import extract_course_query, get_courses_for_query, load_course_data, DEPARTMENTS, DEPARTMENT_TO_FACULTY_MAP
 from utils.greetings import (
-    is_greeting, greeting_responses,
+    is_greeting, greeting_response,
     extract_course_code, get_course_by_code,
     is_small_talk, small_talk_response
 )
 from rapidfuzz import process
 
 
-# Fuzzy match for misspelled departments
 def fuzzy_match_department(text):
     result, score, _ = process.extractOne(text, DEPARTMENTS)
     return result if score >= 80 else None
 
 
-# Deep follow-up logic
 def update_query_context(follow_up, last_query):
     q = last_query.copy()
     if "second" in follow_up:
@@ -35,7 +32,6 @@ def update_query_context(follow_up, last_query):
     return q
 
 
-# Load everything
 @st.cache_resource
 def load_all():
     model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -59,12 +55,10 @@ def find_best_match(user_question, model, embeddings, df, threshold=0.6):
     return None
 
 
-# 🖥️ Streamlit app
 st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
 st.title("🎓 Crescent University Chatbot")
 st.markdown("Ask me anything about departments, courses, or general university info!")
 
-# Chat state
 if "chat" not in st.session_state:
     st.session_state.chat = []
 if "bot_greeted" not in st.session_state:
@@ -72,7 +66,6 @@ if "bot_greeted" not in st.session_state:
 if "last_query_info" not in st.session_state:
     st.session_state.last_query_info = {}
 
-# Avatars
 USER_AVATAR = "🧑‍💻"
 BOT_AVATAR = "🎓"
 
@@ -82,52 +75,57 @@ if user_input:
     st.session_state.chat.append({"role": "user", "text": user_input})
     normalized_input = user_input.lower()
 
-    # 🎉 Greeting
+    # 1️⃣ Greeting (only once)
     if is_greeting(user_input) and not st.session_state.bot_greeted:
-        response = greeting_responses(user_input)
+        response = greeting_response(user_input)
         st.session_state.bot_greeted = True
 
-    # 💬 Small Talk
+    # 2️⃣ Small talk
     elif is_small_talk(user_input):
         response = small_talk_response(user_input)
 
-    # 🔍 Course Code Direct Lookup
+    # 3️⃣ Direct course code lookup
     else:
         course_code = extract_course_code(user_input)
 
-        if course_code and course_code.strip():
+        if course_code:
             course_response = get_course_by_code(course_code, course_data)
             if course_response:
                 response = f"📘 *Here’s the info for* `{course_code}`:\n\n{course_response}"
             else:
                 response = f"🤔 I couldn't find any details for `{course_code}`. Please check the code and try again."
+
+        # 4️⃣ Course-related questions with 'course' keyword but no code
         elif "course" in normalized_input:
-            response = "📝 Could you provide a course code like *CSC 101* or a department + level (e.g., Computer Science 200 level)?"
+            response = "📝 Please provide a course code like *CSC 101* or specify department + level (e.g., Computer Science 200 level)."
+
+        # 5️⃣ General keywords about university info fallback to semantic search
         else:
-            # 🎯 General keywords
             general_keywords = [
                 "admission", "requirement", "fee", "tuition", "duration", "length",
                 "cut off", "hostel", "accommodation", "location", "accreditation"
             ]
             if any(word in normalized_input for word in general_keywords):
                 result = find_best_match(user_input, model, embeddings, df)
+
             else:
+                # 6️⃣ Extract structured query info (dept, level, semester)
                 query_info = extract_course_query(user_input)
 
-                # 🧠 Deep Follow-up
+                # 7️⃣ Deep follow-up context
                 if not any([query_info.get("department"), query_info.get("level"), query_info.get("semester")]):
                     last_q = st.session_state.get("last_query_info")
                     if last_q:
                         query_info = update_query_context(user_input, last_q)
 
-                # 🔡 Fuzzy fix if department unclear
+                # 8️⃣ Fuzzy department fix
                 if not query_info.get("department"):
                     dept_guess = fuzzy_match_department(user_input)
                     if dept_guess:
                         query_info["department"] = dept_guess.title()
                         query_info["faculty"] = DEPARTMENT_TO_FACULTY_MAP.get(dept_guess)
 
-                # 🧾 Structured data or fallback
+                # 9️⃣ Query course data or fallback to semantic search
                 if query_info and query_info.get("department"):
                     result = get_courses_for_query(query_info, course_data)
                     st.session_state.last_query_info = query_info
@@ -141,7 +139,6 @@ if user_input:
 
     st.session_state.chat.append({"role": "bot", "text": response})
 
-# 💬 Display full chat
 for message in st.session_state.chat:
     avatar = USER_AVATAR if message["role"] == "user" else BOT_AVATAR
     with st.chat_message(message["role"], avatar=avatar):

@@ -93,7 +93,7 @@ def extract_course_query(text: str) -> dict:
         "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
     }
 
-def load_course_data(path="data/crescent_qa.json") -> list:
+def load_course_data(path="data/course_data.json") -> list:
     """Load course data from JSON file."""
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)

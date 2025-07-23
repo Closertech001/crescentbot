@@ -2,14 +2,9 @@ import random
 import re
 from textblob import TextBlob
 
-# --- GREETING DETECTION ---
-
 GREETING_PATTERNS = [
-    r"\bhi\b", r"\bhello\b", r"\bhey\b",
-    r"\bgood (morning|afternoon|evening)\b",
-    r"\bwhat'?s up\b", r"\bhowdy\b", r"\byo\b",
-    r"\bsup\b", r"\bgreetings\b",
-    r"\bhow far\b", r"\bhow you dey\b"
+    r"hi", r"hello", r"hey", r"good (morning|afternoon|evening)",
+    r"what's up", r"howdy", r"yo", r"sup", r"greetings", r"how far", r"how you dey"
 ]
 
 _greeting_responses_by_sentiment = {
@@ -48,33 +43,24 @@ def greeting_responses(user_input: str = "") -> str:
     tone = detect_sentiment(user_input) if user_input else "neutral"
     return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
 
-
-# --- SMALL TALK DETECTION ---
+# --- Small Talk ---
 
 SMALL_TALK_PATTERNS = {
-    r"\bhow are you\b": [
+    r"how are you": [
         "I'm doing great, thanks for asking! 😊 How can I help you today?",
         "Feeling sharp and ready to assist! ✨"
     ],
-    r"\bwho (are|created|made) you\b": [
+    r"who (are|created|made) you": [
         "I'm the Crescent University Chatbot 🤖, built to help students like you!",
         "I was created to guide you through Crescent Uni life 📘"
     ],
-    r"\bwhat can you do\b": [
+    r"what can you do": [
         "I can help you with course info, departments, fees, and more 🎓",
         "Ask me about admission, courses, or departments — I’ve got answers! 💡"
     ],
-    r"\btell me about yourself\b": [
+    r"tell me about yourself": [
         "I'm a smart little assistant for Crescent University 🧠💬",
         "I answer questions about courses, fees, staff, and more!"
-    ],
-    r"\bare you (smart|intelligent)\b": [
-        "I try my best! 😄 Especially when it comes to university questions.",
-        "Not bad for a chatbot, right? 😉"
-    ],
-    r"\byou('?| )re (funny|cool|smart)\b": [
-        "Aww, thanks! 😊 You’re not so bad yourself.",
-        "Appreciate it! Let’s keep the good vibes going 🔥"
     ]
 }
 
@@ -89,8 +75,7 @@ def small_talk_response(user_input: str) -> str:
             return random.choice(responses)
     return "I'm here for all your Crescent University questions! 🎓"
 
-
-# --- COURSE CODE HELPERS ---
+# --- Course Code Helper (Safe) ---
 
 def extract_course_code(text: str) -> str:
     match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())

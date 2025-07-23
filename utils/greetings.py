@@ -1,94 +1,85 @@
-import random
 import re
-from textblob import TextBlob
+import random
 
-GREETING_PATTERNS = [
-    r"hi", r"hello", r"hey", r"good (morning|afternoon|evening)",
-    r"what's up", r"howdy", r"yo", r"sup", r"greetings", r"how far", r"how you dey"
+# 🎉 Greeting keywords
+GREETING_KEYWORDS = [
+    "hi", "hello", "hey", "greetings", "good morning",
+    "good afternoon", "good evening", "what's up", "howdy"
 ]
 
-_greeting_responses_by_sentiment = {
-    "positive": [
-        "Hey there! 😊 You're sounding great today. How can I assist you?",
-        "Hi! 👋 I'm glad you're feeling good. What would you like to know?",
-        "Hello! 🌟 Ready to explore Crescent University together?"
+GREETING_RESPONSES = [
+    "Hello! 👋 What would you like to know about Crescent University?",
+    "Hi there! 😊 Feel free to ask me anything.",
+    "Greetings! How can I assist you today?",
+    "Hey! I’m here to help with any Crescent-related question.",
+    "Welcome! Ask me anything about your department, courses, or requirements."
+]
+
+# 💬 Small talk triggers and responses
+SMALL_TALK = {
+    "how are you": [
+        "I'm great, thanks for asking! 😊",
+        "Doing well and ready to help! What can I do for you?"
     ],
-    "neutral": [
-        "Hi there! 😊 How can I help you?",
-        "Hello! 👋 What would you like to know about Crescent University?",
-        "Hey! I'm here to assist you with your course or university questions.",
-        "Hi! Let me know what you're looking for.",
-        "How far! I'm here for any Crescent Uni gist you need."
+    "who are you": [
+        "I’m the Crescent University Chatbot, here to help you with academic info!",
+        "I'm a virtual assistant created to help Crescent students with any question."
     ],
-    "negative": [
-        "I'm here to help — let’s figure it out together. 💡",
-        "Sorry if you're having a rough time. Let's fix that. What do you need?",
-        "I’ve got your back. Let me help you with that. 💪"
+    "who made you": [
+        "I was built by a student as a project using AI tools! 🤖",
+        "I’m powered by AI, built as part of a university chatbot project."
+    ],
+    "thank you": [
+        "You're welcome! 😊",
+        "Anytime! Let me know if you need anything else.",
+        "Glad I could help!"
+    ],
+    "thanks": [
+        "You're welcome!",
+        "Happy to help! 👍"
+    ],
+    "ok": [
+        "Alright! Let me know if there’s anything else.",
+        "Sure, I’m here when you need me."
+    ],
+    "bye": [
+        "Goodbye! 👋",
+        "See you later!",
+        "Take care!"
     ]
 }
 
-def is_greeting(user_input: str) -> bool:
-    text = user_input.lower()
-    return any(re.search(pattern, text) for pattern in GREETING_PATTERNS)
+def is_greeting(text):
+    text = text.lower()
+    return any(word in text for word in GREETING_KEYWORDS)
 
-def detect_sentiment(user_input: str) -> str:
-    analysis = TextBlob(user_input)
-    if analysis.sentiment.polarity > 0.2:
-        return "positive"
-    elif analysis.sentiment.polarity < -0.2:
-        return "negative"
-    return "neutral"
+def greeting_responses(text=None):
+    return random.choice(GREETING_RESPONSES)
 
-def greeting_responses(user_input: str = "") -> str:
-    tone = detect_sentiment(user_input) if user_input else "neutral"
-    return random.choice(_greeting_responses_by_sentiment.get(tone, _greeting_responses_by_sentiment["neutral"]))
+def is_small_talk(text):
+    text = text.lower()
+    return any(trigger in text for trigger in SMALL_TALK)
 
-# --- Small Talk ---
-
-SMALL_TALK_PATTERNS = {
-    r"how are you": [
-        "I'm doing great, thanks for asking! 😊 How can I help you today?",
-        "Feeling sharp and ready to assist! ✨"
-    ],
-    r"who (are|created|made) you": [
-        "I'm the Crescent University Chatbot 🤖, built to help students like you!",
-        "I was created to guide you through Crescent Uni life 📘"
-    ],
-    r"what can you do": [
-        "I can help you with course info, departments, fees, and more 🎓",
-        "Ask me about admission, courses, or departments — I’ve got answers! 💡"
-    ],
-    r"tell me about yourself": [
-        "I'm a smart little assistant for Crescent University 🧠💬",
-        "I answer questions about courses, fees, staff, and more!"
-    ]
-}
-
-def is_small_talk(user_input: str) -> bool:
-    text = user_input.lower()
-    return any(re.search(pattern, text) for pattern in SMALL_TALK_PATTERNS)
-
-def small_talk_response(user_input: str) -> str:
-    text = user_input.lower()
-    for pattern, responses in SMALL_TALK_PATTERNS.items():
-        if re.search(pattern, text):
+def small_talk_response(text):
+    text = text.lower()
+    for trigger, responses in SMALL_TALK.items():
+        if trigger in text:
             return random.choice(responses)
-    return "I'm here for all your Crescent University questions! 🎓"
+    return "I'm not sure how to respond to that yet 😅"
 
-# --- Course Code Helper (Safe) ---
+# 🔍 Extract course code like "CSC 101" or "MTH101"
+COURSE_CODE_PATTERN = re.compile(r"\b([A-Z]{2,4})[-\s]?(\d{3})\b", re.IGNORECASE)
 
-def extract_course_code(text: str) -> str:
-    match = re.search(r"\b([A-Z]{2,4})\s?(\d{3})\b", text.upper())
+def extract_course_code(text):
+    match = COURSE_CODE_PATTERN.search(text)
     if match:
-        return f"{match.group(1)} {match.group(2)}"
+        return f"{match.group(1).upper()} {match.group(2)}"
     return None
 
-def get_course_by_code(course_code: str, course_data: list) -> str:
-    course_code = course_code.upper().strip()
+# 📘 Lookup course in course_data
+def get_course_by_code(code, course_data):
+    code = code.replace("-", " ").upper()
     for entry in course_data:
-        if course_code in entry.get("answer", ""):
-            parts = [part.strip() for part in entry["answer"].split(" | ")]
-            for part in parts:
-                if part.startswith(course_code):
-                    return part
+        if code in entry.get("question", "").upper():
+            return entry["answer"]
     return None

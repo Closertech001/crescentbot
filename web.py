@@ -9,6 +9,7 @@ from utils.preprocess import preprocess_text
 from utils.search import find_response
 from utils.memory import init_memory
 from utils.log_utils import log_query
+from utils.greetings import is_greeting, greeting_responses
 
 # --- Load Environment Variables ---
 load_dotenv()
@@ -31,11 +32,11 @@ if "last_department" not in st.session_state:
 @st.cache_resource
 def load_bot_resources():
     model = load_model()
-    data = load_dataset()  # ✅ FIXED: previously called nonexistent `load_data()`
-    return model, data
+    data = load_dataset()
+    embeddings = compute_question_embeddings(data["question"].tolist(), model)
+    return model, data, embeddings
 
-model, dataset = load_bot_resources()
-question_embeddings = compute_question_embeddings(dataset["question"].tolist(), model)
+model, dataset, question_embeddings = load_bot_resources()
 
 # --- Sidebar ---
 with st.sidebar:
@@ -91,7 +92,7 @@ st.markdown("""
 # --- Title ---
 st.title("🎓 Crescent University Chatbot")
 
-# --- Render Chat History ---
+# --- Display Chat History ---
 for msg in st.session_state.chat_history:
     css_class = "chat-message-user" if msg["role"] == "user" else "chat-message-assistant"
     with st.chat_message(msg["role"]):
@@ -106,7 +107,13 @@ if user_input:
     cleaned_input = preprocess_text(user_input)
     st.session_state.chat_history.append({"role": "user", "content": user_input})
 
-    # --- Check for exact match ---
+    # ✅ Handle greetings
+    if is_greeting(user_input):
+        response = greeting_responses()
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
+        st.rerun()
+
+    # ✅ Match exact question first
     matched_row = dataset[dataset['question'].str.lower() == cleaned_input.lower()]
     if not matched_row.empty:
         response = matched_row.iloc[0]['answer']
@@ -116,7 +123,6 @@ if user_input:
     else:
         response, department, score, related = find_response(cleaned_input, dataset, question_embeddings)
 
-
     st.session_state.chat_history.append({"role": "assistant", "content": response})
     st.session_state.related_questions = related
     st.session_state.last_department = department
@@ -124,7 +130,7 @@ if user_input:
     log_query(user_input, score)
     st.rerun()
 
-# --- Suggested Follow-up Questions ---
+# --- Follow-Up Suggestions ---
 if st.session_state.related_questions:
     st.markdown("#### 💡 You might also ask:")
     for i, q in enumerate(st.session_state.related_questions):

@@ -1,50 +1,88 @@
-# utils/course_query.py
-
 import json
 import re
 from rapidfuzz import process, fuzz
 
-with open("course_data.json", "r", encoding="utf-8") as f:
-    course_data = json.load(f)
+# Mapping of departments to faculties
+DEPARTMENT_TO_FACULTY = {
+    "anatomy": "COHES",
+    "nursing": "COHES",
+    "physiology": "COHES",
+    "architecture": "COES",
+    "computer science": "CICOT",
+    "information technology": "CICOT",
+    "physics": "CONAS",
+    "microbiology": "CONAS",
+    "mass communication": "CASMAS",
+    "political science": "CASMAS",
+    "economics": "CASMAS",
+    "law": "BACOLAW",
+    "accounting": "CASMAS",
+    # Add more mappings as needed
+}
 
-def extract_level_semester(text):
-    level_match = re.search(r"\b(100|200|300|400|500)\s*level\b", text)
-    semester_match = re.search(r"\b(first|second)\s*semester\b", text)
-    return (
-        level_match.group(1) if level_match else None,
-        semester_match.group(1) if semester_match else None,
-    )
+def fuzzy_match_department(user_input, threshold=70):
+    user_input = user_input.lower()
+    best_match, score = process.extractOne(user_input, DEPARTMENT_TO_FACULTY.keys(), scorer=fuzz.ratio)
+    return best_match if score >= threshold else None
 
-def match_department(user_input):
-    all_departments = list(course_data.keys())
-    best_match, score = process.extractOne(user_input, all_departments, scorer=fuzz.token_sort_ratio)
-    return best_match if score > 70 else None
+def get_course_info(user_input, course_data_path="data/course_data.json"):
+    try:
+        with open(course_data_path, "r", encoding="utf-8") as f:
+            course_data = json.load(f)
+    except Exception:
+        return None
 
-def get_course_info(user_input):
-    level, semester = extract_level_semester(user_input)
-    dept = match_department(user_input)
+    user_input = user_input.lower()
+    matched_dept = fuzzy_match_department(user_input)
 
-    if not dept:
-        return "🤔 I couldn't find the department you're referring to. Please check and try again."
+    level_match = re.search(r"\b(100|200|300|400|500)\b", user_input)
+    semester_match = re.search(r"\b(first|second)\s*semester\b", user_input)
 
-    courses = course_data.get(dept, {}).get("courses", {})
-    if level:
-        courses = courses.get(level, {})
-        if semester:
-            courses = courses.get(semester, [])
+    level = f"{level_match.group(1)}" if level_match else None
+    semester = semester_match.group(1).lower() if semester_match else None
 
-    if isinstance(courses, dict):  # In case level but no semester
-        all_courses = []
-        for sem in courses.values():
-            all_courses.extend(sem)
-        courses = all_courses
-    elif isinstance(courses, list):
-        pass
-    else:
-        return "🤷‍♂️ I couldn't find courses matching your request."
+    # Specific course code
+    code_match = re.search(r"\b([A-Z]{2,4}\s?\d{3})\b", user_input.upper())
+    if code_match:
+        code = code_match.group(1).replace(" ", "")
+        for faculty in course_data.values():
+            for department, levels in faculty.items():
+                for lvl, semesters in levels.items():
+                    for sem, courses in semesters.items():
+                        for course in courses:
+                            if course["code"].replace(" ", "").upper() == code:
+                                return f'{course["code"]}: {course["title"]} ({course["unit"]} units)'
+        return "Sorry, I couldn’t find that course code."
 
-    if not courses:
-        return "📚 No course data found for your query."
+    # Full course listing
+    if matched_dept:
+        faculty_key = DEPARTMENT_TO_FACULTY.get(matched_dept)
+        department_data = course_data.get(faculty_key, {}).get(matched_dept)
 
-    formatted = "\n".join([f"- {c['code']} — {c['title']} ({c['unit']} unit{'s' if c['unit'] != 1 else ''})" for c in courses])
-    return f"Here are the courses for **{dept}**{f', {level} level' if level else ''}{f', {semester} semester' if semester else ''}:\n\n{formatted}"
+        if not department_data:
+            return "I couldn’t find courses for that department."
+
+        if level and semester:
+            courses = department_data.get(level, {}).get(semester)
+            if not courses:
+                return f"No courses found for {matched_dept} {level} {semester} semester."
+            return "\n".join(f'{c["code"]}: {c["title"]} ({c["unit"]} units)' for c in courses)
+
+        elif level:
+            response = []
+            for sem, courses in department_data.get(level, {}).items():
+                if courses:
+                    course_lines = [f'{c["code"]}: {c["title"]} ({c["unit"]} units)' for c in courses]
+                    response.append(f"--- {sem.capitalize()} Semester ---\n" + "\n".join(course_lines))
+            return "\n\n".join(response) if response else f"No courses found for {matched_dept} {level} level."
+
+        else:
+            response = []
+            for lvl, sems in department_data.items():
+                for sem, courses in sems.items():
+                    if courses:
+                        course_lines = [f'{c["code"]}: {c["title"]} ({c["unit"]} units)' for c in courses]
+                        response.append(f"{lvl} - {sem.capitalize()} Semester\n" + "\n".join(course_lines))
+            return "\n\n".join(response) if response else f"No courses found for {matched_dept}."
+
+    return None

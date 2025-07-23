@@ -24,17 +24,9 @@ NORMALIZATION_MAP = {
     "100lvl": "100 level",
     "200lvl": "200 level",
     "300lvl": "300 level",
-    "400lvl": "400 level",
-    "wetin": "what",
-    "dey": "is",
-    "wan": "want",
-    "courses dem": "courses",
-    "which courses dem dey do": "what are the courses",
-    "we dey": "that are",
-    "course wey dem dey do": "courses"
+    "400lvl": "400 level"
 }
 
-# ✅ Known departments
 DEPARTMENTS = [
     "computer science", "anatomy", "biochemistry", "accounting",
     "business administration", "political science and international studies",
@@ -42,7 +34,6 @@ DEPARTMENTS = [
     "law", "nursing", "physiology", "architecture"
 ]
 
-# 🏛️ Department to Faculty mapping
 DEPARTMENT_TO_FACULTY_MAP = {
     "computer science": "CONAS",
     "anatomy": "COHES",
@@ -59,27 +50,26 @@ DEPARTMENT_TO_FACULTY_MAP = {
     "architecture": "COES"
 }
 
-# 🔤 Normalize text using slang map
 def normalize_text(text):
     text = text.lower()
-    for slang, std in NORMALIZATION_MAP.items():
-        text = text.replace(slang, std)
+    for slang, standard in NORMALIZATION_MAP.items():
+        text = text.replace(slang, standard)
     return text
 
-# 🎯 Normalize department from input
+def fuzzy_match_department(text):
+    result, score, _ = process.extractOne(text, DEPARTMENTS)
+    return result if score >= 80 else None
+
 def normalize_department(text):
-    norm_text = normalize_text(text)
+    norm_text = text.lower()
+    for slang, standard in NORMALIZATION_MAP.items():
+        if slang in norm_text and standard in DEPARTMENTS:
+            return standard
     for dept in DEPARTMENTS:
         if dept in norm_text:
             return dept
     return fuzzy_match_department(text)
 
-# 🧠 Fuzzy fallback if department not matched directly
-def fuzzy_match_department(text):
-    result, score, _ = process.extractOne(text, DEPARTMENTS)
-    return result if score >= 80 else None
-
-# 📤 Extract structured course query info
 def extract_course_query(text):
     text = normalize_text(text)
     level_match = re.search(r"\b(100|200|300|400)\s*level\b", text)
@@ -93,12 +83,10 @@ def extract_course_query(text):
         "faculty": DEPARTMENT_TO_FACULTY_MAP.get(department) if department else None
     }
 
-# 📂 Load course data from JSON
 def load_course_data(path="data/course_data.json"):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# 🧾 Filter and return course(s) by query
 def get_courses_for_query(query_info, course_data):
     if not query_info:
         return None
@@ -113,9 +101,9 @@ def get_courses_for_query(query_info, course_data):
         try:
             if entry["department"].lower() != dept:
                 continue
-            if level and entry.get("level", "").lower() != level:
+            if level and entry["level"].lower() != level:
                 continue
-            if semester and semester not in entry.get("question", "").lower():
+            if semester and semester not in entry["question"].lower():
                 continue
             matches.append(entry)
         except KeyError:
@@ -124,10 +112,5 @@ def get_courses_for_query(query_info, course_data):
     if not matches:
         return None
 
-    # Return only exact match if possible
-    if len(matches) == 1:
-        return matches[0]["answer"]
-
-    # Otherwise return cleaned, unique questions
-    questions = [f"**{m['question']}**\n{m['answer']}" for m in matches]
-    return "\n\n".join(questions)
+    # Return only the first matching answer
+    return matches[0]["answer"]

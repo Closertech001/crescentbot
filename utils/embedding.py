@@ -11,6 +11,9 @@ def load_dataset(path="data/crescent_qa.json"):
         data = json.load(f)
     return pd.DataFrame(data)
 
+# This alias is added in case some other file tries to import `load_data`
+load_data = load_dataset
+
 def compute_question_embeddings(questions, model):
     embeddings = model.encode(questions, convert_to_tensor=True, show_progress_bar=True)
     return embeddings

@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import torch
+import numpy as np
 import re
 from sentence_transformers import SentenceTransformer
 from utils.embedding import load_dataset, compute_question_embeddings

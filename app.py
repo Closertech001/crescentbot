@@ -1,145 +1,95 @@
 import streamlit as st
-import json
-import torch
-from sentence_transformers import SentenceTransformer
-from utils.embedding import load_dataset, compute_question_embeddings
-from utils.course_query import extract_course_query, get_courses_for_query, load_course_data, DEPARTMENTS, DEPARTMENT_TO_FACULTY_MAP
-from utils.greetings import (
-    is_greeting, greeting_response,
-    extract_course_code, get_course_by_code,
-    is_small_talk, small_talk_response
-)
-from rapidfuzz import process
+import random
+import re
+import time
+from utils.preprocess import normalize_input
+from utils.greetings import detect_greeting, detect_small_talk, respond_to_small_talk, GREETING_RESPONSES
+from utils.course_query import extract_course_query, get_courses_for_query
+from utils.embedding import load_embeddings
+from utils.search import find_similar_question
+from utils.memory import update_memory, get_last_department_level
+from utils.rewrite import rewrite_query_with_memory
+from openai import OpenAI
 
+# Load course data and embeddings
+course_data, qa_data, qa_embeddings = load_embeddings()
 
-def fuzzy_match_department(text):
-    result, score, _ = process.extractOne(text, DEPARTMENTS)
-    return result if score >= 80 else None
+# Initialize OpenAI client
+client = OpenAI()
 
-
-def update_query_context(follow_up, last_query):
-    q = last_query.copy()
-    if "second" in follow_up:
-        q["semester"] = "Second"
-    elif "first" in follow_up:
-        q["semester"] = "First"
-    if "200" in follow_up:
-        q["level"] = "200"
-    elif "300" in follow_up:
-        q["level"] = "300"
-    elif "400" in follow_up:
-        q["level"] = "400"
-    return q
-
-
-@st.cache_resource
-def load_all():
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    df = load_dataset("data/crescent_qa.json")
-    embeddings = compute_question_embeddings(df["question"].tolist(), model)
-    course_data = load_course_data("data/course_data.json")
-    return model, df, embeddings, course_data
-
-
-model, df, embeddings, course_data = load_all()
-
-
-def find_best_match(user_question, model, embeddings, df, threshold=0.6):
-    from sentence_transformers.util import cos_sim
-    user_embedding = model.encode(user_question.strip().lower(), convert_to_tensor=True)
-    cosine_scores = cos_sim(user_embedding, embeddings)[0]
-    best_score = torch.max(cosine_scores).item()
-    best_idx = torch.argmax(cosine_scores).item()
-    if best_score >= threshold:
-        return df.iloc[best_idx]["answer"]
-    return None
-
-
-st.set_page_config(page_title="Crescent University Chatbot", layout="centered")
+# Streamlit UI setup
+st.set_page_config(page_title="Crescent University Chatbot", layout="wide")
 st.title("🎓 Crescent University Chatbot")
-st.markdown("Ask me anything about departments, courses, or general university info!")
 
-if "chat" not in st.session_state:
-    st.session_state.chat = []
-if "bot_greeted" not in st.session_state:
-    st.session_state.bot_greeted = False
-if "last_query_info" not in st.session_state:
-    st.session_state.last_query_info = {}
+# Chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-USER_AVATAR = "🧑‍💻"
-BOT_AVATAR = "🎓"
+# Greeting tracking
+if "greeted" not in st.session_state:
+    st.session_state["greeted"] = False
 
-user_input = st.chat_input("Type your question here...")
+# Display chat history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-if user_input:
-    st.session_state.chat.append({"role": "user", "text": user_input})
-    normalized_input = user_input.lower()
+# Typing animation
+def show_typing_animation():
+    with st.chat_message("assistant"):
+        placeholder = st.empty()
+        for dots in ["", ".", "..", "..."]:
+            placeholder.markdown(f"Bot is typing{dots}")
+            time.sleep(0.3)
 
-    # 1️⃣ Greeting (only once)
-    if is_greeting(user_input) and not st.session_state.bot_greeted:
-        response = greeting_response(user_input)
-        st.session_state.bot_greeted = True
+# Response generation
+def generate_response(user_input):
+    normalized = normalize_input(user_input)
 
-    # 2️⃣ Small talk
-    elif is_small_talk(user_input):
-        response = small_talk_response(user_input)
+    # Handle greeting
+    if not st.session_state["greeted"] and detect_greeting(normalized):
+        st.session_state["greeted"] = True
+        return random.choice(GREETING_RESPONSES)
 
-    # 3️⃣ Direct course code lookup
-    else:
-        course_code = extract_course_code(user_input)
+    # Handle small talk
+    if detect_small_talk(normalized):
+        return respond_to_small_talk(normalized)
 
-        if course_code:
-            course_response = get_course_by_code(course_code, course_data)
-            if course_response:
-                response = f"📘 *Here’s the info for* `{course_code}`:\n\n{course_response}"
-            else:
-                response = f"🤔 I couldn't find any details for `{course_code}`. Please check the code and try again."
+    # Try course query
+    query_info = extract_course_query(normalized)
 
-        # 4️⃣ Course-related questions with 'course' keyword but no code
-        elif "course" in normalized_input:
-            response = "📝 Please provide a course code like *CSC 101* or specify department + level (e.g., Computer Science 200 level)."
+    # Add memory if missing
+    query_info = rewrite_query_with_memory(query_info)
 
-        # 5️⃣ General keywords about university info fallback to semantic search
-        else:
-            general_keywords = [
-                "admission", "requirement", "fee", "tuition", "duration", "length",
-                "cut off", "hostel", "accommodation", "location", "accreditation"
-            ]
-            if any(word in normalized_input for word in general_keywords):
-                result = find_best_match(user_input, model, embeddings, df)
+    # Attempt course lookup
+    course_answer = get_courses_for_query(query_info, course_data)
+    if course_answer:
+        update_memory(query_info)
+        return course_answer
 
-            else:
-                # 6️⃣ Extract structured query info (dept, level, semester)
-                query_info = extract_course_query(user_input)
+    # Semantic fallback
+    similar_q, score = find_similar_question(normalized, qa_data, qa_embeddings)
+    if score > 0.6:
+        return similar_q["answer"]
 
-                # 7️⃣ Deep follow-up context
-                if not any([query_info.get("department"), query_info.get("level"), query_info.get("semester")]):
-                    last_q = st.session_state.get("last_query_info")
-                    if last_q:
-                        query_info = update_query_context(user_input, last_q)
+    # Fallback to GPT
+    gpt_response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant for Crescent University students. Respond clearly and concisely."},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    return gpt_response.choices[0].message.content.strip()
 
-                # 8️⃣ Fuzzy department fix
-                if not query_info.get("department"):
-                    dept_guess = fuzzy_match_department(user_input)
-                    if dept_guess:
-                        query_info["department"] = dept_guess.title()
-                        query_info["faculty"] = DEPARTMENT_TO_FACULTY_MAP.get(dept_guess)
+# Chat input
+if prompt := st.chat_input("Ask me anything about Crescent University..."):
+    st.chat_message("user").markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-                # 9️⃣ Query course data or fallback to semantic search
-                if query_info and query_info.get("department"):
-                    result = get_courses_for_query(query_info, course_data)
-                    st.session_state.last_query_info = query_info
-                else:
-                    result = find_best_match(user_input, model, embeddings, df)
+    # Typing effect
+    show_typing_animation()
 
-            if result:
-                response = f"✨ Here’s what I found:\n\n{result}"
-            else:
-                response = "😕 I couldn’t find an answer to that. Try rephrasing it?"
-
-    st.session_state.chat.append({"role": "bot", "text": response})
-
-for message in st.session_state.chat:
-    avatar = USER_AVATAR if message["role"] == "user" else BOT_AVATAR
-    with st.chat_message(message["role"], avatar=avatar):
-        st.markdown(message["text"])
+    response = generate_response(prompt)
+    st.chat_message("assistant").markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})

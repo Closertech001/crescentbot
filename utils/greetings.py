@@ -5,17 +5,10 @@ from textblob import TextBlob
 # --- GREETING DETECTION ---
 
 GREETING_PATTERNS = [
-    r"hi",
-    r"hello",
-    r"hey",
+    r"\bhi\b", r"\bhello\b", r"\bhey\b",
     r"good (morning|afternoon|evening)",
-    r"what's up",
-    r"howdy",
-    r"yo",
-    r"sup",
-    r"greetings",
-    r"how far",
-    r"how you dey"
+    r"what('?s| is) up", r"\bhowdy\b", r"\byo\b", r"\bsup\b",
+    r"\bgreetings\b", r"how far", r"how you dey"
 ]
 
 _greeting_responses_by_sentiment = {
@@ -80,6 +73,10 @@ SMALL_TALK_PATTERNS = {
     r"you('?| )re (funny|cool|smart)": [
         "Aww, thanks! 😊 You’re not so bad yourself.",
         "Appreciate it! Let’s keep the good vibes going 🔥"
+    ],
+    r"thank you|thanks|nice one": [
+        "You’re welcome! 😊",
+        "Anytime! Let me know if you need more help."
     ]
 }
 

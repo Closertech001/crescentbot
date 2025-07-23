@@ -1,6 +1,9 @@
-# Simple memory tracker for Streamlit session
-def store_last_query_info(state, query_info):
-    state["last_query_info"] = query_info
+import streamlit as st
 
-def get_last_query_info(state):
-    return state.get("last_query_info", None)
+def init_memory():
+    if "last_query_info" not in st.session_state:
+        st.session_state["last_query_info"] = {}
+    if "chat" not in st.session_state:
+        st.session_state["chat"] = []
+    if "bot_greeted" not in st.session_state:
+        st.session_state["bot_greeted"] = False

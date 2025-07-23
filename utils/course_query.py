@@ -1,5 +1,3 @@
-# utils/course_query.py
-
 import json
 import re
 from rapidfuzz import process
@@ -100,8 +98,13 @@ def extract_course_query(text):
 
 # 📂 Load course data from JSON
 def load_course_data(path="data/course_data.json"):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"[ERROR] course_data.json not found at: {path}")
+    except json.JSONDecodeError:
+        raise ValueError("[ERROR] course_data.json is not a valid JSON file.")
 
 # 🧾 Filter and return course(s) by query
 def get_courses_for_query(query_info, course_data):
@@ -118,7 +121,7 @@ def get_courses_for_query(query_info, course_data):
         try:
             if entry["department"].lower() != dept:
                 continue
-            if level and entry["level"].lower() != level:
+            if level and entry.get("level", "").lower() != level:
                 continue
             if semester and semester not in entry["question"].lower():
                 continue

@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import re
 import time
-from utils.preprocess import normalize_input
+from utils.preprocess import preprocess_text as normalize_input
 from utils.greetings import detect_greeting, detect_small_talk, respond_to_small_talk, GREETING_RESPONSES
 from utils.course_query import extract_course_query, get_courses_for_query
 from utils.embedding import load_embeddings

@@ -1,22 +1,25 @@
-# Core libraries
+# Streamlit Web App
 streamlit>=1.29.0
 python-dotenv
-openai
 
-# NLP & Embeddings
+# OpenAI client (optional fallback if used)
+openai>=1.0.0
+
+# Sentence Embeddings & NLP
 sentence-transformers>=2.2.2
 torch>=2.0.1
 numpy>=1.23.0
-pandas
+pandas>=1.5.0
 scikit-learn>=1.3.0
 
-# Spelling & Preprocessing
+# Preprocessing & Text Normalization
 symspellpy>=6.7.7
-textblob
-rapidfuzz>=3.0.0   # ✅ Added for fuzzy department matching
+textblob>=0.17.1
+rapidfuzz>=3.5.2
+emoji>=2.8.0
 
-# Vector search
+# Vector similarity
 faiss-cpu>=1.7.4
 
-# Optional (for emoji, CSS rendering, etc.)
-emoji
+# Optional utilities
+tiktoken>=0.6.0

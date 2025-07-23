@@ -4,7 +4,7 @@ from rapidfuzz import process
 
 # Load course data from the correct path
 with open("data/course_data.json", "r", encoding="utf-8") as f:
-    COURSE_DATA = json.load(f)
+    course_data = json.load(f)
 
 # Mapping department to faculty
 DEPARTMENT_TO_FACULTY = {

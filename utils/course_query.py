@@ -98,15 +98,10 @@ def extract_course_query(text):
 
 # 📂 Load course data from JSON
 def load_course_data(path="data/course_data.json"):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"[ERROR] course_data.json not found at: {path}")
-    except json.JSONDecodeError:
-        raise ValueError("[ERROR] course_data.json is not a valid JSON file.")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-# 🧾 Filter and return course(s) by query
+# ✅ Return a single matching course answer
 def get_courses_for_query(query_info, course_data):
     if not query_info:
         return None
@@ -115,24 +110,16 @@ def get_courses_for_query(query_info, course_data):
     level = query_info.get("level", "").lower() if query_info.get("level") else None
     semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
 
-    matches = []
-
     for entry in course_data:
         try:
             if entry["department"].lower() != dept:
                 continue
-            if level and entry.get("level", "").lower() != level:
+            if level and entry["level"].lower() != level:
                 continue
             if semester and semester not in entry["question"].lower():
                 continue
-            matches.append(entry)
+            return entry["answer"]  # ✅ Return only the first relevant match
         except KeyError:
             continue
 
-    if not matches:
-        return None
-
-    if len(matches) > 1:
-        return "\n\n".join([f"**{m['question']}**\n{m['answer']}" for m in matches])
-    else:
-        return matches[0]["answer"]
+    return None

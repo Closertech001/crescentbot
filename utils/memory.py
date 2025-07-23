@@ -1,14 +1,24 @@
 # utils/memory.py
 
-class MemoryHandler:
-    def __init__(self):
-        self.memory = {}
+# Simple in-memory tracker for conversation context
+user_memory = {
+    "last_department": None,
+    "last_level": None,
+    "last_semester": None,
+}
 
-    def get(self, key, default=None):
-        return self.memory.get(key, default)
+def update_memory(department=None, level=None, semester=None):
+    if department:
+        user_memory["last_department"] = department
+    if level:
+        user_memory["last_level"] = level
+    if semester:
+        user_memory["last_semester"] = semester
 
-    def set(self, key, value):
-        self.memory[key] = value
+def get_last_department_level():
+    return user_memory["last_department"], user_memory["last_level"], user_memory["last_semester"]
 
-    def clear(self):
-        self.memory.clear()
+def clear_memory():
+    user_memory["last_department"] = None
+    user_memory["last_level"] = None
+    user_memory["last_semester"] = None

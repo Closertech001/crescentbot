@@ -2,15 +2,15 @@ import re
 import random
 
 def is_greeting(text):
-    greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "greetings", "what's up"]
+    greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]
     return any(greet in text.lower() for greet in greetings)
 
 def greeting_responses(text=None):
     responses = [
         "Hello! 👋 What would you like to know about Crescent University?",
-        "Hi there! 😊 Feel free to ask me about courses, departments or anything else.",
-        "Hey! I'm here to help with your Crescent University questions.",
-        "Good to see you! Ready to answer your university questions."
+        "Hi there! 😊 Ask me anything about courses or departments.",
+        "Hey! I'm here to help with Crescent University info.",
+        "Good to see you! Let me assist with your questions."
     ]
     return random.choice(responses)
 
@@ -29,16 +29,14 @@ def is_small_talk(text):
 
 def small_talk_response(text):
     responses = {
-        "how are you": "I'm doing great, thanks! How can I assist you today?",
-        "what's up": "Not much, just here to help you!",
-        "who are you": "I'm your Crescent University assistant bot!",
-        "are you real": "I'm a real bot 🤖 trained to answer your questions.",
-        "thank you": "You're welcome! 😊",
-        "i love you": "Aww, I love helping you too! ❤️"
+        "how are you": "I'm great! 😊 Ready to help.",
+        "what's up": "Not much! I'm here to answer your questions.",
+        "who are you": "I'm Crescent University's virtual assistant 🤖.",
+        "are you real": "I'm a helpful bot, yes! 🤖",
+        "thank you": "You're welcome!",
+        "i love you": "That's sweet! I'm here to support you. ❤️"
     }
-
     for pattern, reply in responses.items():
         if pattern in text.lower():
             return reply
-
-    return "I'm here to help! Just ask me anything about Crescent University."
+    return "I'm here to help! Just ask anything about Crescent University."

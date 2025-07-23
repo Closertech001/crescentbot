@@ -2,29 +2,17 @@ import json
 import re
 from rapidfuzz import process
 
-# 🔁 Informal input normalization map
+# Normalization for slang/abbreviations
 NORMALIZATION_MAP = {
-    "comp sci": "computer science",
-    "mass comm": "mass communication",
-    "masscom": "mass communication",
-    "nursin": "nursing",
-    "nursing science": "nursing",
-    "physio": "physiology",
-    "microbio": "microbiology",
-    "biochem": "biochemistry",
-    "biz admin": "business administration",
-    "bus admin": "business administration",
-    "account": "accounting",
-    "law school": "law",
-    "pol sci": "political science and international studies",
-    "econs": "economics with operations research",
-    "arch": "architecture",
-    "first sem": "first semester",
-    "second sem": "second semester",
-    "100lvl": "100 level",
-    "200lvl": "200 level",
-    "300lvl": "300 level",
-    "400lvl": "400 level"
+    "comp sci": "computer science", "csc": "computer science",
+    "mass comm": "mass communication", "masscom": "mass communication",
+    "nursin": "nursing", "nursing science": "nursing",
+    "physio": "physiology", "microbio": "microbiology", "biochem": "biochemistry",
+    "biz admin": "business administration", "bus admin": "business administration",
+    "account": "accounting", "law school": "law", "pol sci": "political science and international studies",
+    "econs": "economics with operations research", "arch": "architecture",
+    "first sem": "first semester", "second sem": "second semester",
+    "100lvl": "100 level", "200lvl": "200 level", "300lvl": "300 level", "400lvl": "400 level",
 }
 
 DEPARTMENTS = [
@@ -35,25 +23,17 @@ DEPARTMENTS = [
 ]
 
 DEPARTMENT_TO_FACULTY_MAP = {
-    "computer science": "CONAS",
-    "anatomy": "COHES",
-    "biochemistry": "CONAS",
-    "accounting": "CASMAS",
-    "business administration": "CASMAS",
-    "political science and international studies": "CASMAS",
-    "microbiology": "CONAS",
-    "economics with operations research": "CASMAS",
-    "mass communication": "CASMAS",
-    "law": "BACOLAW",
-    "nursing": "COHES",
-    "physiology": "COHES",
-    "architecture": "COES"
+    "computer science": "CONAS", "anatomy": "COHES", "biochemistry": "CONAS",
+    "accounting": "CASMAS", "business administration": "CASMAS",
+    "political science and international studies": "CASMAS", "microbiology": "CONAS",
+    "economics with operations research": "CASMAS", "mass communication": "CASMAS",
+    "law": "BACOLAW", "nursing": "COHES", "physiology": "COHES", "architecture": "COES"
 }
 
 def normalize_text(text):
     text = text.lower()
-    for slang, standard in NORMALIZATION_MAP.items():
-        text = text.replace(slang, standard)
+    for slang, std in NORMALIZATION_MAP.items():
+        text = text.replace(slang, std)
     return text
 
 def fuzzy_match_department(text):
@@ -61,12 +41,9 @@ def fuzzy_match_department(text):
     return result if score >= 80 else None
 
 def normalize_department(text):
-    norm_text = text.lower()
-    for slang, standard in NORMALIZATION_MAP.items():
-        if slang in norm_text and standard in DEPARTMENTS:
-            return standard
+    text = normalize_text(text)
     for dept in DEPARTMENTS:
-        if dept in norm_text:
+        if dept in text:
             return dept
     return fuzzy_match_department(text)
 
@@ -96,7 +73,6 @@ def get_courses_for_query(query_info, course_data):
     semester = query_info.get("semester", "").lower() if query_info.get("semester") else None
 
     matches = []
-
     for entry in course_data:
         try:
             if entry["department"].lower() != dept:
@@ -112,5 +88,4 @@ def get_courses_for_query(query_info, course_data):
     if not matches:
         return None
 
-    # Return only the first matching answer
     return matches[0]["answer"]

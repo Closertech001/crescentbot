@@ -1,7 +1,7 @@
 import random
 import re
 
-# --- Greeting Keywords ---
+# --- Greeting Triggers ---
 GREETING_KEYWORDS = [
     "hello", "hi", "hey", "yo", "howdy", "hiya", "sup", "what's up",
     "good morning", "good afternoon", "good evening", "greetings"
@@ -18,20 +18,20 @@ GREETING_RESPONSES = [
     "Good to see you! 🌟 Got any questions about Crescent University?"
 ]
 
-# --- Small Talk Keywords ---
-SMALL_TALK_PATTERNS = {
+# --- Small Talk + Emotional Patterns ---
+SOCIAL_PATTERNS = {
     r"\bhow are you\b": [
         "I'm doing great, thank you! 😊 How can I help you today?",
-        "All systems go! Ready to assist you with Crescent University questions. 🚀",
-        "Feeling helpful as always! What can I do for you today? 💡"
+        "Feeling sharp and ready to assist! ⚡",
+        "All good here—excited to help you out! 🤖"
     ],
     r"\bwhat(?:'s| is) your name\b": [
         "You can call me CrescentBot 🤖, your helpful university assistant.",
-        "I'm CrescentBot! I specialize in answering all your Crescent University questions. 🎓"
+        "I go by CrescentBot! I know quite a lot about Crescent University. 🎓"
     ],
     r"\btell me about yourself\b": [
         "I'm CrescentBot, built to assist students and staff with everything about Crescent University! 💬",
-        "I’m a smart assistant trained on Crescent University data to help with inquiries, courses, departments and more. 🧠"
+        "I’m trained to answer your questions about courses, departments, admissions and more! 🎓"
     ],
     r"\bwho (are|r) you\b": [
         "I'm CrescentBot, your AI guide to Crescent University. 🎓 Ask me anything!",
@@ -46,30 +46,47 @@ SMALL_TALK_PATTERNS = {
         "Thank you! 🤖 I’m here to help anytime!",
         "I appreciate that! 😊",
         "Yay! I'm glad I could help. 💙"
+    ],
+    r"\bi(?:'m| am)?\s+(confused|lost|not sure)\b": [
+        "No worries — I'm here to help. Can you please clarify what you're trying to find? 🤔",
+        "It’s okay to feel confused! Just ask me anything about Crescent University. 💡"
+    ],
+    r"\bi(?:'m| am)?\s+(sad|tired|bored|upset)\b": [
+        "I’m here if you need someone to talk to. Want to explore some Crescent Uni resources together? 💙",
+        "Sorry you're feeling that way. Let's focus on something helpful or interesting! 😊"
+    ],
+    r"\bi (don't )?understand\b": [
+        "Let me try to explain it better. What exactly would you like me to break down? 🧠",
+        "Totally fine! Please rephrase or point out where you’re stuck. I’ve got you. 💪"
+    ],
+    r"\bthat (wasn't|isn't|is not) helpful\b": [
+        "Oops! Let me try that again. Could you be more specific so I can assist better? 🙏",
+        "Thanks for the feedback. I’ll do my best to clarify or find a better answer. 🔍"
+    ],
+    r"\bi'm happy\b": [
+        "Yay! That’s always great to hear 😄 Anything I can do to make your day even better?",
+        "Awesome! Let's keep the good vibes going! 🌟"
     ]
 }
 
-# --- Greeting Detection ---
+# --- Detection Functions ---
 def is_greeting(text):
     text = text.lower()
     return any(re.search(rf"\b{kw}\b", text) for kw in GREETING_KEYWORDS)
 
-# --- Small Talk Detection ---
-def is_small_talk(text):
+def greeting_responses():
+    return random.choice(GREETING_RESPONSES)
+
+def is_social_trigger(text):
     text = text.lower()
-    for pattern in SMALL_TALK_PATTERNS:
+    for pattern in SOCIAL_PATTERNS:
         if re.search(pattern, text):
             return True
     return False
 
-# --- Generate Greeting Response ---
-def greeting_responses(text=None):
-    return random.choice(GREETING_RESPONSES)
-
-# --- Generate Small Talk Response ---
-def small_talk_response(text):
+def social_response(text):
     text = text.lower()
-    for pattern, responses in SMALL_TALK_PATTERNS.items():
+    for pattern, responses in SOCIAL_PATTERNS.items():
         if re.search(pattern, text):
             return random.choice(responses)
     return None

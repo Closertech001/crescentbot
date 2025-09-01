@@ -16,8 +16,6 @@ GREETING_RESPONSES = [
     "Hiya! 🙋 Let me know what you need help with at Crescent University.",
     "Howdy! 🤠 I'm your friendly assistant for all things Crescent University.",
     "Good to see you! 🌟 Got any questions about Crescent University?",
-    "How are you! I am fine, How are you too?",
-    "I am fine! That's good"
 ]
 
 # --- Small Talk + Emotional Patterns ---
@@ -49,13 +47,14 @@ SOCIAL_PATTERNS = {
         "I appreciate that! 😊",
         "Yay! I'm glad I could help. 💙"
     ],
-    r"\bi(?:'m| am)?\s+(confused|lost|not sure)\b": [
+    r"\bi(?:'|’)?m?\s+(confused|lost|not sure)\b": [
         "No worries — I'm here to help. Can you please clarify what you're trying to find? 🤔",
         "It’s okay to feel confused! Just ask me anything about Crescent University. 💡"
     ],
-    r"\bi(?:'m| am)?\s+(sad|tired|bored|upset)\b": [
+    r"\bi(?:'|’)?m?\s+(sad|tired|bored|upset)\b": [
         "I’m here if you need someone to talk to. Want to explore some Crescent Uni resources together? 💙",
-        "Sorry you're feeling that way. Let's focus on something helpful or interesting! 😊"
+        "Sorry you're feeling that way. Let's focus on something helpful or interesting! 😊",
+        "Cheer up! 🌟 Maybe learning something new at Crescent Uni could brighten your mood!"
     ],
     r"\bi (don't )?understand\b": [
         "Let me try to explain it better. What exactly would you like me to break down? 🧠",
@@ -65,30 +64,30 @@ SOCIAL_PATTERNS = {
         "Oops! Let me try that again. Could you be more specific so I can assist better? 🙏",
         "Thanks for the feedback. I’ll do my best to clarify or find a better answer. 🔍"
     ],
-    r"\bi'm happy\b": [
+    r"\bi(?:'|’)?m?\s+happy\b": [
         "Yay! That’s always great to hear 😄 Anything I can do to make your day even better?",
         "Awesome! Let's keep the good vibes going! 🌟"
     ]
 }
 
-# --- Detection Functions ---
-def is_greeting(text):
+# --- Detection + Response Functions ---
+def is_greeting(text: str) -> bool:
+    """Check if the input text is a greeting."""
     text = text.lower()
-    return any(re.search(rf"\b{kw}\b", text) for kw in GREETING_KEYWORDS)
+    return any(re.search(rf"\b{re.escape(kw)}\b", text) for kw in GREETING_KEYWORDS)
 
-def greeting_responses():
+def get_greeting_response() -> str:
+    """Return a random greeting response."""
     return random.choice(GREETING_RESPONSES)
 
-def is_social_trigger(text):
-    text = text.lower()
-    for pattern in SOCIAL_PATTERNS:
-        if re.search(pattern, text):
-            return True
-    return False
-
-def social_response(text):
+def get_social_response(text: str) -> str | None:
+    """Return a social/small-talk response if a pattern matches, else None."""
     text = text.lower()
     for pattern, responses in SOCIAL_PATTERNS.items():
         if re.search(pattern, text):
             return random.choice(responses)
     return None
+
+def default_response() -> str:
+    """Fallback response when no greeting or social trigger is detected."""
+    return "I’m not sure I understand 🤔 Could you rephrase your question about Crescent University?"

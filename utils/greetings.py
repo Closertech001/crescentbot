@@ -15,7 +15,9 @@ GREETING_RESPONSES = [
     "Yo! 👋 Ready to chat about Crescent University?",
     "Hiya! 🙋 Let me know what you need help with at Crescent University.",
     "Howdy! 🤠 I'm your friendly assistant for all things Crescent University.",
-    "Good to see you! 🌟 Got any questions about Crescent University?"
+    "Good to see you! 🌟 Got any questions about Crescent University?",
+    "How are you! I am fine, How are you too?",
+    "I am fine! That's good"
 ]
 
 # --- Small Talk + Emotional Patterns ---

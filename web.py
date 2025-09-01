@@ -9,7 +9,7 @@ from utils.preprocess import preprocess_text
 from utils.search import find_response
 from utils.memory import init_memory
 from utils.log_utils import log_query
-from utils.greetings import is_greeting, greeting_responses, is_social_trigger, social_response
+from utils.greetings import is_greeting, greeting_responses, is_social_trigger, social_response, SOCIAL_PATTERNS
 from utils.course_query import extract_course_query  # for extracting level/semester
 
 # --- Load Environment Variables ---

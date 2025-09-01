@@ -4,7 +4,7 @@ import re
 # --- Greeting Triggers ---
 GREETING_KEYWORDS = [
     "hello", "hi", "hey", "yo", "howdy", "hiya", "sup", "what's up",
-    "good morning", "good afternoon", "good evening", "greetings"
+    "good morning", "good afternoon", "good evening", "greetings", "how are you"
 ]
 
 GREETING_RESPONSES = [
